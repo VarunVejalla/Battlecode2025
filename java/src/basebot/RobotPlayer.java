@@ -20,7 +20,13 @@ public class RobotPlayer {
             rc.resign();
         }
 
-        Robot robot = new Robot(rc);
+        Robot robot;
+        switch (rc.getType()){
+            case SOLDIER: robot = new Soldier(rc); break;
+            case MOPPER: robot = new Mopper(rc); break;
+            case SPLASHER: robot = new Splasher(rc); break;
+            default: robot = new Tower(rc); break;
+        }
 
 //        switch(rc.getType()) {
 //
