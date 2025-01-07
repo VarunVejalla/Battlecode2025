@@ -2,8 +2,8 @@ package basebot;
 
 import battlecode.common.*;
 
-public class Mopper extends Bunny {
-    public Mopper(RobotController rc) throws GameActionException {
+public class PaintTower extends Tower {
+    public PaintTower(RobotController rc) throws GameActionException {
         super(rc);
     }
 

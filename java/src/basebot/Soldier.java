@@ -2,7 +2,7 @@ package basebot;
 
 import battlecode.common.*;
 
-public class Soldier extends Robot {
+public class Soldier extends Bunny {
     public Soldier(RobotController rc) throws GameActionException {
         super(rc);
     }

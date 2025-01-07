@@ -22,9 +22,30 @@ public class RobotPlayer {
 
         Robot robot;
         switch (rc.getType()){
+
             case SOLDIER: robot = new Soldier(rc); break;
             case MOPPER: robot = new Mopper(rc); break;
             case SPLASHER: robot = new Splasher(rc); break;
+
+
+            // Defense Towers
+            case LEVEL_ONE_DEFENSE_TOWER: robot = new DefenseTower(rc); break;
+            case LEVEL_TWO_DEFENSE_TOWER: robot = new DefenseTower(rc); break;
+            case LEVEL_THREE_DEFENSE_TOWER: robot = new DefenseTower(rc); break;
+
+
+            case LEVEL_ONE_MONEY_TOWER: robot = new MoneyTower(rc); break;
+            case LEVEL_TWO_MONEY_TOWER: robot = new MoneyTower(rc); break;
+            case LEVEL_THREE_MONEY_TOWER: robot = new MoneyTower(rc); break;
+
+
+            case LEVEL_ONE_PAINT_TOWER: robot = new PaintTower(rc); break;
+            case LEVEL_TWO_PAINT_TOWER: robot = new PaintTower(rc); break;
+            case LEVEL_THREE_PAINT_TOWER: robot = new PaintTower(rc); break;
+
+
+
+
             default: robot = new Tower(rc); break;
         }
 
