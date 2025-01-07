@@ -100,62 +100,6 @@ public class Robot {
 //        nearbyActionEnemies = rc.senseNearbyRobots(GameConstants.ATTACK_RADIUS_SQUARED, oppTeam);
     }
 
-    /**
-     * Run a single turn for towers.
-     * This code is wrapped inside the infinite loop in run(), so it is called once per turn.
-     */
-    public static void runTower(RobotController rc) throws GameActionException{
-        // Pick a direction to build in.
-        Direction dir = directions[rng.nextInt(directions.length)];
-        MapLocation nextLoc = rc.getLocation().add(dir);
-        // Pick a random robot type to build.
-        int robotType = rng.nextInt(3);
-        if (robotType == 0 && rc.canBuildRobot(UnitType.SOLDIER, nextLoc)){
-            rc.buildRobot(UnitType.SOLDIER, nextLoc);
-            System.out.println("BUILT A SOLDIER");
-        }
-        else if (robotType == 1 && rc.canBuildRobot(UnitType.MOPPER, nextLoc)){
-            rc.buildRobot(UnitType.MOPPER, nextLoc);
-            System.out.println("BUILT A MOPPER");
-        }
-        else if (robotType == 2 && rc.canBuildRobot(UnitType.SPLASHER, nextLoc)){
-            // rc.buildRobot(UnitType.SPLASHER, nextLoc);
-            // System.out.println("BUILT A SPLASHER");
-            rc.setIndicatorString("SPLASHER NOT IMPLEMENTED YET");
-        }
-
-        // Read incoming messages
-        Message[] messages = rc.readMessages(-1);
-        for (Message m : messages) {
-            System.out.println("Tower received message: '#" + m.getSenderID() + " " + m.getBytes());
-        }
-
-        // TODO: can we attack other bots?
-    }
-
-
-    /**
-     * Run a single turn for a Mopper.
-     * This code is wrapped inside the infinite loop in run(), so it is called once per turn.
-     */
-    public static void runMopper(RobotController rc) throws GameActionException{
-        // Move and attack randomly.
-        Direction dir = directions[rng.nextInt(directions.length)];
-        MapLocation nextLoc = rc.getLocation().add(dir);
-        if (rc.canMove(dir)){
-            rc.move(dir);
-        }
-        if (rc.canMopSwing(dir)){
-            rc.mopSwing(dir);
-            System.out.println("Mop Swing! Booyah!");
-        }
-        else if (rc.canAttack(nextLoc)){
-            rc.attack(nextLoc);
-        }
-        // We can also move our code into different methods or classes to better organize it!
-        updateEnemyRobots(rc);
-    }
-
     public static void updateEnemyRobots(RobotController rc) throws GameActionException{
         // Sensing methods can be passed in a radius of -1 to automatically
         // use the largest possible value.
