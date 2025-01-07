@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="0c7d3cd7-a986-4ccf-9866-3d9eeb878148" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/../.gradle/8.10/fileHashes/fileHashes.lock" beforeDir="false" afterPath="$PROJECT_DIR$/../.gradle/8.10/fileHashes/fileHashes.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/../build.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../build/classes/examplefuncsplayer/RobotPlayer$1.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../build/classes/examplefuncsplayer/RobotPlayer.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../build/libs/Battlecode2025.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../build/libs/java.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../build/reports/tests/test/classes/examplefuncsplayer.RobotPlayerTest.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../build/reports/tests/test/css/base-style.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../build/reports/tests/test/css/style.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../build/reports/tests/test/index.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../build/reports/tests/test/js/report.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../build/reports/tests/test/packages/examplefuncsplayer.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../build/test-results/test/TEST-examplefuncsplayer.RobotPlayerTest.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../build/test-results/test/binary/output.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../build/test-results/test/binary/output.bin.idx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../build/test-results/test/binary/results.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../build/tests/examplefuncsplayer/RobotPlayerTest.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../build/tmp/compileJava/previous-compilation-data.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../build/tmp/compileTestJava/previous-compilation-data.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../build/tmp/jar/MANIFEST.MF" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../client_version.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../client_version.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../engine_version.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../engine_version.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../java/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../java/.idea/compiler.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../java/.idea/gradle.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../java/.idea/jarRepositories.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../java/.idea/misc.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../java/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../java/src/basebot/Bunny.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../java/src/basebot/DefenseTower.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../java/src/basebot/MoneyTower.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../java/src/basebot/Mopper.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../java/src/basebot/Navigation.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../java/src/basebot/PaintTower.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../java/src/basebot/Robot.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../java/src/basebot/RobotPlayer.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../java/src/basebot/Soldier.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../java/src/basebot/Splasher.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../java/src/basebot/Tower.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../java/src/basebot/Util.java" beforeDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 5
+}]]></component>
+  <component name="ProjectId" id="2rJrr8RztWpNQ0OQ275b491lnfP" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "main",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "/Users/saahithjanapati/Desktop/Battlecode2025_old/test"
+  }
+}]]></component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="0c7d3cd7-a986-4ccf-9866-3d9eeb878148" name="Changes" comment="" />
+      <created>1736288216016</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1736288216016</updated>
+    </task>
+    <servers />
+  </component>
+</project>
