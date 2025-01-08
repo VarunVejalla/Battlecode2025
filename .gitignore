@@ -4,8 +4,14 @@ version.txt
 /matches
 /client
 
-###### GRADLE ######
 
+#### MAC Stuff ####
+.DS_Store
+src/.DS_Store
+
+
+
+###### GRADLE ######
 .gradle
 **/build/
 !src/**/build/
