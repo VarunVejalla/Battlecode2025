@@ -20,8 +20,12 @@ public class Soldier extends Bunny {
         MapInfo curRuin = null;
         for (MapInfo tile : nearbyTiles) {
             if (tile.hasRuin()) {
-                curRuin = tile;
-                break;
+                RobotInfo robotAtRuin = rc.senseRobotAtLocation(tile.getMapLocation());
+
+                if (robotAtRuin == null || robotAtRuin.team != rc.getTeam()) {
+                    curRuin = tile;
+                    break;
+                }
             }
         }
 
@@ -77,6 +81,24 @@ public class Soldier extends Bunny {
                 if (tile.getMark().isAlly() && tile.getPaint() == PaintType.EMPTY) {
                     if (rc.canAttack(tile.getMapLocation())) {
                         rc.attack(tile.getMapLocation(), tile.getMark() == PaintType.ALLY_SECONDARY);
+
+                        UnitType proposedTower;
+                        if (rng.nextBoolean()) {
+                            proposedTower = UnitType.LEVEL_ONE_PAINT_TOWER;
+                        } else {
+                            proposedTower = UnitType.LEVEL_ONE_MONEY_TOWER;
+                        }
+
+                        if (curRuin != null) {
+                            if (rc.canCompleteTowerPattern(proposedTower, curRuin.getMapLocation())) {
+                                rc.completeTowerPattern(proposedTower, curRuin.getMapLocation());
+                            }
+                        }
+
+//                        else {
+//                            // TODO: loop through tiles and see if we can finish a resource pattern or something
+//
+//                        }
                         break;
                     }
                 }
@@ -96,6 +118,23 @@ public class Soldier extends Bunny {
                 if (tile.getMark().isAlly() && tile.getPaint() == PaintType.EMPTY) {
                     if (rc.canAttack(tile.getMapLocation())) {
                         rc.attack(tile.getMapLocation(), tile.getMark() == PaintType.ALLY_SECONDARY);
+                        UnitType proposedTower;
+                        if (rng.nextBoolean()) {
+                            proposedTower = UnitType.LEVEL_ONE_PAINT_TOWER;
+                        } else {
+                            proposedTower = UnitType.LEVEL_ONE_MONEY_TOWER;
+                        }
+
+                        if (curRuin != null) {
+                            if (rc.canCompleteTowerPattern(proposedTower, curRuin.getMapLocation())) {
+                                rc.completeTowerPattern(proposedTower, curRuin.getMapLocation());
+                            }
+                        }
+
+//                        else {
+//                            // TODO: loop through tiles and see if we can finish a resource pattern or something
+//
+//                        }
                         break;
                     }
                 }  else if (toPaint == null && tile.getPaint() == PaintType.EMPTY && rc.canAttack(tile.getMapLocation())) {
@@ -145,6 +184,23 @@ public class Soldier extends Bunny {
                 if (tile.getMark().isAlly() && tile.getPaint() == PaintType.EMPTY) {
                     if (rc.canAttack(tile.getMapLocation())) {
                         rc.attack(tile.getMapLocation(), tile.getMark() == PaintType.ALLY_SECONDARY);
+                        UnitType proposedTower;
+                        if (rng.nextBoolean()) {
+                            proposedTower = UnitType.LEVEL_ONE_PAINT_TOWER;
+                        } else {
+                            proposedTower = UnitType.LEVEL_ONE_MONEY_TOWER;
+                        }
+
+                        if (curRuin != null) {
+                            if (rc.canCompleteTowerPattern(proposedTower, curRuin.getMapLocation())) {
+                                rc.completeTowerPattern(proposedTower, curRuin.getMapLocation());
+                            }
+                        }
+
+//                        else {
+//                            // TODO: loop through tiles and see if we can finish a resource pattern or something
+//
+//                        }
                         break;
                     }
                 }  else if (toPaint == null && tile.getPaint() == PaintType.EMPTY && rc.canAttack(tile.getMapLocation())) {
