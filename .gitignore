@@ -4,17 +4,13 @@ version.txt
 /matches
 /client
 
-
-#### MAC Stuff ####
-.DS_Store
-src/.DS_Store
-
-
-
 ###### GRADLE ######
+
 .gradle
 **/build/
 !src/**/build/
+
+*.DS_Store
 
 # Ignore Gradle GUI config
 gradle-app.setting
@@ -205,3 +201,7 @@ fabric.properties
 .idea/caches/build_file_checksums.ser
 
 .idea/misc.xml
+
+
+gradlew
+gradlew.bat
