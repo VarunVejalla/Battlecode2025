@@ -59,19 +59,7 @@ public class Robot {
     }
 
     public void run() throws GameActionException {
-        // this is the main run method that is called every turn
-
         indicatorString = "";
-//        if (rc.getRoundNum() > 200 && rc.getRoundNum() % 100 == 0) testLog();
-
-//        switch (rc.getType()){
-//            case SOLDIER: runSoldier(rc); break;
-//            case MOPPER: runMopper(rc); break;
-//            case SPLASHER: break; // Consider upgrading examplefuncsplayer to use splashers!
-//            default: runTower(rc); break;
-//        }
-
-
     }
 
     public void sharedEndFunction() throws GameActionException {

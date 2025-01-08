@@ -2,8 +2,6 @@ package basebot;
 
 import battlecode.common.*;
 
-import java.util.Random;
-
 public class RobotPlayer {
     /**
      * run() is the method that is called when a robot is instantiated in the Battlecode world.
@@ -20,38 +18,16 @@ public class RobotPlayer {
             rc.resign();
         }
 
-        Robot robot;
-        switch (rc.getType()){
+        Robot robot = switch (rc.getType()) {
+            case SOLDIER -> new Soldier(rc);
+            case MOPPER -> new Mopper(rc);
+            case SPLASHER -> new Splasher(rc);
 
-            case SOLDIER: robot = new Soldier(rc); break;
-            case MOPPER: robot = new Mopper(rc); break;
-            case SPLASHER: robot = new Splasher(rc); break;
-
-
-            // Defense Towers
-            case LEVEL_ONE_DEFENSE_TOWER: robot = new DefenseTower(rc); break;
-            case LEVEL_TWO_DEFENSE_TOWER: robot = new DefenseTower(rc); break;
-            case LEVEL_THREE_DEFENSE_TOWER: robot = new DefenseTower(rc); break;
-
-
-            case LEVEL_ONE_MONEY_TOWER: robot = new MoneyTower(rc); break;
-            case LEVEL_TWO_MONEY_TOWER: robot = new MoneyTower(rc); break;
-            case LEVEL_THREE_MONEY_TOWER: robot = new MoneyTower(rc); break;
-
-
-            case LEVEL_ONE_PAINT_TOWER: robot = new PaintTower(rc); break;
-            case LEVEL_TWO_PAINT_TOWER: robot = new PaintTower(rc); break;
-            case LEVEL_THREE_PAINT_TOWER: robot = new PaintTower(rc); break;
-
-
-
-
-            default: robot = new Tower(rc); break;
-        }
-
-//        switch(rc.getType()) {
-//
-//        }
+            case LEVEL_ONE_DEFENSE_TOWER, LEVEL_TWO_DEFENSE_TOWER, LEVEL_THREE_DEFENSE_TOWER -> new DefenseTower(rc);
+            case LEVEL_ONE_MONEY_TOWER, LEVEL_TWO_MONEY_TOWER, LEVEL_THREE_MONEY_TOWER -> new MoneyTower(rc);
+            case LEVEL_ONE_PAINT_TOWER, LEVEL_TWO_PAINT_TOWER, LEVEL_THREE_PAINT_TOWER -> new PaintTower(rc);
+            default -> new Tower(rc);
+        };
 
         while (true) {
             currentTurn = rc.getRoundNum();

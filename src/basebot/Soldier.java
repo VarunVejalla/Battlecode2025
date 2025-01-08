@@ -9,8 +9,71 @@ public class Soldier extends Bunny {
 
     public void run() throws GameActionException {
         super.run();
+
+        // TODO
+//        if (low on paint) {
+//            go towards nearest friendly tower
+//        }
+
         // Sense information about all visible nearby tiles.
         MapInfo[] nearbyTiles = rc.senseNearbyMapInfos();
+        MapInfo curRuin = null;
+        for (MapInfo tile : nearbyTiles){
+            if (tile.hasRuin()){
+                curRuin = tile;
+                break;
+            }
+        }
+
+        if (curRuin != null) {
+            // TODO: optimize this for bytecode, since we are only sensing four squares
+            MapInfo[] tilesNearRuin = rc.senseNearbyMapInfos(curRuin.getMapLocation(), 1);
+            boolean markedRuin = false;
+            for (MapInfo tile : tilesNearRuin) {
+                if (tile.getMark() == PaintType.ALLY_PRIMARY) {
+                    markedRuin = true;
+                }
+            }
+            if (!markedRuin) {
+                if (curRuin.getMapLocation().distanceSquaredTo(rc.getLocation()) > 2) {
+                    nav.goTo(curRuin.getMapLocation(), 2);
+                }
+
+                if (curRuin.getMapLocation().distanceSquaredTo(rc.getLocation()) <= 2) {
+                    // TODO: should the first argument be different depending on what we want here?
+                    rc.markTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, curRuin.getMapLocation());
+                }
+            }
+        } else if (no marking present && rc.canMarkResourcePattern(rc.getLocation())){
+
+
+            mark this area?
+        }
+
+                no marking present and we can mark this area) {
+
+            mark resource pattern
+        }
+
+        if (marked squares nearby) {
+            go towards where you want to paint and/or try to paint it
+        } else {
+            attack enemy tower and/or navigate to some area
+        }
+
+
+
+//        if (we can paint a marked tile) {
+//            paint it
+//        } else if (we can move toward a marked tile that we can paint) {
+//            move towards it and then paint
+//        } else if (we can mark a tower pattern) {
+//            mark it
+//        } else if (we can mark a resource pattern [that isnt already marked]) {
+//            mark it
+//        }
+
+
         // Search for a nearby ruin to complete.
         MapInfo curRuin = null;
         for (MapInfo tile : nearbyTiles){
