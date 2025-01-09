@@ -355,7 +355,13 @@ public class Soldier extends Bunny {
      * - Otherwise move randomly.
      */
     public void moveLogic() throws GameActionException {
-//        MapInfo[] visionTiles = rc.senseNearbyMapInfos();
+        myLoc = rc.getLocation();
+        // if we are trying to replenish, move towards the nearest tower if we're not close enough
+        if (tryingToReplenish && nearestAlliedTowerLoc != null &&
+                rc.getLocation().distanceSquaredTo(nearestAlliedTowerLoc) > GameConstants.PAINT_TRANSFER_RADIUS_SQUARED) {
+            nav.goTo(nearestAlliedTowerLoc, GameConstants.PAINT_TRANSFER_RADIUS_SQUARED);
+        }
+
         int bestDistance = Integer.MAX_VALUE;
         MapLocation bestLocation = null;
 
@@ -376,11 +382,15 @@ public class Soldier extends Bunny {
             nav.goTo(bestLocation, UnitType.SOLDIER.actionRadiusSquared);
         } else {
             // Move in the direction
+            nav.goTo(destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
+
             MapLocation empty = findEmptyTiles();
             if (empty == null) {
                 Util.log("Moving to a destination");
                 nav.goTo(destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
-            } else {
+            }
+
+            else {
                 nav.goTo(empty, 2);
             }
         }
