@@ -1,6 +1,7 @@
 version.txt
 client_version.txt
 engine_version.txt
+
 ###### BATTLECODE ######
 
 /matches
@@ -11,6 +12,8 @@ engine_version.txt
 .gradle
 **/build/
 !src/**/build/
+
+
 
 *.DS_Store
 

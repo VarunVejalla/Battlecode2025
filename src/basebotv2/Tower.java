@@ -39,6 +39,51 @@ public class Tower extends Robot {
         for (Message m : messages) {
             System.out.println("Tower received message: '#" + m.getSenderID() + " " + m.getBytes());
         }
+        runAttack();
 
+    }
+
+
+
+    public boolean shouldRunAoEAttack() throws GameActionException {
+        // check if there are enough enemies in the action radius
+        RobotInfo[] bots = rc.senseNearbyRobots(rc.getType().actionRadiusSquared, rc.getTeam().opponent());
+        return bots.length > 3;
+    }
+
+
+    /**
+     * Find best enemy bot in action radiues to attack, based on health of bot
+     */
+    public MapLocation findBestAttackTarget() throws GameActionException {
+        RobotInfo[] bots = rc.senseNearbyRobots(rc.getType().actionRadiusSquared, rc.getTeam().opponent());
+        RobotInfo bestBot = null;
+        for(RobotInfo bot : bots){
+            if(bestBot == null || bot.getHealth() < bestBot.getHealth()){
+                bestBot = bot;
+            }
+        }
+        if(bestBot != null){
+            return bestBot.getLocation();
+        }
+        return null;
+    }
+
+
+    /**
+     * Attack any enemies in your vision radius
+     */
+    public void runAttack() throws GameActionException {
+        // see if there's an enemy to attack
+        MapLocation target = findBestAttackTarget();
+        if (target != null && rc.isActionReady() && rc.canAttack(target)) {
+            Util.log("Tower running attack");
+            rc.attack(myLoc);
+        }
+        // run AoE attack if needed
+        if (rc.isActionReady() && shouldRunAoEAttack()) {
+            Util.log("Tower running AoE attack");
+            rc.attack(null);
+        }
     }
 }

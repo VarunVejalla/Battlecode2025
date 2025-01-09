@@ -1,75 +1,199 @@
 package basebotv2;
 
-import basebot.Util;
+
 import battlecode.common.*;
 
 public class Soldier extends Bunny {
 
+    MapLocation nearestAlliedTowerLoc;
+    MapLocation destination; //long-term destination
+    MapInfo[] nearbyMapInfos;
+    RobotInfo[] nearbyFriendlies;
+    RobotInfo[] nearbyOpponents;
+    boolean tryingToReplenish = false;
+
     public Soldier(RobotController rc) throws GameActionException {
         super(rc);
+
+        destination = Util.getRandomMapLocation();
+
 
     }
 
     public void run() throws GameActionException {
         super.run(); // Call the shared logic for all bunnies
+        scanSurroundings();
+        updateDestinationIfNeeded();
+
+
         // 1. Handle Ruins
         // Check if there are any unmakred ruins nearby. If a ruin is found:
-        // - Move toward the ruin if we are far away (distance > 2).
-        // - Once in range, try mark it with a tower pattern (so we can build a tower)
+        //   - Move toward the ruin if we are far away (distance > 2).
+        //   - Once in range, try mark it with a tower pattern (so we can build a tower)
         MapInfo curRuin = findUnmarkedRuin();
 
-        if (curRuin != null) {
-            handleUnmarkedRuin(curRuin); // Move to and interact with the ruin.
+
+        if (curRuin != null && !tryingToReplenish) {
+            handleUnmarkedRuin(curRuin); // Move to and interact with the ruin if you're not trying to replenish
         }
 
-        else {
-            // 2. Attempt to Mark a Resource Pattern
-            // If no ruins are found, check if we can mark a resource pattern at our current
-            // location.
-            // - Only do this if the location is not already marked by our team
+        else if (!tryingToReplenish) {
+            // 2. Attempt to Mark a Resource Pattern if you're not trying to replenish
+            // If no ruins are found, check if we can mark a resource pattern at our current location.
+            //   - Only do this if the location is not already marked by our team
             attemptMarkResourcePattern();
         }
 
-        // 3. Paint/Attack if you can
+        // 3. Replenish or Paint/Attack if you can
         // After handling ruins and resource marking, check if we can act:
-        // - Paint or attack a nearby tile based on priority:
-        // - Ally-marked but unpainted tiles take precedence.
-        // - If no such tiles exist, attack an unpainted tile nearby.
+        // If we're trying to replenish and we're in range of a tower, try to replenish
+        // Otherwise
+        //   - Paint or attack a nearby tile based on priority:
+        //     - Ally-marked but unpainted tiles take precedence.
+        //     - If no such tiles exist, attack an unpainted tile nearby.
         if (rc.isActionReady()) {
-            paintOrAttack();
-            tryPatternCompletion();
+            if (tryingToReplenish){
+                tryReplenish();
+            }
+            else {
+                paintOrAttack();
+            }
         }
 
         // 4. Movement Logic
         // If movement is possible:
-        // - Prioritize moving toward ally-marked tiles that are empty (unpainted).
-        // - If no such tiles are found, move randomly as a fallback to explore new
-        // areas.
+        //   - Move toward the nearest tower if you're trying to replenish.
+
+        //   - Otherwise Prioritize moving toward ally-marked tiles that are empty (unpainted).
+        //   - If no such tiles are found, move to your destination
         if (rc.isMovementReady()) {
             moveLogic();
-            tryPatternCompletion();
         }
 
-        // 5. Recheck for Painting/Attacking
-        // After movement, check if we can paint/attack again:
-        // - Reattempt painting/attacking in case a new opportunity is available after
-        // movement.
+        // 5. Recheck for Replenish or Painting/Attacking
+
+        // After handling ruins and resource marking, check if we can act:
+        // If we're trying to replenish and we're in range of a tower, try to replenish
+
+        // Otherwise
+        //   - Paint or attack a nearby tile based on priority:
+        //     - Ally-marked but unpainted tiles take precedence.
+        //     - If no such tiles exist, attack an unpainted tile nearby.
         if (rc.isActionReady()) {
-            paintOrAttack();
-            tryPatternCompletion();
+            if (tryingToReplenish){
+                tryReplenish();
+            }
+            else {
+                paintOrAttack();
+            }
         }
+
+        tryPatternCompletion();
 
         // 6. End of Turn Logic
         // Perform any shared cleanup or post-turn logic
         sharedEndFunction();
     }
 
+
+
+    /**
+     * Scan stuff around you (this method is executed at the beginning of every turn)
+     */
+    public void scanSurroundings() throws GameActionException{
+        nearbyMapInfos = rc.senseNearbyMapInfos();
+        nearbyFriendlies = rc.senseNearbyRobots(-1, rc.getTeam());
+        nearbyOpponents = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
+        updateNearestAlliedTowerLoc();
+
+    }
+
+
+    /**
+     * Update the destination we're travelling to if we need to replenish, or we've reached our current destination
+     */
+    public void updateDestinationIfNeeded() throws GameActionException{
+        if (nearestAlliedTowerLoc != null && (tryingToReplenish || checkIfIShouldReplenish())){
+            destination = nearestAlliedTowerLoc;
+            tryingToReplenish = true;
+            Util.addToIndicatorString("REP");
+        }
+
+        else if (destination == null ||
+                rc.getLocation().distanceSquaredTo(destination) <= Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION) {
+            destination = Util.getRandomMapLocation();
+        }
+    }
+
+
+    /**
+     * Update the nearest allied tower location to replenish paint from based on surroundings
+     */
+    public void updateNearestAlliedTowerLoc() throws GameActionException{
+        for (RobotInfo bot : nearbyFriendlies) {
+            if (Util.isTower(bot.getType())) {
+                MapLocation currAlliedTowerLocation = bot.getLocation();
+                if (nearestAlliedTowerLoc == null
+                        || rc.getLocation().distanceSquaredTo(currAlliedTowerLocation) < rc.getLocation().distanceSquaredTo(nearestAlliedTowerLoc)) {
+                    nearestAlliedTowerLoc = currAlliedTowerLocation;
+                }
+            }
+        }
+    }
+
+
+
+    /**
+     * Tries to replenish paint from the nearest allied tower if within range to transfer paint
+     */
+    public void tryReplenish() throws GameActionException{
+        if (nearestAlliedTowerLoc != null){
+            if (rc.getLocation().distanceSquaredTo(nearestAlliedTowerLoc) <= GameConstants.PAINT_TRANSFER_RADIUS_SQUARED){
+
+                int towerPaintQuantity = rc.senseRobotAtLocation(nearestAlliedTowerLoc).getPaintAmount();
+                int paintToFillUp = Math.min(
+                        rc.getType().paintCapacity - rc.getPaint(), // amount of paint needed to fully top off
+                        towerPaintQuantity); // amount of paint available in the tower
+
+
+                if(rc.isActionReady() && rc.canTransferPaint(nearestAlliedTowerLoc, -paintToFillUp)) {
+                    rc.transferPaint(nearestAlliedTowerLoc, -paintToFillUp);
+                }
+
+
+                if(!checkIfIShouldReplenish()){
+                    tryingToReplenish = false;
+                }
+            }
+
+        }
+    }
+
+
+    /**
+     * Determine whether current you should go back to an ally tower to replenish on paint
+     * based on current paint quantity and distance to nearest tower.
+     */
+    public boolean checkIfIShouldReplenish() throws GameActionException{
+        //TODO: make this a more intelligent decision based on factors like:
+        // - distance to nearest tower
+        // - whether you're really close to finishing a pattern, in which case you should consider sacrificing yourself for the greater good
+        // - how much paint you have left
+
+        return rc.getPaint() <= Constants.PAINT_THRESHOLD_TO_REPLENISH;
+    }
+
+
+
+
+
+
     /**
      * Finds a ruin that is not claimed by your team.
      */
     public MapInfo findUnmarkedRuin() throws GameActionException {
-        MapInfo[] nearbyTiles = rc.senseNearbyMapInfos();
-        for (MapInfo tile : nearbyTiles) {
+//        MapInfo[] nearbyTiles = rc.senseNearbyMapInfos();
+        for (MapInfo tile : nearbyMapInfos) {
             if (tile.hasRuin()) {
                 RobotInfo robotAtRuin = rc.senseRobotAtLocation(tile.getMapLocation());
                 // We want a ruin either unoccupied or not controlled by our team
@@ -189,8 +313,8 @@ public class Soldier extends Bunny {
         // completion
 
         // Possibly complete tower pattern near a ruin if it exists
-        MapInfo[] nearbyTiles = rc.senseNearbyMapInfos();
-        for (MapInfo tile : nearbyTiles) {
+        nearbyMapInfos = rc.senseNearbyMapInfos();
+        for (MapInfo tile : nearbyMapInfos) {
             if (tile.hasRuin()) {
                 // We might want to check if we can complete the tower
                 MapLocation ruinLoc = tile.getMapLocation();
@@ -224,21 +348,23 @@ public class Soldier extends Bunny {
         }
     }
 
+
     /**
      * Choose where to move:
      * - If there’s an ally-marked empty tile, move toward it to paint/attack.
      * - Otherwise move randomly.
      */
     public void moveLogic() throws GameActionException {
-        MapInfo[] visionTiles = rc.senseNearbyMapInfos();
+//        MapInfo[] visionTiles = rc.senseNearbyMapInfos();
         int bestDistance = Integer.MAX_VALUE;
         MapLocation bestLocation = null;
 
-        for (MapInfo tile : visionTiles) {
+        for (MapInfo tile : nearbyMapInfos) {
             if (tile.getMark().isAlly() && tile.getPaint() == PaintType.EMPTY) {
 
                 int newDistance = Math.max(Math.abs(tile.getMapLocation().x - rc.getLocation().x),
                         Math.abs(tile.getMapLocation().y - rc.getLocation().y));
+
                 if (newDistance < bestDistance) {
                     bestDistance = newDistance;
                     bestLocation = tile.getMapLocation();
@@ -252,19 +378,23 @@ public class Soldier extends Bunny {
             // Move in the direction
             MapLocation empty = findEmptyTiles();
             if (empty == null) {
-                nav.moveRandom();
+                Util.log("Moving to a destination");
+                nav.goTo(destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
             } else {
-                nav.goTo(empty, 0);
+                nav.goTo(empty, 2);
             }
         }
     }
 
+
+
+
     public MapLocation findEmptyTiles() throws GameActionException {
-        MapInfo[] visionTiles = rc.senseNearbyMapInfos();
+//        MapInfo[] visionTiles = rc.senseNearbyMapInfos();
         int emptyX = 0;
         int emptyY = 0;
         int emptyCount = 0;
-        for (MapInfo tile : visionTiles) {
+        for (MapInfo tile : nearbyMapInfos) {
             if (tile.getPaint() == PaintType.EMPTY) {
                 emptyX += tile.getMapLocation().x;
                 emptyY += tile.getMapLocation().y;
