@@ -61,11 +61,12 @@ public class Robot {
 
     public void run() throws GameActionException {
         indicatorString = "";
+        this.myLoc = rc.getLocation();
     }
 
     public void sharedEndFunction() throws GameActionException {
         // this function is available to all robots, if they'd like to run it at the end of their turn
-        myLoc = rc.getLocation();
+        this.myLoc = rc.getLocation();
         scanSurroundings();
         rc.setIndicatorString(indicatorString);
     }
