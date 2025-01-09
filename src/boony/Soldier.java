@@ -182,7 +182,6 @@ public class Soldier extends Bunny {
      * Finds a ruin that is not claimed by your team.
      */
     public MapInfo findUnmarkedRuin() throws GameActionException {
-        // MapInfo[] nearbyTiles = rc.senseNearbyMapInfos();
         for (MapInfo tile : nearbyMapInfos) {
             if (tile.hasRuin()) {
                 RobotInfo robotAtRuin = rc.senseRobotAtLocation(tile.getMapLocation());
@@ -256,9 +255,12 @@ public class Soldier extends Bunny {
      */
     public void paintOrAttack() throws GameActionException {
         MapInfo[] actionableTiles = rc.senseNearbyMapInfos(UnitType.SOLDIER.actionRadiusSquared);
+        MapLocation myLoc = rc.getLocation();
+
         MapLocation bestPaintLoc = null;
         int bestScore = 0;
         boolean secondaryPaint = false;
+
         for (MapInfo tile : actionableTiles) {
             // Make sure tile can be painted.
             if (!rc.canPaint(tile.getMapLocation())) {
@@ -274,7 +276,7 @@ public class Soldier extends Bunny {
                 if (tileEmpty || wrongColor) {
                     // Make sure soldier is ready and tile can be painted.
                     if (rc.isActionReady() && rc.canPaint(tile.getMapLocation())) {
-                        tileScore += 100;
+                        tileScore += 1000;
                     }
                 }
             }
@@ -282,8 +284,11 @@ public class Soldier extends Bunny {
             // If there are no marked tiles, paint an empty one.
             else if (tile.getPaint() == PaintType.EMPTY) {
                 // Reward for adjacency.
-                tileScore += 10 * adjacencyToAllyPaint(tile.getMapLocation()) + 10;
+                tileScore += 50 * adjacencyToAllyPaint(tile.getMapLocation()) + 50;
             }
+
+            // Paint closer tiles first.
+            tileScore -= myLoc.distanceSquaredTo(tile.getMapLocation());
 
             if (tileScore > bestScore) {
                 bestScore = tileScore;
@@ -325,7 +330,7 @@ public class Soldier extends Bunny {
         // completion
 
         // Possibly complete tower pattern near a ruin if it exists
-        nearbyMapInfos = rc.senseNearbyMapInfos();
+        // nearbyMapInfos = rc.senseNearbyMapInfos();
         for (MapInfo tile : nearbyMapInfos) {
             if (tile.hasRuin()) {
                 // We might want to check if we can complete the tower
@@ -367,50 +372,78 @@ public class Soldier extends Bunny {
      */
     public void moveLogic() throws GameActionException {
         myLoc = rc.getLocation();
-        // if we are trying to replenish, move towards the nearest tower if we're not
-        // close enough
-        if (tryingToReplenish && nearestAlliedTowerLoc != null &&
-                rc.getLocation()
-                        .distanceSquaredTo(nearestAlliedTowerLoc) > GameConstants.PAINT_TRANSFER_RADIUS_SQUARED) {
+
+        // If trying to replenish, go to nearest tower immediately.
+        boolean tooFar = myLoc.distanceSquaredTo(nearestAlliedTowerLoc) > GameConstants.PAINT_TRANSFER_RADIUS_SQUARED;
+        if (tryingToReplenish && nearestAlliedTowerLoc != null && tooFar) {
             nav.goTo(nearestAlliedTowerLoc, GameConstants.PAINT_TRANSFER_RADIUS_SQUARED);
+            return;
         }
 
-        int bestDistance = Integer.MAX_VALUE;
         MapLocation bestLocation = null;
+        int bestScore = 0;
 
         for (MapInfo tile : nearbyMapInfos) {
+            int tileScore = 0;
+
+            // Strongly favor tiles with ally color on the boundary.
+            if (isAllyBoundaryTile(tile)) {
+                tileScore += 1000;
+            }
+
+            // If there's a mark and it's unpainted, favor that too.
             if (tile.getMark().isAlly() && tile.getPaint() == PaintType.EMPTY) {
+                tileScore += 100;
+            }
 
-                int newDistance = Math.max(Math.abs(tile.getMapLocation().x - rc.getLocation().x),
-                        Math.abs(tile.getMapLocation().y - rc.getLocation().y));
-
-                if (newDistance < bestDistance) {
-                    bestDistance = newDistance;
-                    bestLocation = tile.getMapLocation();
-                }
+            if (tileScore > bestScore) {
+                bestScore = tileScore;
+                bestLocation = tile.getMapLocation();
             }
         }
 
         if (bestLocation != null) {
             nav.goTo(bestLocation, UnitType.SOLDIER.actionRadiusSquared);
         } else {
-            // Move in the direction
-            nav.goTo(destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
-
-            MapLocation empty = findEmptyTiles();
-            if (empty == null) {
-                Util.log("Moving to a destination");
-                nav.goTo(destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
-            }
-
-            else {
-                nav.goTo(empty, 2);
-            }
+            // Move randomly.
+            nav.moveRandom();
+            // Exceeding bytecode.
+            // Move in the direction of the most empty tiles.
+            // MapLocation empty = findEmptyTiles();
+            // if (empty != null) {
+            // nav.goTo(empty, 2);
+            // } else {
+            // // // Move in the direction of the long-term desination.
+            // // Util.log("Moving to a destination");
+            // // nav.goTo(destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
+            // }
         }
     }
 
+    /**
+     * Determines if a tile is on the boundary of the allied-painted region.
+     */
+    private boolean isAllyBoundaryTile(MapInfo tile) throws GameActionException {
+        // Make sure tile is ally.
+        if (!tile.getPaint().isAlly()) {
+            return false;
+        }
+
+        // Check for empty adjacent tiles.
+        Direction[] directions = Direction.allDirections();
+        for (Direction dir : directions) {
+            MapLocation adjacent = tile.getMapLocation().add(dir);
+            if (rc.canSenseLocation(adjacent)) {
+                MapInfo adjacentTile = rc.senseMapInfo(adjacent);
+                if (adjacentTile.getPaint() == PaintType.EMPTY) {
+                    return true; // At least one adjacent tile is empty
+                }
+            }
+        }
+        return false;
+    }
+
     public MapLocation findEmptyTiles() throws GameActionException {
-        // MapInfo[] visionTiles = rc.senseNearbyMapInfos();
         int emptyX = 0;
         int emptyY = 0;
         int emptyCount = 0;
