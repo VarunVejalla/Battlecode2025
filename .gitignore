@@ -1,6 +1,5 @@
 version.txt
-client_version.txt
-engine_version.txt
+
 
 ###### BATTLECODE ######
 
@@ -206,7 +205,3 @@ fabric.properties
 .idea/caches/build_file_checksums.ser
 
 .idea/misc.xml
-
-
-gradlew
-gradlew.bat
