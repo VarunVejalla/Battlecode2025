@@ -1,5 +1,6 @@
 package basebotv2;
 
+import basebot.Util;
 import battlecode.common.*;
 
 public class Soldier extends Bunny {
@@ -141,56 +142,41 @@ public class Soldier extends Bunny {
      */
     public void paintOrAttack() throws GameActionException {
         MapInfo[] actionableTiles = rc.senseNearbyMapInfos(UnitType.SOLDIER.actionRadiusSquared);
-        MapLocation firstEmptyPaintLoc = null;
+        MapLocation emptyPaintLoc = null;
 
         // TODO: make a getBestAttack() method that loops over all squares and chooses
         // the best square to attack, and paint color
         // this method should also consider attacking enemy towers if there are any
         // nearby
         for (MapInfo tile : actionableTiles) {
-
-            // If tile is ally-marked but not painted, and we can attack, do it
-            // if (tile.getMark().isAlly()) {
-            // if (rc.canAttack(tile.getMapLocation())) {
-            // // don't re-color if it's already right
-            // if (tile.getPaint().isAlly() && (tile.getPaint().isSecondary() ==
-            // tile.getMark().isSecondary())) {
-            // continue;
-            // } else {
-            // rc.attack(tile.getMapLocation(), tile.getMark().isSecondary());
-            // return;
-            // }
-            // }
-            // }
-
-            if (tile.getMark().isAlly() &&
-                    (tile.getPaint() == PaintType.EMPTY || // the tile is currently not painted
-
-                    // the tile is painted, but doesn't match the marking color
-                            (tile.getPaint().isAlly()
-                                    && (tile.getPaint().isSecondary() != tile.getMark().isSecondary())))
-
-                    && rc.canAttack(tile.getMapLocation())) {
-
-                // Add in check to make sure it's not a wall, log the square that you're
-                // attacking.
-                rc.attack(tile.getMapLocation(), tile.getMark().isSecondary());
-
-                return;
+            // Prioritize painting marked tiles.
+            if (tile.getMark().isAlly()) {
+                // Tile is empty or wrong color.
+                boolean tileEmpty = tile.getPaint() == PaintType.EMPTY;
+                boolean wrongColor = tile.getMark().isSecondary() != tile.getPaint().isSecondary();
+                if (tileEmpty || wrongColor) {
+                    // Make sure soldier is ready and tile can be painted.
+                    if (rc.isActionReady() && rc.canPaint(tile.getMapLocation())) {
+                        rc.attack(tile.getMapLocation(), tile.getMark().isSecondary());
+                        Util.log("Square Attacked: " + tile.getMapLocation().toString());
+                        return;
+                    }
+                }
             }
 
-            // Otherwise remember the first empty tile we can paint.
-            // If we don't find a better target, we'll just paint this one at the end.
-            else if (firstEmptyPaintLoc == null && tile.getPaint() == PaintType.EMPTY
-                    && rc.canAttack(tile.getMapLocation())) {
-                firstEmptyPaintLoc = tile.getMapLocation();
+            // If there are no marked tiles, remember the last empty one.
+            else if (tile.getPaint() == PaintType.EMPTY) {
+                // Make sure tile can be painted.
+                if (rc.canPaint(tile.getMapLocation())) {
+                    emptyPaintLoc = tile.getMapLocation();
+                }
             }
         }
 
-        // If we found no ally-marked-but-unpainted tiles, attack an empty tile if we
-        // can
-        if (firstEmptyPaintLoc != null && rc.isActionReady() && rc.canAttack(firstEmptyPaintLoc)) {
-            rc.attack(firstEmptyPaintLoc);
+        // No marked tile found. Make sure soldier is read and paint empty tile.
+        if (emptyPaintLoc != null && rc.isActionReady()) {
+            rc.attack(emptyPaintLoc);
+            Util.log("Square Attacked: " + emptyPaintLoc.toString());
         }
     }
 

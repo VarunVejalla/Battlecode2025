@@ -18,6 +18,12 @@ public class RobotPlayer {
     @SuppressWarnings("unused")
     public static void run(RobotController rc) throws Exception {
         int currentTurn = rc.getRoundNum();
+
+        // End early for debugging.
+        // if (currentTurn > 400) {
+        // rc.resign();
+        // }
+
         if (rc.getRoundNum() != currentTurn) {
             Util.log("BYTECODE EXCEEDED");
             // rc.resign();
