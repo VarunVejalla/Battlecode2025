@@ -13,7 +13,6 @@ public class Soldier extends Bunny {
 
     public void run() throws GameActionException {
         super.run(); // Call the shared logic for all bunnies
-
         // 1. Handle Ruins
         // Check if there are any unmakred ruins nearby. If a ruin is found:
         //   - Move toward the ruin if we are far away (distance > 2).
@@ -38,6 +37,7 @@ public class Soldier extends Bunny {
         //     - If no such tiles exist, attack an unpainted tile nearby.
         if (rc.isActionReady()) {
             paintOrAttack();
+            tryPatternCompletion();
         }
 
         // 4. Movement Logic
@@ -46,6 +46,7 @@ public class Soldier extends Bunny {
         //   - If no such tiles are found, move randomly as a fallback to explore new areas.
         if (rc.isMovementReady()) {
             moveLogic();
+            tryPatternCompletion();
         }
 
         // 5. Recheck for Painting/Attacking
@@ -53,9 +54,8 @@ public class Soldier extends Bunny {
         //   - Reattempt painting/attacking in case a new opportunity is available after movement.
         if (rc.isActionReady()) {
             paintOrAttack();
+            tryPatternCompletion();
         }
-
-        tryPatternCompletion();
 
         // 6. End of Turn Logic
         // Perform any shared cleanup or post-turn logic
@@ -184,7 +184,6 @@ public class Soldier extends Bunny {
 
         //TODO: handle resource pattern completion too, not just tower pattern completion
 
-
         // Possibly complete tower pattern near a ruin if it exists
         MapInfo[] nearbyTiles = rc.senseNearbyMapInfos();
         for (MapInfo tile : nearbyTiles) {
@@ -201,6 +200,22 @@ public class Soldier extends Bunny {
                 }
 
 
+            }
+        }
+
+        tryResourcePatternCompletion();
+    }
+
+    public void tryResourcePatternCompletion() throws GameActionException {
+        // this assumes that the whole pattern is within vision radius (and so the possible centers are closer in)
+
+        // TODO: optimize this for bytecode
+        MapInfo[] possibleCenters = rc.senseNearbyMapInfos(8);
+
+        for (MapInfo center : possibleCenters) {
+            if (center.getPaint().isAlly() && !center.getPaint().isSecondary() &&
+                    rc.canCompleteResourcePattern(center.getMapLocation())) {
+                rc.completeResourcePattern(center.getMapLocation());
             }
         }
     }

@@ -17,7 +17,6 @@ public class Mopper extends Bunny {
         }
         if (rc.canMopSwing(dir)){
             rc.mopSwing(dir);
-            System.out.println("Mop Swing! Booyah!");
         }
         else if (rc.canAttack(nextLoc)){
             rc.attack(nextLoc);

@@ -33,9 +33,9 @@ public class RobotPlayer {
         while (true) {
             currentTurn = rc.getRoundNum();
 
-//            if (rc.getRoundNum() > 300){
-//                rc.resign();
-//            }
+            if (rc.getRoundNum() > 20){
+                rc.resign();
+            }
             try{
                 robot.run();
                 if(rc.getRoundNum() != currentTurn){

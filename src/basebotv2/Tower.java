@@ -13,7 +13,7 @@ public class Tower extends Robot {
         Direction dir = directions[rng.nextInt(directions.length)];
         MapLocation nextLoc = rc.getLocation().add(dir);
         // Pick a random robot type to build.
-        int robotType = rng.nextInt(3);
+        int robotType = 0;rng.nextInt(3);
         if (robotType == 0 && rc.canBuildRobot(UnitType.SOLDIER, nextLoc)){
             rc.buildRobot(UnitType.SOLDIER, nextLoc);
             System.out.println("BUILT A SOLDIER");

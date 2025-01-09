@@ -56,11 +56,12 @@ public class Robot {
 //        Util.logBytecode("After computing all spawn centers");
 
         this.nav = new Navigation(rc, this);
-        rng = new Random(rc.getID());  // seed the random number generator with the id of the bot
+        rng = new Random(42);  // seed the random number generator with the id of the bot
     }
 
     public void run() throws GameActionException {
         indicatorString = "";
+        myLoc = rc.getLocation();
     }
 
     public void sharedEndFunction() throws GameActionException {
@@ -68,14 +69,6 @@ public class Robot {
         myLoc = rc.getLocation();
         scanSurroundings();
         rc.setIndicatorString(indicatorString);
-    }
-
-
-    public void testLog() throws GameActionException {
-        Util.log("Shared offensive target: " + sharedOffensiveTarget);
-//        Util.log("Shared offensive target type: " + sharedOffensiveTargetType);
-
-        Util.log("--------------------------------");
     }
 
 

@@ -70,14 +70,6 @@ public class Robot {
     }
 
 
-    public void testLog() throws GameActionException {
-        Util.log("Shared offensive target: " + sharedOffensiveTarget);
-//        Util.log("Shared offensive target type: " + sharedOffensiveTargetType);
-
-        Util.log("--------------------------------");
-    }
-
-
     public void scanSurroundings() throws GameActionException {
         // this method scans the surroundings of the bot and updates comms if needed
 
