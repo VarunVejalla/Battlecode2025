@@ -4,7 +4,7 @@ import battlecode.common.*;
 
 public class Bunny extends Robot {
 
-    MapLocation nearestAlliedTowerLoc;
+    MapLocation nearestAlliedPaintTowerLoc;
     MapLocation destination; // long-term destination
     MapInfo[] nearbyMapInfos;
     RobotInfo[] nearbyFriendlies;
@@ -28,7 +28,7 @@ public class Bunny extends Robot {
         nearbyMapInfos = rc.senseNearbyMapInfos();
         nearbyFriendlies = rc.senseNearbyRobots(-1, rc.getTeam());
         nearbyOpponents = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
-        updateNearestAlliedTowerLoc();
+        updateNearestAlliedPaintTowerLoc();
 
     }
 
@@ -37,14 +37,14 @@ public class Bunny extends Robot {
      * Update the nearest allied tower location to replenish paint from based on
      * surroundings
      */
-    public void updateNearestAlliedTowerLoc() throws GameActionException {
+    public void updateNearestAlliedPaintTowerLoc() throws GameActionException {
         for (RobotInfo bot : nearbyFriendlies) {
-            if (Util.isTower(bot.getType())) {
+            if (Util.isPaintTower(bot.getType())) {
                 MapLocation currAlliedTowerLocation = bot.getLocation();
-                if (nearestAlliedTowerLoc == null
+                if (nearestAlliedPaintTowerLoc == null
                         || rc.getLocation().distanceSquaredTo(currAlliedTowerLocation) < rc.getLocation()
-                        .distanceSquaredTo(nearestAlliedTowerLoc)) {
-                    nearestAlliedTowerLoc = currAlliedTowerLocation;
+                        .distanceSquaredTo(nearestAlliedPaintTowerLoc)) {
+                    nearestAlliedPaintTowerLoc = currAlliedTowerLocation;
                 }
             }
         }
@@ -55,17 +55,17 @@ public class Bunny extends Robot {
      * transfer paint
      */
     public void tryReplenish() throws GameActionException {
-        if (nearestAlliedTowerLoc != null) {
+        if (nearestAlliedPaintTowerLoc != null) {
             if (rc.getLocation()
-                    .distanceSquaredTo(nearestAlliedTowerLoc) <= GameConstants.PAINT_TRANSFER_RADIUS_SQUARED) {
+                    .distanceSquaredTo(nearestAlliedPaintTowerLoc) <= GameConstants.PAINT_TRANSFER_RADIUS_SQUARED) {
 
-                int towerPaintQuantity = rc.senseRobotAtLocation(nearestAlliedTowerLoc).getPaintAmount();
+                int towerPaintQuantity = rc.senseRobotAtLocation(nearestAlliedPaintTowerLoc).getPaintAmount();
                 int paintToFillUp = Math.min(
                         rc.getType().paintCapacity - rc.getPaint(), // amount of paint needed to fully top off
                         towerPaintQuantity); // amount of paint available in the tower
 
-                if (rc.isActionReady() && rc.canTransferPaint(nearestAlliedTowerLoc, -paintToFillUp)) {
-                    rc.transferPaint(nearestAlliedTowerLoc, -paintToFillUp);
+                if (rc.isActionReady() && rc.canTransferPaint(nearestAlliedPaintTowerLoc, -paintToFillUp)) {
+                    rc.transferPaint(nearestAlliedPaintTowerLoc, -paintToFillUp);
                 }
 
                 if (!checkIfIShouldReplenish()) {
@@ -113,8 +113,8 @@ public class Bunny extends Robot {
      * reached our current destination
      */
     public void updateDestinationIfNeeded() throws GameActionException {
-        if (nearestAlliedTowerLoc != null && (tryingToReplenish || checkIfIShouldReplenish())) {
-            destination = nearestAlliedTowerLoc;
+        if (nearestAlliedPaintTowerLoc != null && (tryingToReplenish || checkIfIShouldReplenish())) {
+            destination = nearestAlliedPaintTowerLoc;
             tryingToReplenish = true;
             Util.addToIndicatorString("REP");
         }

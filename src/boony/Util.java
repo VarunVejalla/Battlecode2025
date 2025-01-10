@@ -74,6 +74,21 @@ public class Util {
         }
     }
 
+
+    public static boolean isPaintTower(UnitType unitType) {
+        // List all the tower unit types
+        switch (unitType) {
+            case LEVEL_ONE_PAINT_TOWER:
+            case LEVEL_TWO_PAINT_TOWER:
+            case LEVEL_THREE_PAINT_TOWER:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+
+
     public static <T> boolean checkIfItemInArray(T item, T[] array) {
         return getItemIndexInArray(item, array) != -1;
     }

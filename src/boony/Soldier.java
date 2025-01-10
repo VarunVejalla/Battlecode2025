@@ -266,19 +266,30 @@ public class Soldier extends Bunny {
         myLoc = rc.getLocation();
 
         // If trying to replenish, go to nearest tower immediately.
-        boolean tooFar = myLoc.distanceSquaredTo(nearestAlliedTowerLoc) > GameConstants.PAINT_TRANSFER_RADIUS_SQUARED;
-        if (tryingToReplenish && nearestAlliedTowerLoc != null && tooFar) {
-            nav.goTo(nearestAlliedTowerLoc, GameConstants.PAINT_TRANSFER_RADIUS_SQUARED);
-            return;
+
+
+        if (tryingToReplenish &&
+                nearestAlliedPaintTowerLoc != null
+                && myLoc.distanceSquaredTo(nearestAlliedPaintTowerLoc) > GameConstants.PAINT_TRANSFER_RADIUS_SQUARED) {
+
+            if(rc.getID() == 12161) {
+                Util.log("Moving to a tower to replenish");
+            }
+            nav.goTo(nearestAlliedPaintTowerLoc, GameConstants.PAINT_TRANSFER_RADIUS_SQUARED);
+                return;
         }
+
+
 
         MapLocation bestDirection = null;
         int bestScore = 0;
 
         for (Direction dir : Direction.allDirections()) {
 
+            if (!rc.canMove(dir)) {
+                continue;
+            }
             MapInfo tile = rc.senseMapInfo(myLoc.add(dir));
-
             int tileScore = 0;
 
             // Strongly favor tiles with ally color on the boundary.
@@ -305,10 +316,11 @@ public class Soldier extends Bunny {
         }
 
         if (bestDirection != null) {
+            Util.log("Moving in direction: " + bestDirection.toString());
             nav.goTo(bestDirection, UnitType.SOLDIER.actionRadiusSquared);
         } else {
             // Move in a pre-determined global direction.
-            Util.log("Moving to a destination");
+            Util.log("Moving to destination " + destination.toString());
             nav.goTo(destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
         }
     }

@@ -61,10 +61,12 @@ public class Mopper extends Bunny {
         myLoc = rc.getLocation();
         // if we are trying to replenish, move towards the nearest tower if we're not
         // close enough
-        if (tryingToReplenish && nearestAlliedTowerLoc != null &&
-                rc.getLocation()
-                        .distanceSquaredTo(nearestAlliedTowerLoc) > GameConstants.PAINT_TRANSFER_RADIUS_SQUARED) {
-            nav.goTo(nearestAlliedTowerLoc, GameConstants.PAINT_TRANSFER_RADIUS_SQUARED);
+        if (nearestAlliedPaintTowerLoc != null
+                && tryingToReplenish
+                && myLoc.distanceSquaredTo(nearestAlliedPaintTowerLoc) > GameConstants.PAINT_TRANSFER_RADIUS_SQUARED) {
+
+            nav.goTo(nearestAlliedPaintTowerLoc, GameConstants.PAINT_TRANSFER_RADIUS_SQUARED);
+            return;
         }
 
         int bestDistance = Integer.MAX_VALUE;
