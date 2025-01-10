@@ -46,7 +46,7 @@ public class Mopper extends Bunny {
         sharedEndFunction();
     }
 
-    public void scanSurrounding() throws GameActionException {
+    public void scanSurroundings() throws GameActionException {
         super.scanSurroundings();
         actionableOpponents = rc.senseNearbyRobots(2, rc.getTeam().opponent());
         actionableTiles = rc.senseNearbyMapInfos(2);
@@ -111,7 +111,10 @@ public class Mopper extends Bunny {
     public void doBestAction() throws GameActionException {
 
         if (actionableOpponents.length == 0) {
-            rc.attack(getTileToMop());
+            MapLocation tileToMop = getTileToMop();
+            if (tileToMop != null) {
+                rc.attack(tileToMop);
+            }
             return;
         }
 

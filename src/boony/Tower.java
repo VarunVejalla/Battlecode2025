@@ -15,8 +15,7 @@ public class Tower extends Robot {
 
         // Pick a random robot type to build.
         // TODO: Select Mopper and Splasher generation.
-        int robotType = 0;
-        rng.nextInt(3);
+        int robotType = rng.nextInt(2);
 
         // Only make a bot if you will have over 1000 chips after making it.
         // The idea is to always maintain enough money to build a tower.
