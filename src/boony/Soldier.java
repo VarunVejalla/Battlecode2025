@@ -145,6 +145,11 @@ public class Soldier extends Bunny {
         MapInfo[] actionableTiles = rc.senseNearbyMapInfos(UnitType.SOLDIER.actionRadiusSquared);
         MapLocation myLoc = rc.getLocation();
 
+
+        if (rc.getPaint() < Constants.MIN_PAINT_NEEDED_FOR_SOLDIER_ATTACK) {
+            return; // Not enough paint to do anything in this method
+        }
+
         MapLocation bestPaintLoc = null;
         int bestScore = 0;
         boolean secondaryPaint = false;

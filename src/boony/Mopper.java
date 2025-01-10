@@ -103,7 +103,7 @@ public class Mopper extends Bunny {
 
     public MapLocation getTileToMop() throws GameActionException {
         for (MapInfo tile : actionableTiles) {
-            if (tile.getPaint().isEnemy()) {
+            if (tile.getPaint().isEnemy() && rc.canAttack(tile.getMapLocation())) {
                 return tile.getMapLocation();
             }
         }
@@ -128,7 +128,8 @@ public class Mopper extends Bunny {
 
         for (RobotInfo opponent : actionableOpponents) {
             int individualPaint = opponent.getPaintAmount();
-            if (individualPaint >= lowestEnemyPaintOnPaint || individualPaint >= lowestEnemyPaintOnEmpty) {
+            if (individualPaint >= lowestEnemyPaintOnPaint || individualPaint >= lowestEnemyPaintOnEmpty
+                    || !rc.canAttack(opponent.getLocation())) {
                 continue;
             }
 
