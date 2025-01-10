@@ -1,30 +1,153 @@
 package boony;
 
-import battlecode.common.Direction;
-import battlecode.common.GameActionException;
-import battlecode.common.MapLocation;
-import battlecode.common.RobotController;
+import battlecode.common.*;
 
 public class Mopper extends Bunny {
+    RobotInfo[] actionableOpponents;
+    MapInfo[] actionableTiles;
     public Mopper(RobotController rc) throws GameActionException {
         super(rc);
     }
 
     public void run() throws GameActionException {
         super.run();
-        // Move and attack randomly.
-        Direction dir = directions[rng.nextInt(directions.length)];
-        MapLocation nextLoc = rc.getLocation().add(dir);
-        if (rc.canMove(dir)) {
-            rc.move(dir);
+        if (!rc.isActionReady() && !rc.isMovementReady()) {
+            sharedEndFunction();
+            return;
         }
-        if (rc.canMopSwing(dir)) {
-            rc.mopSwing(dir);
-        } else if (rc.canAttack(nextLoc)) {
-            rc.attack(nextLoc);
+
+        scanSurroundings();
+        updateDestinationIfNeeded();
+
+
+
+        if (rc.isActionReady()) {
+            if (tryingToReplenish) {
+                tryReplenish();
+            } else {
+                doBestAction();
+            }
         }
-        // We can also move our code into different methods or classes to better
-        // organize it!
-        updateEnemyRobots(rc);
+
+        if (rc.isMovementReady()) {
+            moveLogic();
+        }
+
+        if (!rc.isMovementReady() && rc.isActionReady()) {
+            if (tryingToReplenish) {
+                tryReplenish();
+            } else {
+                doBestAction();
+            }
+        }
+
+        // 6. End of Turn Logic
+        // Perform any shared cleanup or post-turn logic
+        sharedEndFunction();
     }
+
+    public void scanSurrounding() throws GameActionException {
+        super.scanSurroundings();
+        actionableOpponents = rc.senseNearbyRobots(2, rc.getTeam().opponent());
+        actionableTiles = rc.senseNearbyMapInfos(2);
+    }
+
+    /**
+     * Choose where to move:
+     * - If there’s an ally-marked empty tile, move toward it to paint/attack.
+     * - Otherwise move randomly.
+     */
+    public void moveLogic() throws GameActionException {
+        myLoc = rc.getLocation();
+        // if we are trying to replenish, move towards the nearest tower if we're not
+        // close enough
+        if (tryingToReplenish && nearestAlliedTowerLoc != null &&
+                rc.getLocation()
+                        .distanceSquaredTo(nearestAlliedTowerLoc) > GameConstants.PAINT_TRANSFER_RADIUS_SQUARED) {
+            nav.goTo(nearestAlliedTowerLoc, GameConstants.PAINT_TRANSFER_RADIUS_SQUARED);
+        }
+
+        int bestDistance = Integer.MAX_VALUE;
+        MapLocation bestLocation = null;
+
+        for (MapInfo tile : nearbyMapInfos) {
+            if (tile.getPaint().isEnemy()) {
+
+                int newDistance = Math.max(Math.abs(tile.getMapLocation().x - rc.getLocation().x),
+                        Math.abs(tile.getMapLocation().y - rc.getLocation().y));
+
+                if (newDistance < bestDistance) {
+                    bestDistance = newDistance;
+                    bestLocation = tile.getMapLocation();
+                }
+            }
+        }
+
+        if (bestLocation != null) {
+            nav.goTo(bestLocation, UnitType.MOPPER.actionRadiusSquared);
+        } else {
+            // Move in the direction
+            nav.goTo(destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
+
+            MapLocation enemyCOM = findEnemyPaintCOM();
+            if (enemyCOM == null) {
+                Util.log("Moving to a destination");
+                nav.goTo(destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
+            } else {
+                nav.goTo(enemyCOM, 2);
+            }
+        }
+    }
+
+    public MapLocation getTileToMop() throws GameActionException {
+        for (MapInfo tile : actionableTiles) {
+            if (tile.getPaint().isEnemy()) {
+                return tile.getMapLocation();
+            }
+        }
+        return null;
+    }
+
+    public void doBestAction() throws GameActionException {
+
+        if (actionableOpponents.length == 0) {
+            rc.attack(getTileToMop());
+            return;
+        }
+
+        MapLocation bestIndividualTargetOnPaint = null;
+        int lowestEnemyPaintOnPaint = Integer.MAX_VALUE;
+        MapLocation bestIndividualTargetOnEmpty = null;
+        int lowestEnemyPaintOnEmpty = Integer.MAX_VALUE;
+
+
+        for (RobotInfo opponent : actionableOpponents) {
+            int individualPaint = opponent.getPaintAmount();
+            if (individualPaint >= lowestEnemyPaintOnPaint || individualPaint >= lowestEnemyPaintOnEmpty) {
+                continue;
+            }
+
+            if (rc.senseMapInfo(opponent.getLocation()).getPaint().isEnemy()) {
+                if (individualPaint < lowestEnemyPaintOnPaint) {
+                    bestIndividualTargetOnPaint = opponent.location;
+                    lowestEnemyPaintOnPaint = individualPaint;
+                }
+            } else {
+                if (individualPaint < lowestEnemyPaintOnEmpty) {
+                    bestIndividualTargetOnEmpty = opponent.location;
+                    lowestEnemyPaintOnEmpty = individualPaint;
+                }
+            }
+        }
+
+        if (bestIndividualTargetOnPaint != null) {
+            rc.attack(bestIndividualTargetOnPaint);
+            return;
+        } else if (bestIndividualTargetOnEmpty != null) {
+            rc.attack(bestIndividualTargetOnEmpty);
+            return;
+        }
+    }
+
+
 }
