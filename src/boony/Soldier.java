@@ -272,9 +272,6 @@ public class Soldier extends Bunny {
                 nearestAlliedPaintTowerLoc != null
                 && myLoc.distanceSquaredTo(nearestAlliedPaintTowerLoc) > GameConstants.PAINT_TRANSFER_RADIUS_SQUARED) {
 
-            if(rc.getID() == 12161) {
-                Util.log("Moving to a tower to replenish");
-            }
             nav.goTo(nearestAlliedPaintTowerLoc, GameConstants.PAINT_TRANSFER_RADIUS_SQUARED);
                 return;
         }
