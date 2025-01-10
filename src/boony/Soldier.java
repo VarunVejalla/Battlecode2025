@@ -384,10 +384,13 @@ public class Soldier extends Bunny {
             return;
         }
 
-        MapLocation bestLocation = null;
+        MapLocation bestDirection = null;
         int bestScore = 0;
 
-        for (MapInfo tile : nearbyMapInfos) {
+        for (Direction dir : Direction.allDirections()) {
+
+            MapInfo tile = rc.senseMapInfo(myLoc.add(dir));
+
             int tileScore = 0;
 
             // Strongly favor tiles with ally color on the boundary.
@@ -397,33 +400,28 @@ public class Soldier extends Bunny {
                 Util.log("My next tile is a boundary!");
                 return;
             }
+            // // Favor staying on your color
+            // if (tile.getPaint().isAlly()) {
+            // tileScore += 5;
+            // }
 
-            // If there's a mark and it's unpainted, favor that too.
-            if (tile.getMark().isAlly() && tile.getPaint() == PaintType.EMPTY) {
-                tileScore += 100;
-            }
+            // // If there's a mark and it's unpainted, favor that too.
+            // if (tile.getMark().isAlly() && tile.getPaint() == PaintType.EMPTY) {
+            // tileScore += 100;
+            // }
 
             if (tileScore > bestScore) {
                 bestScore = tileScore;
-                bestLocation = tile.getMapLocation();
+                bestDirection = tile.getMapLocation();
             }
         }
 
-        if (bestLocation != null) {
-            nav.goTo(bestLocation, UnitType.SOLDIER.actionRadiusSquared);
+        if (bestDirection != null) {
+            nav.goTo(bestDirection, UnitType.SOLDIER.actionRadiusSquared);
         } else {
-            // Move randomly.
-            // nav.moveRandom();
-            // Exceeding bytecode.
-            // Move in the direction of the most empty tiles.
-            // MapLocation empty = findEmptyTiles();
-            // if (empty != null) {
-            // nav.goTo(empty, 2);
-            // } else {
-            // Move in the direction of the long-term desination.
+            // Move in a pre-determined global direction.
             Util.log("Moving to a destination");
             nav.goTo(destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
-            // }
         }
     }
 
