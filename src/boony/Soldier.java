@@ -413,16 +413,16 @@ public class Soldier extends Bunny {
             nav.goTo(bestLocation, UnitType.SOLDIER.actionRadiusSquared);
         } else {
             // Move randomly.
-            nav.moveRandom();
+            // nav.moveRandom();
             // Exceeding bytecode.
             // Move in the direction of the most empty tiles.
             // MapLocation empty = findEmptyTiles();
             // if (empty != null) {
             // nav.goTo(empty, 2);
             // } else {
-            // // // Move in the direction of the long-term desination.
-            // // Util.log("Moving to a destination");
-            // // nav.goTo(destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
+            // Move in the direction of the long-term desination.
+            Util.log("Moving to a destination");
+            nav.goTo(destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
             // }
         }
     }
