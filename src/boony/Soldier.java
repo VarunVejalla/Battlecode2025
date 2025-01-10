@@ -276,7 +276,11 @@ public class Soldier extends Bunny {
                 if (tileEmpty || wrongColor) {
                     // Make sure soldier is ready and tile can be painted.
                     if (rc.isActionReady() && rc.canPaint(tile.getMapLocation())) {
-                        tileScore += 1000;
+                        // tileScore += 1000;
+                        // Attack immediately to save bytecode.
+                        rc.attack(tile.getMapLocation(), tile.getMark().isSecondary());
+                        Util.log("Square Attacked: " + tile.getMapLocation().toString());
+                        return;
                     }
                 }
             }
@@ -388,7 +392,10 @@ public class Soldier extends Bunny {
 
             // Strongly favor tiles with ally color on the boundary.
             if (isAllyBoundaryTile(tile)) {
-                tileScore += 1000;
+                // tileScore += 1000;
+                nav.goTo(tile.getMapLocation(), 0);
+                Util.log("My next tile is a boundary!");
+                return;
             }
 
             // If there's a mark and it's unpainted, favor that too.
@@ -435,8 +442,11 @@ public class Soldier extends Bunny {
             MapLocation adjacent = tile.getMapLocation().add(dir);
             if (rc.canSenseLocation(adjacent)) {
                 MapInfo adjacentTile = rc.senseMapInfo(adjacent);
-                if (adjacentTile.getPaint() == PaintType.EMPTY) {
-                    return true; // At least one adjacent tile is empty
+                // Make sure is passable.
+                if (adjacentTile.isPassable()) {
+                    if (adjacentTile.getPaint() == PaintType.EMPTY) {
+                        return true; // At least one adjacent tile is empty
+                    }
                 }
             }
         }
