@@ -38,7 +38,7 @@ public class Tower extends Robot {
     public void midGameBots() throws GameActionException {
         Direction dir = directions[rng.nextInt(directions.length)];
         MapLocation nextLoc = rc.getLocation().add(dir);
-        int robotType = rng.nextInt(3);
+        int robotType = rng.nextInt(2); // no splashers
 
         if (robotType == 0 && rc.canBuildRobot(UnitType.SOLDIER, nextLoc)) {
             rc.buildRobot(UnitType.SOLDIER, nextLoc);

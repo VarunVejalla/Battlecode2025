@@ -98,7 +98,9 @@ public class Soldier extends Bunny {
             if (ruinLoc.distanceSquaredTo(rc.getLocation()) <= Constants.MAX_RUIN_DISTANCE_SQUARED) {
                 // TODO: Possibly pick the tower type you want to build (not sure if we need to
                 // select tower when marking though)
-                rc.markTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, ruinLoc);
+//                rc.markTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, ruinLoc);
+                rc.markTowerPattern(UnitType.LEVEL_ONE_MONEY_TOWER, ruinLoc);
+
             }
         }
     }
@@ -233,11 +235,11 @@ public class Soldier extends Bunny {
                 // We might want to check if we can complete the tower
                 MapLocation ruinLoc = tile.getMapLocation();
 
-                if (rc.canCompleteTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, ruinLoc)) {
-                    rc.completeTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, ruinLoc);
-                }
+//                if (rc.canCompleteTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, ruinLoc)) {
+//                    rc.completeTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, ruinLoc);
+//                }
 
-                else if (rc.canCompleteTowerPattern(UnitType.LEVEL_ONE_MONEY_TOWER, ruinLoc)) {
+                if (rc.canCompleteTowerPattern(UnitType.LEVEL_ONE_MONEY_TOWER, ruinLoc)) {
                     rc.completeTowerPattern(UnitType.LEVEL_ONE_MONEY_TOWER, ruinLoc);
                 }
 
