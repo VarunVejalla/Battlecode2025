@@ -243,4 +243,29 @@ public class Util {
             return mod%2 == 0;
         }
     }
+
+    public static MapInfo getMapInfo(int deltaX, int deltaY, MapInfo[] nearbyMapInfos) throws GameActionException {
+        if (nearbyMapInfos.length == 69) {
+            if (deltaX == -4) {
+                return nearbyMapInfos[deltaY+2];
+            } else if (deltaX == -3) {
+                return nearbyMapInfos[deltaY+8];
+            } else if (deltaX == -2) {
+                return nearbyMapInfos[deltaY+16];
+            } else if (deltaX == -1) {
+                return nearbyMapInfos[deltaY+25];
+            } else if (deltaX == 0) {
+                return nearbyMapInfos[deltaY+34];
+            } else if (deltaX == 1) {
+                return nearbyMapInfos[deltaY+43];
+            } else if (deltaX == 2) {
+                return nearbyMapInfos[deltaY+52];
+            } else if (deltaX == 3) {
+                return nearbyMapInfos[deltaY+60];
+            } else if (deltaX == 4) {
+                return nearbyMapInfos[deltaY+66];
+            }
+        }
+        return rc.senseMapInfo(rc.getLocation().translate(deltaX, deltaY));
+    }
 }
