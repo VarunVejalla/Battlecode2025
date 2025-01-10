@@ -9,28 +9,11 @@ public class Tower extends Robot {
 
     public void run() throws GameActionException {
         super.run();
-        // Pick a direction to build in.
-        Direction dir = directions[rng.nextInt(directions.length)];
-        MapLocation nextLoc = rc.getLocation().add(dir);
 
-        // Pick a random robot type to build.
-        // TODO: Select Mopper and Splasher generation.
-        int robotType = rng.nextInt(2);
-
-        // Only make a bot if you will have over 1000 chips after making it.
-        // The idea is to always maintain enough money to build a tower.
-        if (rc.getMoney() > 1500) {
-            if (robotType == 0 && rc.canBuildRobot(UnitType.SOLDIER, nextLoc)) {
-                rc.buildRobot(UnitType.SOLDIER, nextLoc);
-                System.out.println("BUILT A SOLDIER");
-            } else if (robotType == 1 && rc.canBuildRobot(UnitType.MOPPER, nextLoc)) {
-                rc.buildRobot(UnitType.MOPPER, nextLoc);
-                System.out.println("BUILT A MOPPER");
-            } else if (robotType == 2 && rc.canBuildRobot(UnitType.SPLASHER, nextLoc)) {
-                // rc.buildRobot(UnitType.SPLASHER, nextLoc);
-                // System.out.println("BUILT A SPLASHER");
-                rc.setIndicatorString("SPLASHER NOT IMPLEMENTED YET");
-            }
+        if (rc.getRoundNum() < 50) {
+            openingBots();
+        } else if (rc.getMoney() > 1500) {
+            midGameBots();
         }
 
         // Read incoming messages
@@ -40,6 +23,31 @@ public class Tower extends Robot {
         }
         runAttack();
 
+    }
+
+    public void openingBots() throws GameActionException {
+        Direction dir = directions[rng.nextInt(directions.length)];
+        MapLocation nextLoc = rc.getLocation().add(dir);
+
+        if (rc.canBuildRobot(UnitType.SOLDIER, nextLoc)) {
+            rc.buildRobot(UnitType.SOLDIER, nextLoc);
+            System.out.println("BUILT A SOLDIER");
+        }
+    }
+
+    public void midGameBots() throws GameActionException {
+        Direction dir = directions[rng.nextInt(directions.length)];
+        MapLocation nextLoc = rc.getLocation().add(dir);
+        int robotType = rng.nextInt(2);
+        if (robotType == 0 && rc.canBuildRobot(UnitType.SOLDIER, nextLoc)) {
+            rc.buildRobot(UnitType.SOLDIER, nextLoc);
+            System.out.println("BUILT A SOLDIER");
+        } else if (robotType == 1 && rc.canBuildRobot(UnitType.MOPPER, nextLoc)) {
+            rc.buildRobot(UnitType.MOPPER, nextLoc);
+            System.out.println("BUILT A MOPPER");
+        } else if (robotType == 2 && rc.canBuildRobot(UnitType.SPLASHER, nextLoc)) {
+            rc.setIndicatorString("SPLASHER NOT IMPLEMENTED YET");
+        }
     }
 
     public boolean shouldRunAoEAttack() throws GameActionException {

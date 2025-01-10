@@ -221,4 +221,26 @@ public class Util {
                 dir.opposite()
         };
     }
+
+    // TODO: make sure this method works
+    public static boolean shouldSecondaryPaintResource(MapLocation tileToPaint, MapLocation center) {
+        if (tileToPaint.equals(center)) {
+            return false;
+        }
+        int mod = tileToPaint.x-center.x + tileToPaint.y-center.y;
+        return mod%2 == 0;
+    }
+
+    // TODO: make sure this method works
+    public static boolean shouldSecondaryPaintTower(MapLocation tileToPaint, MapLocation center) {
+        if (tileToPaint.equals(center)) {
+            return false;
+        }
+        if (tileToPaint.x == center.x || tileToPaint.y == center.y) {
+            return false;
+        } else {
+            int mod = tileToPaint.x-center.x + tileToPaint.y-center.y;
+            return mod%2 == 0;
+        }
+    }
 }

@@ -272,16 +272,13 @@ public class Soldier extends Bunny {
 
         // If trying to replenish, go to nearest tower immediately.
 
-
         if (tryingToReplenish &&
                 nearestAlliedPaintTowerLoc != null
                 && myLoc.distanceSquaredTo(nearestAlliedPaintTowerLoc) > GameConstants.PAINT_TRANSFER_RADIUS_SQUARED) {
 
             nav.goTo(nearestAlliedPaintTowerLoc, GameConstants.PAINT_TRANSFER_RADIUS_SQUARED);
-                return;
+            return;
         }
-
-
 
         MapLocation bestDirection = null;
         int bestScore = 0;
@@ -319,7 +316,7 @@ public class Soldier extends Bunny {
 
         if (bestDirection != null) {
             Util.log("Moving in direction: " + bestDirection.toString());
-            nav.goTo(bestDirection, UnitType.SOLDIER.actionRadiusSquared);
+            nav.goTo(bestDirection, 0);
         } else {
             // Move in a pre-determined global direction.
             Util.log("Moving to destination " + destination.toString());

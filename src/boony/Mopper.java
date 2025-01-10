@@ -127,11 +127,15 @@ public class Mopper extends Bunny {
 
 
         for (RobotInfo opponent : actionableOpponents) {
+            if (opponent.getType().isTowerType()) {
+                continue;
+            }
             int individualPaint = opponent.getPaintAmount();
             if (individualPaint >= lowestEnemyPaintOnPaint || individualPaint >= lowestEnemyPaintOnEmpty
                     || !rc.canAttack(opponent.getLocation())) {
                 continue;
             }
+
 
             if (rc.senseMapInfo(opponent.getLocation()).getPaint().isEnemy()) {
                 if (individualPaint < lowestEnemyPaintOnPaint) {
@@ -151,6 +155,12 @@ public class Mopper extends Bunny {
             return;
         } else if (bestIndividualTargetOnEmpty != null) {
             rc.attack(bestIndividualTargetOnEmpty);
+            return;
+        } else {
+            MapLocation tileToMop = getTileToMop();
+            if (tileToMop != null) {
+                rc.attack(tileToMop);
+            }
             return;
         }
     }
