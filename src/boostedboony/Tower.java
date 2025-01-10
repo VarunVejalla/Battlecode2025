@@ -38,7 +38,8 @@ public class Tower extends Robot {
     public void midGameBots() throws GameActionException {
         Direction dir = directions[rng.nextInt(directions.length)];
         MapLocation nextLoc = rc.getLocation().add(dir);
-        int robotType = rng.nextInt(2);
+        int robotType = rng.nextInt(3);
+
         if (robotType == 0 && rc.canBuildRobot(UnitType.SOLDIER, nextLoc)) {
             rc.buildRobot(UnitType.SOLDIER, nextLoc);
             System.out.println("BUILT A SOLDIER");
@@ -46,7 +47,8 @@ public class Tower extends Robot {
             rc.buildRobot(UnitType.MOPPER, nextLoc);
             System.out.println("BUILT A MOPPER");
         } else if (robotType == 2 && rc.canBuildRobot(UnitType.SPLASHER, nextLoc)) {
-            rc.setIndicatorString("SPLASHER NOT IMPLEMENTED YET");
+            rc.buildRobot(UnitType.SPLASHER, nextLoc);
+            System.out.println("BUILT A SPLASHER");
         }
     }
 
@@ -88,6 +90,5 @@ public class Tower extends Robot {
             Util.log("Tower running AoE attack");
             rc.attack(null);
         }
-        Util.log("Tower found no targets");
     }
 }
