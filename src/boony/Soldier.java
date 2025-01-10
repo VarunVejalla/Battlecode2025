@@ -82,7 +82,6 @@ public class Soldier extends Bunny {
         sharedEndFunction();
     }
 
-
     /**
      * Tries to move towards an unmarked ruin and mark it if in range.
      */
@@ -144,9 +143,12 @@ public class Soldier extends Bunny {
      */
     public void paintOrAttack() throws GameActionException {
         MapInfo[] actionableTiles = rc.senseNearbyMapInfos(UnitType.SOLDIER.actionRadiusSquared);
+        MapLocation myLoc = rc.getLocation();
+
         MapLocation bestPaintLoc = null;
         int bestScore = 0;
         boolean secondaryPaint = false;
+
         for (MapInfo tile : actionableTiles) {
             // Make sure tile can be painted.
             if (!rc.canPaint(tile.getMapLocation())) {
@@ -162,7 +164,11 @@ public class Soldier extends Bunny {
                 if (tileEmpty || wrongColor) {
                     // Make sure soldier is ready and tile can be painted.
                     if (rc.isActionReady() && rc.canPaint(tile.getMapLocation())) {
-                        tileScore += 100;
+                        // tileScore += 1000;
+                        // Attack immediately to save bytecode.
+                        rc.attack(tile.getMapLocation(), tile.getMark().isSecondary());
+                        Util.log("Square Attacked: " + tile.getMapLocation().toString());
+                        return;
                     }
                 }
             }
@@ -170,8 +176,11 @@ public class Soldier extends Bunny {
             // If there are no marked tiles, paint an empty one.
             else if (tile.getPaint() == PaintType.EMPTY) {
                 // Reward for adjacency.
-                tileScore += 10 * adjacencyToAllyPaint(tile.getMapLocation()) + 10;
+                tileScore += 50 * adjacencyToAllyPaint(tile.getMapLocation()) + 50;
             }
+
+            // Paint closer tiles first.
+            tileScore -= myLoc.distanceSquaredTo(tile.getMapLocation());
 
             if (tileScore > bestScore) {
                 bestScore = tileScore;
@@ -326,5 +335,4 @@ public class Soldier extends Bunny {
         }
         return false;
     }
-
 }
