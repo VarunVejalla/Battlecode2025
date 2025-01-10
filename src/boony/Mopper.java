@@ -59,12 +59,11 @@ public class Mopper extends Bunny {
      */
     public void moveLogic() throws GameActionException {
         myLoc = rc.getLocation();
-        // if we are trying to replenish, move towards the nearest tower if we're not
-        // close enough
-        if (tryingToReplenish && nearestAlliedTowerLoc != null &&
-                rc.getLocation()
-                        .distanceSquaredTo(nearestAlliedTowerLoc) > GameConstants.PAINT_TRANSFER_RADIUS_SQUARED) {
+        // If trying to replenish, go to nearest tower immediately.
+        boolean tooFar = myLoc.distanceSquaredTo(nearestAlliedTowerLoc) > GameConstants.PAINT_TRANSFER_RADIUS_SQUARED;
+        if (tryingToReplenish && nearestAlliedTowerLoc != null && tooFar) {
             nav.goTo(nearestAlliedTowerLoc, GameConstants.PAINT_TRANSFER_RADIUS_SQUARED);
+            return;
         }
 
         int bestDistance = Integer.MAX_VALUE;
@@ -89,13 +88,11 @@ public class Mopper extends Bunny {
             // Move in the direction
             nav.goTo(destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
 
-            MapLocation enemyCOM = findEnemyPaintCOM();
-            if (enemyCOM == null) {
-                Util.log("Moving to a destination");
-                nav.goTo(destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
-            } else {
-                nav.goTo(enemyCOM, 2);
-            }
+//            MapLocation enemyCOM = findEnemyPaintCOM();
+//            if (enemyCOM == null) {
+//                Util.log("Moving to a destination");
+//                nav.goTo(destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
+
         }
     }
 

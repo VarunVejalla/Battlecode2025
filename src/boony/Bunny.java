@@ -154,7 +154,7 @@ public class Bunny extends Robot {
         int enemyPaintY = 0;
         int enemyPaintCount = 0;
         for (MapInfo tile : nearbyMapInfos) {
-            if (tile.getPaint() == PaintType.EMPTY) {
+            if (tile.getPaint().isEnemy()) {
                 enemyPaintX += tile.getMapLocation().x;
                 enemyPaintY += tile.getMapLocation().y;
                 enemyPaintCount++;
