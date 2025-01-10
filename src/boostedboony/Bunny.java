@@ -4,6 +4,7 @@ import battlecode.common.*;
 
 public class Bunny extends Robot {
 
+    MapLocation nearestAlliedTowerLoc;
     MapLocation nearestAlliedPaintTowerLoc;
     MapLocation destination; // long-term destination
     MapInfo[] nearbyMapInfos;
@@ -39,13 +40,24 @@ public class Bunny extends Robot {
      */
     public void updateNearestAlliedPaintTowerLoc() throws GameActionException {
         for (RobotInfo bot : nearbyFriendlies) {
-            if (Util.isPaintTower(bot.getType())) {
-                MapLocation currAlliedTowerLocation = bot.getLocation();
-                if (nearestAlliedPaintTowerLoc == null
-                        || rc.getLocation().distanceSquaredTo(currAlliedTowerLocation) < rc.getLocation()
-                        .distanceSquaredTo(nearestAlliedPaintTowerLoc)) {
-                    nearestAlliedPaintTowerLoc = currAlliedTowerLocation;
-                }
+            if (!Util.isTower(bot.getType())) {
+                continue;
+            }
+
+            MapLocation currAlliedTowerLocation = bot.getLocation();
+            MapLocation myLocation = rc.getLocation();
+
+            // Update nearest allied tower location
+            if (nearestAlliedTowerLoc == null ||
+                    myLocation.distanceSquaredTo(currAlliedTowerLocation) < myLocation.distanceSquaredTo(nearestAlliedTowerLoc)) {
+                nearestAlliedTowerLoc = currAlliedTowerLocation;
+            }
+
+            // Update nearest allied paint tower location
+            if (Util.isPaintTower(bot.getType()) &&
+                    (nearestAlliedPaintTowerLoc == null ||
+                            myLocation.distanceSquaredTo(currAlliedTowerLocation) < myLocation.distanceSquaredTo(nearestAlliedPaintTowerLoc))) {
+                nearestAlliedPaintTowerLoc = currAlliedTowerLocation;
             }
         }
     }

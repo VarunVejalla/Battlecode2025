@@ -153,7 +153,7 @@ public class Soldier extends Bunny {
         }
 
         MapLocation bestPaintLoc = null;
-        int bestScore = 0;
+        int bestScore = Integer.MIN_VALUE;
         boolean secondaryPaint = false;
 
         for (MapInfo tile : actionableTiles) {
@@ -185,6 +185,9 @@ public class Soldier extends Bunny {
                 // Reward for adjacency.
                 tileScore += 50 * adjacencyToAllyPaint(tile.getMapLocation()) + 50;
             }
+
+            // Paint towers close to towers very first.
+//            tileScore -= 4*nearestAlliedTowerLoc.distanceSquaredTo(tile.getMapLocation());
 
             // Paint closer tiles first.
             tileScore -= myLoc.distanceSquaredTo(tile.getMapLocation());
