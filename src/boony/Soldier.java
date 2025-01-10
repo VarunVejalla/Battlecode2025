@@ -395,15 +395,15 @@ public class Soldier extends Bunny {
 
             // Strongly favor tiles with ally color on the boundary.
             if (isAllyBoundaryTile(tile)) {
-                // tileScore += 1000;
-                nav.goTo(tile.getMapLocation(), 0);
-                Util.log("My next tile is a boundary!");
-                return;
+                tileScore += 1000;
+                // nav.goTo(tile.getMapLocation(), 0);
+                // Util.log("My next tile is a boundary!");
+                // return;
+                // // Favor staying on your color
+                if (tile.getPaint().isAlly()) {
+                    tileScore += 5;
+                }
             }
-            // // Favor staying on your color
-            // if (tile.getPaint().isAlly()) {
-            // tileScore += 5;
-            // }
 
             // // If there's a mark and it's unpainted, favor that too.
             // if (tile.getMark().isAlly() && tile.getPaint() == PaintType.EMPTY) {
