@@ -81,7 +81,7 @@ public class Tower extends Robot {
         MapLocation target = findBestAttackTarget();
         if (target != null && rc.isActionReady() && rc.canAttack(target)) {
             Util.log("Tower running attack");
-            rc.attack(myLoc);
+            rc.attack(target);
         }
         // run AoE attack if needed
         if (rc.isActionReady() && shouldRunAoEAttack()) {
