@@ -255,46 +255,76 @@ public class Soldier extends Bunny {
      */
     public void moveLogic() throws GameActionException {
         myLoc = rc.getLocation();
-        // if we are trying to replenish, move towards the nearest tower if we're not
-        // close enough
-        if (tryingToReplenish && nearestAlliedTowerLoc != null &&
-                rc.getLocation()
-                        .distanceSquaredTo(nearestAlliedTowerLoc) > GameConstants.PAINT_TRANSFER_RADIUS_SQUARED) {
+
+        // If trying to replenish, go to nearest tower immediately.
+        boolean tooFar = myLoc.distanceSquaredTo(nearestAlliedTowerLoc) > GameConstants.PAINT_TRANSFER_RADIUS_SQUARED;
+        if (tryingToReplenish && nearestAlliedTowerLoc != null && tooFar) {
             nav.goTo(nearestAlliedTowerLoc, GameConstants.PAINT_TRANSFER_RADIUS_SQUARED);
+            return;
         }
 
-        int bestDistance = Integer.MAX_VALUE;
-        MapLocation bestLocation = null;
+        MapLocation bestDirection = null;
+        int bestScore = 0;
 
-        for (MapInfo tile : nearbyMapInfos) {
-            if (tile.getMark().isAlly() && tile.getPaint() == PaintType.EMPTY) {
+        for (Direction dir : Direction.allDirections()) {
 
-                int newDistance = Math.max(Math.abs(tile.getMapLocation().x - rc.getLocation().x),
-                        Math.abs(tile.getMapLocation().y - rc.getLocation().y));
+            MapInfo tile = rc.senseMapInfo(myLoc.add(dir));
 
-                if (newDistance < bestDistance) {
-                    bestDistance = newDistance;
-                    bestLocation = tile.getMapLocation();
+            int tileScore = 0;
+
+            // Strongly favor tiles with ally color on the boundary.
+            if (isAllyBoundaryTile(tile)) {
+                tileScore += 1000;
+                // nav.goTo(tile.getMapLocation(), 0);
+                // Util.log("My next tile is a boundary!");
+                // return;
+                // // Favor staying on your color
+                if (tile.getPaint().isAlly()) {
+                    tileScore += 5;
+                }
+            }
+
+            // // If there's a mark and it's unpainted, favor that too.
+            // if (tile.getMark().isAlly() && tile.getPaint() == PaintType.EMPTY) {
+            // tileScore += 100;
+            // }
+
+            if (tileScore > bestScore) {
+                bestScore = tileScore;
+                bestDirection = tile.getMapLocation();
+            }
+        }
+
+        if (bestDirection != null) {
+            nav.goTo(bestDirection, UnitType.SOLDIER.actionRadiusSquared);
+        } else {
+            // Move in a pre-determined global direction.
+            Util.log("Moving to a destination");
+            nav.goTo(destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
+        }
+    }
+
+    private boolean isAllyBoundaryTile(MapInfo tile) throws GameActionException {
+        // Make sure tile is ally.
+        if (!tile.getPaint().isAlly()) {
+            return false;
+        }
+
+        // Check for empty adjacent tiles.
+        Direction[] directions = Direction.allDirections();
+        for (Direction dir : directions) {
+            MapLocation adjacent = tile.getMapLocation().add(dir);
+            if (rc.canSenseLocation(adjacent)) {
+                MapInfo adjacentTile = rc.senseMapInfo(adjacent);
+                // Make sure is passable.
+                if (adjacentTile.isPassable()) {
+                    if (adjacentTile.getPaint() == PaintType.EMPTY) {
+                        return true; // At least one adjacent tile is empty
+                    }
                 }
             }
         }
-
-        if (bestLocation != null) {
-            nav.goTo(bestLocation, UnitType.SOLDIER.actionRadiusSquared);
-        } else {
-            // Move in the direction
-            nav.goTo(destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
-
-            MapLocation empty = findEmptyTiles();
-            if (empty == null) {
-                Util.log("Moving to a destination");
-                nav.goTo(destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
-            }
-
-            else {
-                nav.goTo(empty, 2);
-            }
-        }
+        return false;
     }
 
 }
