@@ -38,11 +38,11 @@ public class Robot {
             Direction.NORTHWEST,
     };
 
-    MapLocation sharedOffensiveTarget;
-    RobotInfo[] nearbyFriendlies; // friendly bots within vision radius of bot
-
-    RobotInfo[] nearbyVisionEnemies; // enemy bots within vision radius of bot
-    MapLocation[] spawnCenters;
+//    MapLocation sharedOffensiveTarget;
+//    RobotInfo[] nearbyFriendlies; // friendly bots within vision radius of bot
+//
+//    RobotInfo[] nearbyVisionEnemies; // enemy bots within vision radius of bot
+//    MapLocation[] spawnCenters;
 
     public Robot(RobotController rc) throws GameActionException {
         this.rc = rc;
@@ -73,15 +73,14 @@ public class Robot {
 
     public void scanSurroundings() throws GameActionException {
         // this method scans the surroundings of the bot and updates comms if needed
-
-        // TODO: maybe it would be more efficient to call rc.senseNearbyRobots once and
-        // generate the arrays ourselves?
-        nearbyFriendlies = rc.senseNearbyRobots(GameConstants.VISION_RADIUS_SQUARED, myTeam);
-        // nearbyActionFriendlies =
-        // rc.senseNearbyRobots(GameConstants.ATTACK_RADIUS_SQUARED, myTeam);
-        nearbyVisionEnemies = rc.senseNearbyRobots(GameConstants.VISION_RADIUS_SQUARED, oppTeam);
-        // nearbyActionEnemies =
-        // rc.senseNearbyRobots(GameConstants.ATTACK_RADIUS_SQUARED, oppTeam);
+//        // TODO: maybe it would be more efficient to call rc.senseNearbyRobots once and
+//        // generate the arrays ourselves?
+//        nearbyFriendlies = rc.senseNearbyRobots(GameConstants.VISION_RADIUS_SQUARED, myTeam);
+//        // nearbyActionFriendlies =
+//        // rc.senseNearbyRobots(GameConstants.ATTACK_RADIUS_SQUARED, myTeam);
+//        nearbyVisionEnemies = rc.senseNearbyRobots(GameConstants.VISION_RADIUS_SQUARED, oppTeam);
+//        // nearbyActionEnemies =
+//        // rc.senseNearbyRobots(GameConstants.ATTACK_RADIUS_SQUARED, oppTeam);
     }
 
     public static void updateEnemyRobots(RobotController rc) throws GameActionException {
