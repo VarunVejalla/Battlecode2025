@@ -20,9 +20,11 @@ public class RobotPlayer {
         int currentTurn = rc.getRoundNum();
 
         // End early for debugging.
-        // if (currentTurn > 400) {
-        // rc.resign();
-        // }
+//        Util.log("Current turn: " + currentTurn);
+//        if (currentTurn > 200) {
+//            Util.log("TRYNA RESIGN");
+//            rc.resign();
+//        }
 
         if (rc.getRoundNum() != currentTurn) {
             Util.log("BYTECODE EXCEEDED");

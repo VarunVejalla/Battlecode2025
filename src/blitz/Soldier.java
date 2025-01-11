@@ -4,6 +4,9 @@ import battlecode.common.*;
 
 public class Soldier extends Bunny {
 
+    MapLocation blitzDestination = null;
+    SymmetryType blitzSymmetry = null;
+
     public Soldier(RobotController rc) throws GameActionException {
         super(rc);
 
@@ -12,7 +15,31 @@ public class Soldier extends Bunny {
     public void run() throws GameActionException {
         super.run(); // Call the shared logic for all bunnies
         scanSurroundings();
-        updateDestinationIfNeeded();
+//        updateDestinationIfNeeded();
+
+//        Util.log("KNOWN SPAWN TOWERS " + knownSpawnTowersIdx);
+//        for(int i = 0; i < knownSpawnTowers.length; i++){
+//            if(knownSpawnTowers[i] == null) continue;
+//            Util.log("Spawn tower: " + knownSpawnTowers[i]);
+//        }
+//        Util.log("KNOWN ENEMY TOWERS");
+//        for(int i = 0; i < knownEnemyTowerLocs.length; i++){
+//            if(knownEnemyTowerLocs[i] == null) continue;
+//            Util.log("Enemy tower: " + knownEnemyTowerLocs[i]);
+//        }
+//        Util.log("POSSIBLE SYMMETRIES");
+//        for(int i = 0; i < possibleSymmetries.length; i++){
+//            if(possibleSymmetries[i] == null) continue;
+//            Util.log("Symmetry: " + possibleSymmetries[i]);
+//        }
+//        Util.log("KNOWN EMPTY LOCS");
+//        for(int i = 0; i < emptyPotentialEnemyTowersLocs.length; i++){
+//            if(emptyPotentialEnemyTowersLocs[i] == null) continue;
+//            Util.log("Empty loc: " + emptyPotentialEnemyTowersLocs[i]);
+//        }
+//
+
+        updateBlitzDestination();
 
         // 1. Find opponent towers.
         // 3. Replenish or Paint/Attack if you can
@@ -128,10 +155,21 @@ public class Soldier extends Bunny {
         MapInfo[] actionableTiles = rc.senseNearbyMapInfos(UnitType.SOLDIER.actionRadiusSquared);
         MapLocation myLoc = rc.getLocation();
 
-
         if (rc.getPaint() < Constants.MIN_PAINT_NEEDED_FOR_SOLDIER_ATTACK) {
             return; // Not enough paint to do anything in this method
         }
+
+        // Prioritize attacking enemy towers.
+        for(RobotInfo info : rc.senseNearbyRobots(GameConstants.VISION_RADIUS_SQUARED, oppTeam)) {
+            if (info != null && info.getTeam() == oppTeam && Util.isTower(info.getType())) {
+                if (rc.isActionReady() && rc.canAttack(info.getLocation())) {
+                    rc.attack(info.getLocation());
+                    Util.log("SQUARE ATTACKED: " + info.getLocation());
+                    return;
+                }
+            }
+        }
+
 
         MapLocation bestPaintLoc = null;
         int bestScore = 0;
@@ -144,6 +182,7 @@ public class Soldier extends Bunny {
             }
 
             int tileScore = 0;
+
             // Prioritize painting marked tiles.
             if (tile.getMark().isAlly()) {
                 // Tile is empty or wrong color.
@@ -247,12 +286,81 @@ public class Soldier extends Bunny {
         }
     }
 
+    public void updateBlitzDestination() throws GameActionException {
+        if(blitzDestination != null){
+            // Check if the blitz destination is still valid.
+            if(blitzSymmetry == null){
+                for(int i = 0; i < knownEnemyTowerLocs.length; i++){
+                    if(blitzDestination.equals(knownEnemyTowerLocs[i])){
+                        return;
+                    }
+                }
+            } else {
+                // Check if the blitz destination is in the empty tower locs.
+                boolean locIsInvalid = false;
+                for (int i = 0; i < emptyPotentialEnemyTowersLocs.length; i++) {
+                    if (blitzDestination.equals(emptyPotentialEnemyTowersLocs[i])) {
+                        locIsInvalid = true;
+                        break;
+                    }
+                }
+
+                if(!locIsInvalid) {
+                    for (int i = 0; i < possibleSymmetries.length; i++) {
+                        if (possibleSymmetries[i] == blitzSymmetry) {
+                            return;
+                        }
+                    }
+                }
+            }
+
+            // If not, calculate a new one.
+            blitzDestination = null;
+            blitzSymmetry = null;
+        }
+
+        for(int i = 0; i < knownEnemyTowerLocs.length; i++){
+            if(knownEnemyTowerLocs[i] != null){
+                blitzDestination = knownEnemyTowerLocs[i];
+                blitzSymmetry = null;
+                return;
+            }
+        }
+
+        for(int s = 0; s < possibleSymmetries.length; s++){
+            SymmetryType symmetry = possibleSymmetries[s];
+            if(symmetry == null){
+                continue;
+            }
+            for(int i = 0; i < knownSpawnTowers.length; i++){
+                if(knownSpawnTowers[i] == null){
+                    continue;
+                }
+                MapLocation potentialEnemyLoc = Util.applySymmetry(knownSpawnTowers[i], symmetry);
+                boolean validLoc = true;
+                for(int j = 0; j < emptyPotentialEnemyTowersLocs.length; j++){
+                    if(potentialEnemyLoc.equals(emptyPotentialEnemyTowersLocs[j])){
+                        validLoc = false;
+                        break;
+                    }
+                }
+                if(validLoc){
+                    blitzDestination = potentialEnemyLoc;
+                    blitzSymmetry = symmetry;
+                    Util.log("GOT BLITZ DESTINATION: " + blitzDestination + " WITH SYMMETRY " + symmetry);
+                    return;
+                }
+            }
+        }
+    }
+
     /**
      * Choose where to move:
      * - If there’s an ally-marked empty tile, move toward it to paint/attack.
      * - Otherwise move randomly.
      */
     public void moveLogic() throws GameActionException {
+        Util.log("Blitz destination: " + blitzDestination);
         myLoc = rc.getLocation();
 
         // If trying to replenish, go to nearest tower immediately.
@@ -264,11 +372,15 @@ public class Soldier extends Bunny {
             return;
         }
 
+        if(blitzDestination != null){
+            nav.goTo(blitzDestination, rc.getType().actionRadiusSquared);
+            return;
+        }
+
         MapLocation bestDirection = null;
         int bestScore = 0;
 
         for (Direction dir : Direction.allDirections()) {
-
             if (!rc.canMove(dir)) {
                 continue;
             }

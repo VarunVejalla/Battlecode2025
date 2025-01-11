@@ -202,11 +202,14 @@ public class Util {
     }
 
     public static void log(String str) {
+        if(Constants.MUTE){
+            return;
+        }
         System.out.println(str);
     }
 
     public static void logBytecode(String str) {
-        System.out.println(str + ": " + Clock.getBytecodesLeft());
+        Util.log(str + ": " + Clock.getBytecodesLeft());
     }
 
     public static Direction[] closeDirections(Direction dir) {

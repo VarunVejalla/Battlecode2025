@@ -70,7 +70,7 @@ public class Bunny extends Robot {
     public void tryReplenish() throws GameActionException {
         if (nearestAlliedPaintTowerLoc != null) {
             if (rc.getLocation()
-                    .distanceSquaredTo(nearestAlliedPaintTowerLoc) <= GameConstants.PAINT_TRANSFER_RADIUS_SQUARED) {
+                    .distanceSquaredTo(nearestAlliedPaintTowerLoc) <= GameConstants.PAINT_TRANSFER_RADIUS_SQUARED && rc.canSenseRobotAtLocation(nearestAlliedPaintTowerLoc)) {
 
                 int towerPaintQuantity = rc.senseRobotAtLocation(nearestAlliedPaintTowerLoc).getPaintAmount();
                 int paintToFillUp = Math.min(
