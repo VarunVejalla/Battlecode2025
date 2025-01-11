@@ -244,28 +244,104 @@ public class Util {
         }
     }
 
-    public static MapInfo getMapInfo(int deltaX, int deltaY, MapInfo[] nearbyMapInfos) throws GameActionException {
+    public static int getMapInfoIndex(int deltaX, int deltaY, MapInfo[] nearbyMapInfos) {
         if (nearbyMapInfos.length == 69) {
             if (deltaX == -4) {
-                return nearbyMapInfos[deltaY+2];
+                return deltaY+2;
             } else if (deltaX == -3) {
-                return nearbyMapInfos[deltaY+8];
+                return deltaY+8;
             } else if (deltaX == -2) {
-                return nearbyMapInfos[deltaY+16];
+                return deltaY+16;
             } else if (deltaX == -1) {
-                return nearbyMapInfos[deltaY+25];
+                return deltaY+25;
             } else if (deltaX == 0) {
-                return nearbyMapInfos[deltaY+34];
+                return deltaY+34;
             } else if (deltaX == 1) {
-                return nearbyMapInfos[deltaY+43];
+                return deltaY+43;
             } else if (deltaX == 2) {
-                return nearbyMapInfos[deltaY+52];
+                return deltaY+52;
             } else if (deltaX == 3) {
-                return nearbyMapInfos[deltaY+60];
+                return deltaY+60;
             } else if (deltaX == 4) {
-                return nearbyMapInfos[deltaY+66];
+                return deltaY+66;
             }
         }
+        return -1;
+    }
+
+    public static MapInfo getMapInfo(int deltaX, int deltaY, MapInfo[] nearbyMapInfos) throws GameActionException {
+        if (nearbyMapInfos.length == 69) {
+            int index = getMapInfoIndex(deltaX, deltaY, nearbyMapInfos);
+            if (index == -1) {
+                return nearbyMapInfos[index];
+            }
+
+        }
         return rc.senseMapInfo(rc.getLocation().translate(deltaX, deltaY));
+    }
+
+    public static boolean isValidSquareForResource(int dx, int dy, MapInfo[] nearbyMapInfos) throws GameActionException {
+        MapInfo mapInfo = getMapInfo(dx, dy, nearbyMapInfos);
+        if (mapInfo.hasRuin() || mapInfo.isWall()) {
+            return false;
+        }
+        PaintType tilePaint = mapInfo.getPaint();
+        return !tilePaint.isEnemy();
+    }
+
+    public static MapLocation getMapLocationForResourcePattern(MapInfo[] nearbyMapInfos) throws GameActionException {
+        if (nearbyMapInfos.length == 69) {
+            int[] possibleCentersX = {0, 1, 0, -1, 0, 1, -1, -1, 1, 2, 0, -2, 0};
+            int[] possibleCentersY = {0, 0, 1, 0, -1, 1, -1, 1, -1, 0, 2, 0, -2};
+
+//            int[] validCenters = new int[possibleCentersX.length]; // 0 represents unknown, 1 is valid, 2 is invalid
+            int[] validSquares = new int[nearbyMapInfos.length]; // 0 represents unknown, 1 is valid, 2 is invalid
+
+            for (int i = 0; i < possibleCentersX.length; i++) {
+                int dx = possibleCentersX[i];
+                int dy = possibleCentersY[i];
+//                if (validCenters[i] == 1) {
+//                    return rc.getLocation().translate(dx, dy);
+//                } else if (validCenters[i] == 2) {
+//                    continue;
+//                } else {
+                int ddx;
+                int ddy;
+                boolean invalid = false;
+                for (int dx_shift = -2; dx_shift <= 2; dx_shift++) {
+                    for(int dy_shift = -2; dy_shift <= 2; dy_shift++) {
+                        ddx = dx+dx_shift;
+                        ddy = dy+dy_shift;
+
+                        int index = getMapInfoIndex(ddx, ddy, nearbyMapInfos);
+                        if (validSquares[index] == 1) {
+                            continue;
+                        } else if (validSquares[index] == 2) {
+//                                validCenters[i] = 2;
+                            invalid = true;
+                            break;
+                        } else {
+                            if (isValidSquareForResource(ddx, ddy, nearbyMapInfos)) {
+                                validSquares[index] = 1;
+                            } else {
+                                validSquares[index] = 2;
+                                invalid = true;
+                                break;
+                            }
+                        }
+
+                    }
+                    if (invalid) {
+                        break;
+                    }
+                }
+                if (!invalid) {
+                    return rc.getLocation().translate(dx, dy);
+                }
+            }
+        }
+
+        return null;
+
     }
 }
