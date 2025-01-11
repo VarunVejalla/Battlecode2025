@@ -3,6 +3,9 @@ package boony;
 import battlecode.common.*;
 
 public class Tower extends Robot {
+    private static final int EARLY_GAME_ROUND = 50;
+    private static final int MID_GAME_ROUND = 200;
+
     public Tower(RobotController rc) throws GameActionException {
         super(rc);
     }
@@ -10,10 +13,12 @@ public class Tower extends Robot {
     public void run() throws GameActionException {
         super.run();
 
-        if (rc.getRoundNum() < 50) {
-            openingBots();
-        } else if (rc.getMoney() > 1500) {
-            midGameBots();
+        if (rc.getRoundNum() < EARLY_GAME_ROUND) {
+            openingStrategy();
+        } else if (rc.getRoundNum() < MID_GAME_ROUND) {
+            midGameStrategy();
+        } else {
+            lateGameStrategy();
         }
 
         // Read incoming messages
@@ -24,29 +29,40 @@ public class Tower extends Robot {
         runAttack();
 
     }
-
-    public void openingBots() throws GameActionException {
+    private void buildRobot(UnitType type) throws GameActionException {
         Direction dir = directions[rng.nextInt(directions.length)];
         MapLocation nextLoc = rc.getLocation().add(dir);
 
-        if (rc.canBuildRobot(UnitType.SOLDIER, nextLoc)) {
-            rc.buildRobot(UnitType.SOLDIER, nextLoc);
-            System.out.println("BUILT A SOLDIER");
+        if (rc.canBuildRobot(type, nextLoc)) {
+            rc.buildRobot(type, nextLoc);
+            System.out.println("BUILT A " + type);
         }
     }
 
-    public void midGameBots() throws GameActionException {
-        Direction dir = directions[rng.nextInt(directions.length)];
-        MapLocation nextLoc = rc.getLocation().add(dir);
+    public void openingStrategy() throws GameActionException {
+        buildRobot(UnitType.SOLDIER);
+    }
+
+    public void midGameStrategy() throws GameActionException {
+
+        if(rc.getMoney() < 1500) return; // Save until at least 15.
+
         int robotType = rng.nextInt(2);
-        if (robotType == 0 && rc.canBuildRobot(UnitType.SOLDIER, nextLoc)) {
-            rc.buildRobot(UnitType.SOLDIER, nextLoc);
-            System.out.println("BUILT A SOLDIER");
-        } else if (robotType == 1 && rc.canBuildRobot(UnitType.MOPPER, nextLoc)) {
-            rc.buildRobot(UnitType.MOPPER, nextLoc);
-            System.out.println("BUILT A MOPPER");
-        } else if (robotType == 2 && rc.canBuildRobot(UnitType.SPLASHER, nextLoc)) {
-            rc.setIndicatorString("SPLASHER NOT IMPLEMENTED YET");
+        if(robotType == 0) {
+            buildRobot(UnitType.SOLDIER);
+        } else {
+            buildRobot(UnitType.MOPPER);
+        }
+    }
+
+    public void lateGameStrategy() throws GameActionException {
+        if(rc.getMoney() < 1500) return;
+//        buildRobot(UnitType.SPLASHER);
+        int robotType = rng.nextInt(2);
+        if(robotType == 0) {
+            buildRobot(UnitType.SOLDIER);
+        } else {
+            buildRobot(UnitType.MOPPER);
         }
     }
 

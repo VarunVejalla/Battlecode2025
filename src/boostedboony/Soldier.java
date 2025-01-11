@@ -97,9 +97,13 @@ public class Soldier extends Bunny {
             // Mark tower pattern on the ruin if in range
             if (ruinLoc.distanceSquaredTo(rc.getLocation()) <= Constants.MAX_RUIN_DISTANCE_SQUARED) {
                 // TODO: Possibly pick the tower type you want to build (not sure if we need to
-                // select tower when marking though)
-                rc.markTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, ruinLoc);
-//                rc.markTowerPattern(UnitType.LEVEL_ONE_MONEY_TOWER, ruinLoc);
+                // Mark to build the kind of tower that is the opposite of the nearest allied tower.
+                if(nearestAlliedTowerLoc.equals(nearestAlliedPaintTowerLoc)) {
+                    rc.markTowerPattern(UnitType.LEVEL_ONE_MONEY_TOWER, ruinLoc);
+                }
+                else {
+                    rc.markTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, ruinLoc);
+                }
 
             }
         }
@@ -162,6 +166,7 @@ public class Soldier extends Bunny {
                 continue;
             }
 
+            // Tile score is intentionally set to 0 and not min_value.
             int tileScore = 0;
             // Prioritize painting marked tiles.
             if (tile.getMark().isAlly()) {
@@ -183,15 +188,15 @@ public class Soldier extends Bunny {
             // If there are no marked tiles, paint an empty one.
             else if (tile.getPaint() == PaintType.EMPTY) {
                 // Reward for adjacency.
-                tileScore += 50 * adjacencyToAllyPaint(tile.getMapLocation()) + 50;
+                tileScore += 500 * adjacencyToAllyPaint(tile.getMapLocation()) + 500;
+
+                // Paint towers close to towers very first.
+//                tileScore += nearestAlliedTowerLoc.distanceSquaredTo(tile.getMapLocation());
+
+                // Paint empty closer tiles first. Only favor nearer squares if you have a positive score.
+//                tileScore -= myLoc.distanceSquaredTo(tile.getMapLocation());
             }
-
-            // Paint towers close to towers very first.
-//            tileScore -= 4*nearestAlliedTowerLoc.distanceSquaredTo(tile.getMapLocation());
-
-            // Paint closer tiles first.
             tileScore -= myLoc.distanceSquaredTo(tile.getMapLocation());
-
             if (tileScore > bestScore) {
                 bestScore = tileScore;
                 bestPaintLoc = tile.getMapLocation();
@@ -238,10 +243,10 @@ public class Soldier extends Bunny {
                 // We might want to check if we can complete the tower
                 MapLocation ruinLoc = tile.getMapLocation();
 
-                if (rc.canCompleteTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, ruinLoc)) {
+                // Check if you can complete a tower pattern.
+                if(rc.canCompleteTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, ruinLoc)) {
                     rc.completeTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, ruinLoc);
-                }
-                else if (rc.canCompleteTowerPattern(UnitType.LEVEL_ONE_MONEY_TOWER, ruinLoc)) {
+                } else if (rc.canCompleteTowerPattern(UnitType.LEVEL_ONE_MONEY_TOWER, ruinLoc)) {
                     rc.completeTowerPattern(UnitType.LEVEL_ONE_MONEY_TOWER, ruinLoc);
                 }
 
@@ -281,6 +286,7 @@ public class Soldier extends Bunny {
                 && myLoc.distanceSquaredTo(nearestAlliedPaintTowerLoc) > GameConstants.PAINT_TRANSFER_RADIUS_SQUARED) {
 
             nav.goTo(nearestAlliedPaintTowerLoc, GameConstants.PAINT_TRANSFER_RADIUS_SQUARED);
+            Util.log("Trying to replenish paint");
             return;
         }
 
