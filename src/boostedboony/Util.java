@@ -256,20 +256,14 @@ public class Util {
 
     public static int getMapInfoIndex(int deltaX, int deltaY, MapInfo[] nearbyMapInfos) {
         if (nearbyMapInfos.length == 69) {
-            if (deltaX == -4) {
-                return deltaY+2;
-            } else if (deltaX == -3) {
-                return deltaY+8;
-            } else if (deltaX == -2) {
-                return deltaY+16;
-            } else if (deltaX == -1) {
-                return deltaY+25;
-            } else if (deltaX == 0) {
-                return deltaY+34;
-            } else if (deltaX == 1) {
-                return deltaY+43;
-            } else if (deltaX == 2) {
-                return deltaY+52;
+            if (deltaX < 3) {
+                if (deltaX > -3) {
+                    return deltaY+9*deltaX+34;
+                } else if (deltaX == -3) {
+                    return deltaY+8;
+                } else {
+                    return deltaY+2;
+                }
             } else if (deltaX == 3) {
                 return deltaY+60;
             } else if (deltaX == 4) {
