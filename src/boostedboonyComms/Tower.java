@@ -12,7 +12,7 @@ public class Tower extends Robot {
 
 
     int[] array = new int[3600];
-    rc.get
+//    rc.get
 
 
 
