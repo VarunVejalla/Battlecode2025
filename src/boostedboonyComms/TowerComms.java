@@ -7,10 +7,6 @@ public class TowerComms extends Comms {
 
     Tower tower;
 
-
-
-
-
     public TowerComms(RobotController rc, Robot robot, Tower tower) {
         super(rc, robot);
         this.tower = tower;
@@ -18,11 +14,9 @@ public class TowerComms extends Comms {
 
     }
 
-
     public void findMessageReceiver(){
 
     }
-
 
     public void processMessages() throws GameActionException{
 
@@ -37,7 +31,6 @@ public class TowerComms extends Comms {
             }
         }
     }
-
 
     public void sendMessageToRobot(){
 
