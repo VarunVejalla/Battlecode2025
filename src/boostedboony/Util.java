@@ -240,18 +240,34 @@ public class Util {
     }
 
     // TODO: make sure this method works
-    public static boolean shouldSecondaryPaintPaintTower(MapLocation tileToPaint, MapLocation center) {
-        if (tileToPaint.equals(center)) {
-            return false;
-        }
-        if (tileToPaint.x == center.x || tileToPaint.y == center.y) {
-            return false;
+    public static boolean shouldSecondaryPaintTower(UnitType towerType, MapLocation tileToPaint, MapLocation center) {
+        if (towerType == UnitType.LEVEL_ONE_PAINT_TOWER) {
+            if (tileToPaint.equals(center)) {
+                return false;
+            }
+            if (tileToPaint.x == center.x || tileToPaint.y == center.y) {
+                return false;
+            } else {
+                int mod = tileToPaint.x - center.x + tileToPaint.y - center.y;
+                return mod % 2 == 0;
+            }
+        } else if (towerType == UnitType.LEVEL_ONE_MONEY_TOWER) {
+            if (tileToPaint.equals(center)) {
+                return false;
+            }
+            int dx = tileToPaint.x - center.x;
+            int dy = tileToPaint.y - center.y;
+            int s = dx*dx + dy*dy;
+            if (s == 1 || s == 8) {
+                return false;
+            } else {
+                return true;
+            }
         } else {
-            int mod = tileToPaint.x-center.x + tileToPaint.y-center.y;
-            return mod%2 == 0;
+            // TODO: this is definitely wrong, just a placeholder
+            return false;
         }
     }
-
 
 
     public static int getMapInfoIndex(int deltaX, int deltaY, MapInfo[] nearbyMapInfos) {
@@ -366,6 +382,8 @@ public class Util {
     }
 
     public static MapLocation getMapLocationForResourcePattern(MapInfo[] nearbyMapInfos) throws GameActionException {
+        // this avoids repainting squares no matter what
+
         if (nearbyMapInfos.length == 69) {
             int[] possibleCentersX = {0, 1, 0, -1, 0, 1, -1, -1, 1, 2, 0, -2, 0};
             int[] possibleCentersY = {0, 0, 1, 0, -1, 1, -1, 1, -1, 0, 2, 0, -2};
@@ -379,7 +397,7 @@ public class Util {
             // our paint tile with mark and doesn't agree with what we're painting
 
 
-            // 0 represents unknown, 1 is no paint (but paintable), 2 is our paint, 3 is their paint (or invalid square)
+            // 0 represents unknown, 1 is no paint (and not invalid and not marked), 2 is our paint (and not invalid and not marked), 3 is invalid square or marked or their paint
             int[] validSquares = new int[nearbyMapInfos.length];
 
 
@@ -400,47 +418,30 @@ public class Util {
                         PaintType paintType = mapInfo.getPaint();
 
                         if (validSquares[index] == 0) {
-                            if (mapInfo.hasRuin() || mapInfo.isWall()) {
+                            if (mapInfo.hasRuin() || mapInfo.isWall() || paintType.isEnemy()) {
                                 validSquares[index] = 3;
-                            } else if (paintType == PaintType.EMPTY) {
-                                validSquares[index] = 1;
-                            } else if (paintType.isEnemy()) {
+                            } else if (mapInfo.getMark().isAlly()){
                                 validSquares[index] = 3;
-                            } else {
+                            } else if (paintType.isAlly()) {
                                 validSquares[index] = 2;
+                            } else {
+                                validSquares[index] = 1;
                             }
+
                         }
 
                         if (validSquares[index] == 1) {
-                            // no paint
-                            // but may have a mark
+                            // unpainted and unmarked
                             alreadyFinished = false;
-
-                            PaintType markType = mapInfo.getMark();
-                            if (markType.isAlly()) {
-                                if (markType.isSecondary() != shouldSecondaryPaintResource(dx_shift, dy_shift)) {
-                                    invalid = true;
-                                    break;
-                                }
-                            }
                         } else if (validSquares[index] == 2) {
-                            PaintType markType = mapInfo.getMark();
+                            // painted in our color but unmarked
                             boolean shouldBeSecondaryPaint = shouldSecondaryPaintResource(dx_shift, dy_shift);
                             boolean isSecondaryPaint = mapInfo.getPaint().isSecondary();
-                            if (markType == PaintType.EMPTY) {
-                                if (isSecondaryPaint != shouldBeSecondaryPaint) {
-                                    alreadyFinished = false;
-                                }
+                            if (isSecondaryPaint == shouldBeSecondaryPaint) {
+                                continue;
                             } else {
-                                if (markType.isSecondary() != shouldBeSecondaryPaint) {
-                                    invalid = true;
-                                    break;
-                                } else {
-                                    // if the existing paint is different than what we want to paint it as
-                                    if (isSecondaryPaint != shouldBeSecondaryPaint) {
-                                        alreadyFinished = false;
-                                    }
-                                }
+                                invalid = true;
+                                break;
                             }
                         }  else if (validSquares[index] == 3) {
                             invalid = true;
