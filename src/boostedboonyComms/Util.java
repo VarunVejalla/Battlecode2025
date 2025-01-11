@@ -179,15 +179,6 @@ public class Util {
         return null;
     }
 
-    public static boolean locIsASpawnLoc(MapLocation loc) throws GameActionException {
-        // this method checks if the robot is on a spawn location
-        for (MapLocation spawnCenter : robot.spawnCenters) {
-            if (Util.minMovesToReach(loc, spawnCenter) <= 1) {
-                return true;
-            }
-        }
-        return false;
-    }
 
     public static int encodeMapLocation(MapLocation loc) {
         return loc.x * (robot.mapHeight + 1) + loc.y;

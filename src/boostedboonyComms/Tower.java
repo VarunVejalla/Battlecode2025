@@ -3,12 +3,33 @@ package boostedboonyComms;
 import battlecode.common.*;
 
 public class Tower extends Robot {
+
+    TowerComms comms = new TowerComms(rc, this, this);
+    MapInfo[] nearbyMapInfos;
+
+    RobotInfo[] friendliesToComm = null;
+
+
+
+    int[] array = new int[3600];
+    rc.get
+
+
+
     public Tower(RobotController rc) throws GameActionException {
         super(rc);
+
     }
 
     public void run() throws GameActionException {
         super.run();
+
+        scanSurroundings();
+        comms.sendMessages();
+
+        if (rc.getRoundNum() > 10){
+            rc.resign();
+        }
 
         if (rc.getRoundNum() < 50) {
             openingBots();
@@ -22,8 +43,14 @@ public class Tower extends Robot {
             System.out.println("Tower received message: '#" + m.getSenderID() + " " + m.getBytes());
         }
         runAttack();
-
     }
+
+    public void scanSurroundings() throws GameActionException {
+        nearbyMapInfos = rc.senseNearbyMapInfos();
+        friendliesToComm = rc.senseNearbyRobots(GameConstants.MESSAGE_RADIUS_SQUARED, rc.getTeam());
+    }
+
+
 
     public void openingBots() throws GameActionException {
         Direction dir = directions[rng.nextInt(directions.length)];

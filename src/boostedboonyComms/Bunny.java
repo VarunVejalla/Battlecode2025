@@ -12,6 +12,7 @@ public class Bunny extends Robot {
     RobotInfo[] nearbyOpponents;
     boolean tryingToReplenish = false;
 
+    BunnyComms comms = new BunnyComms(rc, this);
 
     public Bunny(RobotController rc) throws GameActionException {
         super(rc);
@@ -20,6 +21,7 @@ public class Bunny extends Robot {
 
     public void run() throws GameActionException {
         super.run();
+        comms.receiveMessages();
     }
 
     /**
