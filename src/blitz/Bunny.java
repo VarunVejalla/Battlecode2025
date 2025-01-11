@@ -1,13 +1,10 @@
 package blitz;
 
 import battlecode.common.*;
-import battlecode.schema.RobotType;
-
-import java.util.HashSet;
 
 public class Bunny extends Robot {
 
-    MapLocation nearestAlliedTowerLoc;
+    MapLocation[] knownAlliedPaintTowerLocs = new MapLocation[10];
     MapLocation nearestAlliedPaintTowerLoc;
     MapLocation destination; // long-term destination
     MapInfo[] nearbyMapInfos;
@@ -56,25 +53,53 @@ public class Bunny extends Robot {
      * surroundings
      */
     public void updateNearestAlliedPaintTowerLoc() throws GameActionException {
+        // Update list of known allied paint towers.
+        for(int i = 0; i < knownAlliedPaintTowerLocs.length; i++){
+            if(knownAlliedPaintTowerLocs[i] == null){
+                continue;
+            }
+            if(rc.canSenseRobotAtLocation(knownAlliedPaintTowerLocs[i])){
+                RobotInfo info = rc.senseRobotAtLocation(knownAlliedPaintTowerLocs[i]);
+                if(info == null || info.getTeam() != myTeam || !Util.isPaintTower(info.getType())){
+                    knownAlliedPaintTowerLocs[i] = null;
+                }
+            }
+        }
+
+
         for (RobotInfo bot : nearbyFriendlies) {
-            if (!Util.isTower(bot.getType())) {
+            if (bot.getTeam() != myTeam || !Util.isPaintTower(bot.getType())) {
                 continue;
             }
 
-            MapLocation currAlliedTowerLocation = bot.getLocation();
-            MapLocation myLocation = rc.getLocation();
-
-            // Update nearest allied tower location
-            if (nearestAlliedTowerLoc == null ||
-                    myLocation.distanceSquaredTo(currAlliedTowerLocation) < myLocation.distanceSquaredTo(nearestAlliedTowerLoc)) {
-                nearestAlliedTowerLoc = currAlliedTowerLocation;
+            boolean alreadyIn = false;
+            for (int i = 0; i < knownAlliedPaintTowerLocs.length; i++) {
+                if (bot.getLocation().equals(knownAlliedPaintTowerLocs[i])) {
+                    alreadyIn = true;
+                    break;
+                }
             }
+            if (!alreadyIn) {
+                for (int i = 0; i < knownAlliedPaintTowerLocs.length; i++) {
+                    if (knownAlliedPaintTowerLocs[i] == null) {
+                        knownAlliedPaintTowerLocs[i] = bot.getLocation();
+                        break;
+                    }
+                }
+            }
+        }
 
-            // Update nearest allied paint tower location
-            if (Util.isPaintTower(bot.getType()) &&
-                    (nearestAlliedPaintTowerLoc == null ||
-                            myLocation.distanceSquaredTo(currAlliedTowerLocation) < myLocation.distanceSquaredTo(nearestAlliedPaintTowerLoc))) {
-                nearestAlliedPaintTowerLoc = currAlliedTowerLocation;
+        nearestAlliedPaintTowerLoc = null;
+        int closestDist = Integer.MAX_VALUE;
+
+        for(int i = 0; i < knownAlliedPaintTowerLocs.length; i++) {
+            if(knownAlliedPaintTowerLocs[i] == null) {
+                continue;
+            }
+            int dist = rc.getLocation().distanceSquaredTo(knownAlliedPaintTowerLocs[i]);
+            if(dist < closestDist) {
+                nearestAlliedPaintTowerLoc = knownAlliedPaintTowerLocs[i];
+                closestDist = dist;
             }
         }
     }
@@ -145,6 +170,7 @@ public class Bunny extends Robot {
         if (nearestAlliedPaintTowerLoc != null && (tryingToReplenish || checkIfIShouldReplenish())) {
             destination = nearestAlliedPaintTowerLoc;
             tryingToReplenish = true;
+            Util.log("REPPPPPPPPPPPPPPPPPPPPP");
             Util.addToIndicatorString("REP");
         }
 

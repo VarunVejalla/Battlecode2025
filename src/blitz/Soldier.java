@@ -15,30 +15,7 @@ public class Soldier extends Bunny {
     public void run() throws GameActionException {
         super.run(); // Call the shared logic for all bunnies
         scanSurroundings();
-//        updateDestinationIfNeeded();
-
-//        Util.log("KNOWN SPAWN TOWERS " + knownSpawnTowersIdx);
-//        for(int i = 0; i < knownSpawnTowers.length; i++){
-//            if(knownSpawnTowers[i] == null) continue;
-//            Util.log("Spawn tower: " + knownSpawnTowers[i]);
-//        }
-//        Util.log("KNOWN ENEMY TOWERS");
-//        for(int i = 0; i < knownEnemyTowerLocs.length; i++){
-//            if(knownEnemyTowerLocs[i] == null) continue;
-//            Util.log("Enemy tower: " + knownEnemyTowerLocs[i]);
-//        }
-//        Util.log("POSSIBLE SYMMETRIES");
-//        for(int i = 0; i < possibleSymmetries.length; i++){
-//            if(possibleSymmetries[i] == null) continue;
-//            Util.log("Symmetry: " + possibleSymmetries[i]);
-//        }
-//        Util.log("KNOWN EMPTY LOCS");
-//        for(int i = 0; i < emptyPotentialEnemyTowersLocs.length; i++){
-//            if(emptyPotentialEnemyTowersLocs[i] == null) continue;
-//            Util.log("Empty loc: " + emptyPotentialEnemyTowersLocs[i]);
-//        }
-//
-
+        updateDestinationIfNeeded();
         updateBlitzDestination();
 
         // 1. Find opponent towers.
@@ -365,8 +342,7 @@ public class Soldier extends Bunny {
 
         // If trying to replenish, go to nearest tower immediately.
         if (tryingToReplenish &&
-                nearestAlliedPaintTowerLoc != null
-                && myLoc.distanceSquaredTo(nearestAlliedPaintTowerLoc) > GameConstants.PAINT_TRANSFER_RADIUS_SQUARED) {
+                nearestAlliedPaintTowerLoc != null) {
 
             nav.goTo(nearestAlliedPaintTowerLoc, GameConstants.PAINT_TRANSFER_RADIUS_SQUARED);
             return;
