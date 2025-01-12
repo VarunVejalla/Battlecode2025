@@ -1,7 +1,8 @@
-package boostedboonyComms;
+package dummy;
 
-import battlecode.common.*;
-import scala.collection.Map;
+import battlecode.common.GameActionException;
+import battlecode.common.MapLocation;
+import battlecode.common.RobotController;
 
 public class Soldier extends Bunny {
 
@@ -27,13 +28,13 @@ public class Soldier extends Bunny {
      */
     public void moveLogic() throws GameActionException {
         // move up.
-        if(rc.getRoundNum() < 20) {
+        if(rc.getRoundNum() < 10) {
             nav.goTo(new MapLocation(0, 20), 0);
         } else {
             nav.goTo(new MapLocation(0, 0), 0);
         }
 
-        if(rc.getRoundNum() > 40) {
+        if(rc.getRoundNum() > 20) {
             rc.resign();
         }
     }

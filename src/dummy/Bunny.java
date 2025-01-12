@@ -1,4 +1,4 @@
-package boostedboonyComms;
+package dummy;
 
 import battlecode.common.*;
 
@@ -26,7 +26,6 @@ public class Bunny extends Robot {
 
     public void run() throws GameActionException {
         super.run();
-        scanSurroundings();
     }
 
     /**
@@ -47,14 +46,9 @@ public class Bunny extends Robot {
             // This has been tested! Scan result works!
             ScanResult sr = comms.scanSector(sectorIndex);
 
-            System.out.println("Sector Index: " + sectorIndex);
-            System.out.println("Sector Center: " + comms.getSectorCenter(sectorIndex));
-            System.out.println("This is what the sector to look");
-            System.out.println(sr.toString());
 
             int encodedSector = comms.encodeSector(sr);
 
-            System.out.println("Encoded Sector: " + encodedSector);
 
             // If this encoding is different from the known encoding, add the message to the buffer.
             if(encodedSector != comms.myWorld[sectorIndex]) {

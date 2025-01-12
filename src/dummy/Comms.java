@@ -1,7 +1,5 @@
-package boostedboonyComms;
+package dummy;
 
-import battlecode.common.MapLocation;
-import battlecode.common.RobotController;
 import battlecode.common.*;
 
 public class Comms {

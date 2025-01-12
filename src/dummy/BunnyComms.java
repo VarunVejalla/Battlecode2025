@@ -1,6 +1,9 @@
-package boostedboonyComms;
+package dummy;
 
-import battlecode.common.*;
+import battlecode.common.GameActionException;
+import battlecode.common.Message;
+import battlecode.common.RobotController;
+import battlecode.common.RobotInfo;
 
 public class BunnyComms extends Comms {
 

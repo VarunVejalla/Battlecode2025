@@ -1,4 +1,4 @@
-package boostedboonyComms;
+package dummy;
 
 import battlecode.common.*;
 
@@ -17,11 +17,9 @@ public class Tower extends Robot {
     public void run() throws GameActionException {
         super.run();
 
-        scanSurroundings();
+//        scanSurroundings();
         // Only make soldiers (for comms testing purposes).
-        if(rc.getRoundNum() <= 1) {
-            openingBots();
-        }
+//        openingBots();
 
     }
 
