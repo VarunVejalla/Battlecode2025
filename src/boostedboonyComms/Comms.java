@@ -13,12 +13,14 @@ public class Comms {
     // Did the buffer update one term correctly? Yes.
     // Can the bunny send a buffer message to the tower? Yes.
     // Did the buffer update multiple terms correctly? Yes.
-    // TODO: Is message conversion working correctly?
-    // TODO: Does the tower's world update correctly in response to the buffer message?
-    // TODO: Does the tower correctly transmit the map to the bunny?
-    // TODO: Does the bunny's map correctly update?
+    // Does the tower's world update correctly in response to the buffer message? Yes.
+    // Does the tower correctly transmit the map to the bunny? Yes.
+    // Does the bunny's map correctly update? Yes.
+    // Is message conversion working correctly? Yes.
     // TODO: Make the bunny's movement match up with comms (if you request a map don't move!!)
     // TODO: If you are communicating, make sure that you stay connected by paint! (heuristic check? just touch paint?)
+    // TODO: Does this work for multiple robots with a single tower?
+    // TODO: Does this work for large maps? no. :(( (not yet!)
 
     public final int MAP_UPDATE_REQUEST_CODE = 0xFFFF;
 
