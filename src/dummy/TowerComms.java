@@ -19,12 +19,15 @@ public class TowerComms extends Comms {
      * Processes incoming messages and updates the map representation.
      */
     public void processSectorMessages() throws GameActionException {
+        // The buffer makes sense: what if the tower is called after?
         Message[] messages = rc.readMessages(rc.getRoundNum()); // Read all messages from this round.
+        Util.log("Received " + messages.length + " messages");
+
         for (Message message : messages) {
             if(message.getBytes() == MAP_UPDATE_REQUEST_CODE) {
+                Util.log("Received a map request: " + message);
                 sendMap(message.getSenderID());
             }
-
 
             // Otherwise, it's potential new sector info.
             else {
@@ -32,6 +35,10 @@ public class TowerComms extends Comms {
                 int roundNum = message.getBytes() >> 16;
                 int sectorID = (message.getBytes() & 0xFFFF) >> 8;
                 int msg = message.getBytes() & 0xFF;
+
+                System.out.println("Received a sector update from robot: " + message.getSenderID() + "\n");
+                System.out.println("Contents robot: " + roundNum + ", " + sectorID + ", " + msg + "\n");
+                System.out.println(Util.getSectorDescription(sectorID));
 
                 // If the last time I saw this sector is older, update my world.
                 if (roundLastSeen[sectorID] < roundNum) {

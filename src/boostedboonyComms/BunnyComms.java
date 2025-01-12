@@ -42,8 +42,8 @@ public class BunnyComms extends Comms {
         if(messageBufferIndex < 0) {
             messageBufferIndex += messageBuffer.length;
         }
-
-        while(messageBuffer[messageBufferIndex] != -1) {
+        // You can only send one message per round. If there's no messages left in the buffer, request a map!
+        if(messageBuffer[messageBufferIndex] != -1) {
             if(rc.canSendMessage(tower.getLocation())) {
                 rc.sendMessage(tower.getLocation(), messageBuffer[messageBufferIndex]);
                 messageBuffer[messageBufferIndex] = -1;
@@ -51,28 +51,30 @@ public class BunnyComms extends Comms {
                 if(messageBufferIndex < 0) {
                     messageBufferIndex += messageBuffer.length;
                 }
+                System.out.println("BunnyComms sendMessages successful!! to " + tower.getLocation());
+
             } else {
                 System.out.println("BunnyComms sendMessages failed for " + tower.getLocation());
-                break;
             }
         }
-        // Add back one for the first invalid index.
-        messageBufferIndex++;
-        messageBufferIndex %= messageBuffer.length;
-        bufferIsEmpty = true;
+        else {
+            // Add back one for the first invalid index.
+            messageBufferIndex++;
+            messageBufferIndex %= messageBuffer.length;
+            bufferIsEmpty = true;
 
-        // When finished sending the buffer messages, request the map.
-        // TODO: Large maps require two requests for the map. Right now this code only does one.
+            // When finished sending the buffer messages, request the map.
+            // TODO: Large maps require two requests for the map. Right now this code only does one.
 
-        // If you need a map update, request one.
-        if(rc.canSendMessage(tower.getLocation()) && (rc.getRoundNum() - lastMapUpdate > MAP_COOLDOWN)) {
+            // If you need a map update, request one.
+            if(rc.canSendMessage(tower.getLocation()) && (rc.getRoundNum() - lastMapUpdate > MAP_COOLDOWN)) {
 
-            rc.sendMessage(tower.getLocation(), MAP_UPDATE_REQUEST_CODE);
-            System.out.println("BunnyComms requested map from " + tower.getLocation());
-        } else {
-            System.out.println("BunnyComms couldn't request map from " + tower.getLocation());
+                rc.sendMessage(tower.getLocation(), MAP_UPDATE_REQUEST_CODE);
+                System.out.println("BunnyComms requested map from " + tower.getLocation());
+            } else {
+                System.out.println("BunnyComms couldn't request map from " + tower.getLocation());
+            }
         }
-
     }
 
     /**

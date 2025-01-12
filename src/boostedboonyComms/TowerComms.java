@@ -1,6 +1,8 @@
 package boostedboonyComms;
 
-import battlecode.common.*;
+import battlecode.common.GameActionException;
+import battlecode.common.Message;
+import battlecode.common.RobotController;
 
 public class TowerComms extends Comms {
 
@@ -17,12 +19,15 @@ public class TowerComms extends Comms {
      * Processes incoming messages and updates the map representation.
      */
     public void processSectorMessages() throws GameActionException {
-        Message[] messages = rc.readMessages(rc.getRoundNum()); // Read all messages from this round.
+        // The buffer makes sense: what if the tower is called after?
+        Message[] messages = rc.readMessages(rc.getRoundNum()-1); // Read all messages from this round.
+        System.out.println("Received " + messages.length + " messages");
+
         for (Message message : messages) {
             if(message.getBytes() == MAP_UPDATE_REQUEST_CODE) {
+                Util.log("Received a map request: " + message);
                 sendMap(message.getSenderID());
             }
-
 
             // Otherwise, it's potential new sector info.
             else {
@@ -30,6 +35,11 @@ public class TowerComms extends Comms {
                 int roundNum = message.getBytes() >> 16;
                 int sectorID = (message.getBytes() & 0xFFFF) >> 8;
                 int msg = message.getBytes() & 0xFF;
+
+                System.out.println("Received a sector update from robot: " + message.getSenderID() + "\n");
+                System.out.println("Contents robot: " + roundNum + ", " + sectorID + ", " + msg + "\n");
+                System.out.println("-------------------------------------");
+                System.out.println(Util.getSectorDescription(sectorID));
 
                 // If the last time I saw this sector is older, update my world.
                 if (roundLastSeen[sectorID] < roundNum) {
