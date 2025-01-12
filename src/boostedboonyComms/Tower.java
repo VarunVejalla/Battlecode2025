@@ -10,15 +10,8 @@ public class Tower extends Robot {
     RobotInfo[] friendliesToComm = null;
 
 
-
-    int[] array = new int[3600];
-//    rc.get
-
-
-
     public Tower(RobotController rc) throws GameActionException {
         super(rc);
-
     }
 
     public void run() throws GameActionException {

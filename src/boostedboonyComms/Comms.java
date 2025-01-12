@@ -1,9 +1,12 @@
 package boostedboonyComms;
 
 import battlecode.common.MapLocation;
+import battlecode.common.Message;
 import battlecode.common.RobotController;
 
 public class Comms {
+
+    public final int MAP_UPDATE_REQUEST_CODE = 0xFFFF;
 
     RobotController rc;
     int[] myWorld;
@@ -38,7 +41,7 @@ public class Comms {
     /**
      * Builds the 8-bit representation for a sector and stores it in `myWorld`.
      */
-    public void buildSector(int sectorIndex, int enemyPaintCount, int emptyCount, int ruinCondition, boolean staleBit) {
+    public void encodeSector(int sectorIndex, int enemyPaintCount, int emptyCount, int ruinCondition, boolean staleBit) {
         int sectorValue = 0;
 
         // First 2 bits: enemy paint count
@@ -92,4 +95,5 @@ public class Comms {
         int row = loc.y / 5;
         return row * sectorCols + col;
     }
+
 }

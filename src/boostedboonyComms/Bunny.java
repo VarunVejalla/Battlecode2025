@@ -21,7 +21,7 @@ public class Bunny extends Robot {
 
     public void run() throws GameActionException {
         super.run();
-        comms.receiveMessages();
+//        comms.receiveMessages();
     }
 
     /**
