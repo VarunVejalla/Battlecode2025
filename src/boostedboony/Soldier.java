@@ -104,10 +104,10 @@ public class Soldier extends Bunny {
                 else {
                     rc.markTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, ruinLoc);
                 }
-
             }
         }
     }
+
 
     /**
      * Check if the ruin is already marked by an ally tower pattern.
@@ -151,10 +151,21 @@ public class Soldier extends Bunny {
         MapInfo[] actionableTiles = rc.senseNearbyMapInfos(UnitType.SOLDIER.actionRadiusSquared);
         MapLocation myLoc = rc.getLocation();
 
-
         if (rc.getPaint() < Constants.MIN_PAINT_NEEDED_FOR_SOLDIER_ATTACK) {
             return; // Not enough paint to do anything in this method
         }
+
+
+        // loop over actionable enemies and try to attack them if they're a tower
+        for (RobotInfo robot : rc.senseNearbyRobots(UnitType.SOLDIER.actionRadiusSquared, rc.getTeam().opponent())) {
+            if (Util.isPaintTower(robot.getType())) {
+                if (rc.canAttack(robot.getLocation())) {
+                    rc.attack(robot.getLocation());
+                    return;
+                }
+            }
+        }
+
 
         MapLocation bestPaintLoc = null;
         int bestScore = 0;
@@ -189,13 +200,8 @@ public class Soldier extends Bunny {
             else if (tile.getPaint() == PaintType.EMPTY) {
                 // Reward for adjacency.
                 tileScore += 500 * adjacencyToAllyPaint(tile.getMapLocation()) + 500;
-
-                // Paint towers close to towers very first.
-//                tileScore += nearestAlliedTowerLoc.distanceSquaredTo(tile.getMapLocation());
-
-                // Paint empty closer tiles first. Only favor nearer squares if you have a positive score.
-//                tileScore -= myLoc.distanceSquaredTo(tile.getMapLocation());
             }
+
             tileScore -= myLoc.distanceSquaredTo(tile.getMapLocation());
             if (tileScore > bestScore) {
                 bestScore = tileScore;
@@ -280,10 +286,9 @@ public class Soldier extends Bunny {
         myLoc = rc.getLocation();
 
         // If trying to replenish, go to nearest tower immediately.
-
         if (tryingToReplenish &&
-                nearestAlliedPaintTowerLoc != null
-                && myLoc.distanceSquaredTo(nearestAlliedPaintTowerLoc) > GameConstants.PAINT_TRANSFER_RADIUS_SQUARED) {
+                nearestAlliedPaintTowerLoc != null &&
+                myLoc.distanceSquaredTo(nearestAlliedPaintTowerLoc) > GameConstants.PAINT_TRANSFER_RADIUS_SQUARED) {
 
             nav.goTo(nearestAlliedPaintTowerLoc, GameConstants.PAINT_TRANSFER_RADIUS_SQUARED);
             Util.log("Trying to replenish paint");
@@ -294,7 +299,6 @@ public class Soldier extends Bunny {
         int bestScore = 0;
 
         for (Direction dir : Direction.allDirections()) {
-
             if (!rc.canMove(dir)) {
                 continue;
             }
