@@ -96,4 +96,20 @@ public class Comms {
         return row * sectorCols + col;
     }
 
+    /**
+     * Returns the index of the sector that is fully contained within a vision radius from center.
+     * Returns -1 if there is no such sector.
+     */
+    public int getFullyEnclosedSectorID(MapLocation center) {
+        // There is only one sector that could be fully enclosed. It must contain the center.
+        int sectorIndex = getSectorIndex(center);
+
+        // If center is within radius squared 4 of the sector center, the sector is fully visible, even if the sector is cutoff!
+        if(center.isWithinDistanceSquared(getSectorCenter(sectorIndex), 4)) {
+            return sectorIndex;
+        }
+
+        return -1;
+    }
+
 }
