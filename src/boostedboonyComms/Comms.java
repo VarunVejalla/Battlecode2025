@@ -148,7 +148,8 @@ public class Comms {
 
                     if (mapInfo.hasRuin()) {
                         towerType = 1; //set tower type to one if it has a ruin
-                    } else if (rc.canSenseRobotAtLocation(scanLoc)) {
+                    }
+                    if (rc.canSenseRobotAtLocation(scanLoc)) {
                         RobotInfo robot = rc.senseRobotAtLocation(scanLoc);
                         if (Util.isTower(robot.type)) {
                             // Determine tower type based on additional properties

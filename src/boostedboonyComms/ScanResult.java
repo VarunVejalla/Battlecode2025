@@ -13,4 +13,13 @@ public class ScanResult {
         this.enemyPaintCount = enemyPaintCount;
         this.emptyPaintCount = emptyPaintCount;
     }
+
+    @Override
+    public String toString() {
+        return "ScanResult{" +
+                "towerType=" + towerType +
+                ", enemyPaintCount=" + enemyPaintCount +
+                ", emptyPaintCount=" + emptyPaintCount +
+                '}';
+    }
 }

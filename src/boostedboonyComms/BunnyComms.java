@@ -5,8 +5,8 @@ import battlecode.common.*;
 public class BunnyComms extends Comms {
 
 //    public final int MESSAGE_BUFFER_SIZE = 5;
-//    public final int MAP_COOLDOWN = 50;
-
+    public final int MAP_COOLDOWN = 5;
+    public int lastMapUpdate = 0;
 
     // Kind of annoying way of handling larger maps.
     public int sectorStartIndex = 0;
@@ -56,13 +56,17 @@ public class BunnyComms extends Comms {
                 break;
             }
         }
-
+        // Add back one for the first invalid index.
+        messageBufferIndex++;
+        messageBufferIndex %= messageBuffer.length;
         bufferIsEmpty = true;
 
         // When finished sending the buffer messages, request the map.
         // TODO: Large maps require two requests for the map. Right now this code only does one.
 
-        if(rc.canSendMessage(tower.getLocation())) {
+        // If you need a map update, request one.
+        if(rc.canSendMessage(tower.getLocation()) && (rc.getRoundNum() - lastMapUpdate > MAP_COOLDOWN)) {
+
             rc.sendMessage(tower.getLocation(), MAP_UPDATE_REQUEST_CODE);
             System.out.println("BunnyComms requested map from " + tower.getLocation());
         } else {

@@ -18,23 +18,8 @@ public class Tower extends Robot {
         super.run();
 
         scanSurroundings();
-
-        if (rc.getRoundNum() > 10){
-            rc.resign();
-        }
-
-        if (rc.getRoundNum() < 50) {
-            openingBots();
-        } else if (rc.getMoney() > 1500) {
-            midGameBots();
-        }
-
-        // Read incoming messages
-        Message[] messages = rc.readMessages(-1);
-        for (Message m : messages) {
-            System.out.println("Tower received message: '#" + m.getSenderID() + " " + m.getBytes());
-        }
-        runAttack();
+        openingBots();
+        // Only make soldiers (for comms testing purposes).
     }
 
     public void scanSurroundings() throws GameActionException {

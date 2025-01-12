@@ -26,6 +26,7 @@ public class Bunny extends Robot {
 
     public void run() throws GameActionException {
         super.run();
+        scanSurroundings();
     }
 
     /**
@@ -43,7 +44,14 @@ public class Bunny extends Robot {
         int sectorIndex = comms.getFullyEnclosedSectorID(rc.getLocation());
         // If sector is -1, no sector is fully enclosed
         if(sectorIndex != -1) {
+            // This has been tested! Scan result works!
             ScanResult sr = comms.scanSector(sectorIndex);
+
+            System.out.println("Sector Index: " + sectorIndex);
+            System.out.println("Sector Center: " + comms.getSectorCenter(sectorIndex));
+            System.out.println("This is what the sector to look");
+            System.out.println(sr.toString());
+
             int encodedSector = comms.encodeSector(sr);
             // If this encoding is different from the known encoding, add the message to the buffer.
             if(encodedSector != comms.myWorld[sectorIndex]) {
@@ -54,7 +62,14 @@ public class Bunny extends Robot {
             }
         }
 
-
+        // TODO: Things to test for.
+        // Does Scan Result work? Yes.
+        // TODO: Did the bunny's world update?
+        // TODO: Did the buffer update correctly?
+        // TODO: Can the bunny send a buffer message to the tower?
+        // TODO: Does the tower's world update correctly in response to the buffer message?
+        // TODO: Does the tower correctly transmit the map to the bunny?
+        // TODO: Does the bunny's map correctly update?
 
 
         // Updates both nearest allied paint tower and nearest allied tower.
@@ -77,12 +92,12 @@ public class Bunny extends Robot {
             MapLocation myLocation = rc.getLocation();
 
             // TODO Run comms here.
-//            System.out.println("My world before");
-//            System.out.println(comms.myWorld[0]);
+            System.out.println("My world before");
+            System.out.println(comms.myWorld[0]);
             comms.sendMessages(bot);
             comms.processMap();
-//            System.out.println("My world after");
-//            System.out.println(comms.myWorld[0]);
+            System.out.println("My world after");
+            System.out.println(comms.myWorld[0]);
 
             // Update nearest allied tower location
             if (nearestAlliedTowerLoc == null ||

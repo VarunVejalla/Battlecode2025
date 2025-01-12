@@ -17,7 +17,7 @@ public class TowerComms extends Comms {
      * Processes incoming messages and updates the map representation.
      */
     public void processSectorMessages() throws GameActionException {
-        Message[] messages = rc.readMessages(-1); // Read all messages from the queue
+        Message[] messages = rc.readMessages(rc.getRoundNum()); // Read all messages from this round.
         for (Message message : messages) {
             if(message.getBytes() == MAP_UPDATE_REQUEST_CODE) {
                 sendMap(message.getSenderID());

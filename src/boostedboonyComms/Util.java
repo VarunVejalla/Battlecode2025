@@ -262,4 +262,70 @@ public class Util {
         }
         return rc.senseMapInfo(rc.getLocation().translate(deltaX, deltaY));
     }
+
+    public String getSectorDescription(int sectorValue) {
+        int ruinCondition = (sectorValue >> 1) & 0b111;
+        int emptyCount = (sectorValue >> 4) & 0b11;
+        int enemyPaintCount = (sectorValue >> 6) & 0b11;
+
+        String ruinConditionDescription;
+        switch (ruinCondition) {
+            case 0:
+                ruinConditionDescription = "No Ruin";
+                break;
+            case 1:
+                ruinConditionDescription = "Unbuilt Ruin";
+                break;
+            case 2:
+                ruinConditionDescription = "Friendly Paint Tower";
+                break;
+            case 3:
+                ruinConditionDescription = "Friendly Money Tower";
+                break;
+            case 4:
+                ruinConditionDescription = "Friendly Defense Tower";
+                break;
+            case 5:
+                ruinConditionDescription = "Enemy Paint Tower";
+                break;
+            case 6:
+                ruinConditionDescription = "Enemy Money Tower";
+                break;
+            case 7:
+                ruinConditionDescription = "Enemy Defense Tower";
+                break;
+            default:
+                ruinConditionDescription = "Unknown";
+                break;
+        }
+
+        String enemyPaintCountDescription;
+        switch (enemyPaintCount) {
+            case 0:
+                enemyPaintCountDescription = "0-1 Tiles";
+                break;
+            case 1:
+                enemyPaintCountDescription = "2-4 Tiles";
+                break;
+            case 2:
+                enemyPaintCountDescription = "5-12 Tiles";
+                break;
+            case 3:
+                enemyPaintCountDescription = "13+ Tiles";
+                break;
+            default:
+                enemyPaintCountDescription = "Unknown";
+                break;
+        }
+
+        return String.format(
+                "Sector %d:\n" +
+                        "  Enemy Paint Count: %d (%s)\n" +
+                        "  Empty Count: %d\n" +
+                        "  Ruin Condition: %d (%s)\n",
+                enemyPaintCount, enemyPaintCountDescription,
+                emptyCount,
+                ruinCondition, ruinConditionDescription
+        );
+    }
 }
