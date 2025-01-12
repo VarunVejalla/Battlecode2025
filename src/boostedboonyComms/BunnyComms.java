@@ -5,6 +5,8 @@ import battlecode.common.*;
 public class BunnyComms extends Comms {
 
 //    public final int MESSAGE_BUFFER_SIZE = 5;
+//    public final int MAP_COOLDOWN = 50;
+
 
     // Kind of annoying way of handling larger maps.
     public int sectorStartIndex = 0;
@@ -13,6 +15,8 @@ public class BunnyComms extends Comms {
     public int[] messageBuffer = {-1,-1,-1,-1,-1}; // Buffer fills up at 5 sectors. Hardcoded for bytecode.
     public int messageBufferIndex = 0; // Stores the first invalid index.
     public boolean bufferIsEmpty = true;
+
+//    public int lastMapUpdateTime = 0;
 
     public BunnyComms(RobotController rc, Robot robot) {
         super(rc);

@@ -32,15 +32,21 @@ public class Bunny extends Robot {
         nearbyFriendlies = rc.senseNearbyRobots(-1, rc.getTeam());
         nearbyOpponents = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
 
-        // TODO: Update everything that is within my vision radius here. Compare to my internal world.
-        // TODO: Figure out what sector is entirely visible from where I am.
-        // TODO: Given my location, what sectorID can I fully see?
-        // TODO: For that sectorID, how do I scan and update?
+        // HERE IS COMMS
+        // Find sector index that is fully enclosed.
+        int sectorIndex = comms.getFullyEnclosedSectorID(rc.getLocation());
+        // If sector is -1, no sector is fully enclosed
+        if(sectorIndex != -1) {
+            ScanResult sr = comms.scanSector(sectorIndex);
+            int encodedSector = comms.encodeSector(sr);
+            // If this encoding is different from the known encoding, add the message to the buffer.
+            if(encodedSector != comms.myWorld[sectorIndex]) {
+                comms.updateBunnyBuffer(rc.getRoundNum(), sectorIndex, encodedSector);
+            }
+        }
 
         // Updates both nearest allied paint tower and nearest allied tower.
         updateNearestAlliedPaintTowerLoc();
-
-
 
     }
 
@@ -59,11 +65,11 @@ public class Bunny extends Robot {
             MapLocation myLocation = rc.getLocation();
 
             // TODO Run comms here.
-            System.out.println("My world before");
-            System.out.println(comms.myWorld[0]);
+//            System.out.println("My world before");
+//            System.out.println(comms.myWorld[0]);
             comms.sendMessages(bot);
-            System.out.println("My world after");
-            System.out.println(comms.myWorld[0]);
+//            System.out.println("My world after");
+//            System.out.println(comms.myWorld[0]);
 
             // Update nearest allied tower location
             if (nearestAlliedTowerLoc == null ||

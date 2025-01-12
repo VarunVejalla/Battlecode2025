@@ -42,25 +42,31 @@ public class Comms {
     }
 
     /**
-     * Builds the 8-bit representation for a sector and stores it in `myWorld`.
+     * Builds the 8-bit representation for a sector given a ScanResult.
      */
-    public void encodeSector(int sectorIndex, int enemyPaintCount, int emptyCount, int ruinCondition, boolean staleBit) {
+    public int encodeSector(ScanResult sr) {
         int sectorValue = 0;
 
         // First 2 bits: enemy paint count
-        sectorValue |= (convertTileCounts(enemyPaintCount) & 0b11) << 6;
+        sectorValue |= (convertTileCounts(sr.enemyPaintCount) & 0b11) << 6;
 
         // Next 2 bits: empty cell count
-        sectorValue |= (convertTileCounts(emptyCount) & 0b11) << 4;
+        sectorValue |= (convertTileCounts(sr.enemyPaintCount) & 0b11) << 4;
 
         // Next 3 bits: ruin condition (assumed 3 bits)
-        sectorValue |= (ruinCondition & 0b111) << 1;
+        sectorValue |= (sr.towerType & 0b111) << 1;
 
-        // Last bit: stale flag
-        sectorValue |= (staleBit ? 1 : 0);
+        // Last bit: free
 
-        myWorld[sectorIndex] = sectorValue;
+        return sectorValue;
     }
+
+//    /**
+//     * Builds the 32-bit sector message.
+//     */
+//    public int buildSectorMessage(int roundNum, int sectorID, int message) {
+//        return ((roundNum << 16) + sectorID) << 8 + message;
+//    }
 
     /**
      * Decodes the sector data and returns an array of values:
@@ -74,6 +80,7 @@ public class Comms {
         int emptyCount = (sectorValue >> 4) & 0b11;
         int enemyPaintCount = (sectorValue >> 6) & 0b11;
 
+        // TODO: Change this to return a ScanResult object instead.
         return new int[]{enemyPaintCount, emptyCount, ruinCondition, staleBit};
     }
 

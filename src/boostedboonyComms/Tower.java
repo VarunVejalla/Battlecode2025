@@ -40,6 +40,10 @@ public class Tower extends Robot {
     public void scanSurroundings() throws GameActionException {
         nearbyMapInfos = rc.senseNearbyMapInfos();
         friendliesToComm = rc.senseNearbyRobots(GameConstants.MESSAGE_RADIUS_SQUARED, rc.getTeam());
+
+        // processMessages
+        comms.processSectorMessages();
+
     }
 
 
