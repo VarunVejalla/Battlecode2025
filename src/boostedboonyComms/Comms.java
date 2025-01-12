@@ -11,12 +11,14 @@ public class Comms {
     // Does Scan Result work? Yes.
     // Did the bunny's world update? Yes.
     // Did the buffer update one term correctly? Yes.
-    // TODO: Can the bunny send a buffer message to the tower?
-    // TODO: Did the buffer update multiple terms correctly?
+    // Can the bunny send a buffer message to the tower? Yes.
+    // Did the buffer update multiple terms correctly? Yes.
     // TODO: Is message conversion working correctly?
     // TODO: Does the tower's world update correctly in response to the buffer message?
     // TODO: Does the tower correctly transmit the map to the bunny?
     // TODO: Does the bunny's map correctly update?
+    // TODO: Make the bunny's movement match up with comms (if you request a map don't move!!)
+    // TODO: If you are communicating, make sure that you stay connected by paint! (heuristic check? just touch paint?)
 
     public final int MAP_UPDATE_REQUEST_CODE = 0xFFFF;
 

@@ -5,7 +5,7 @@ import battlecode.common.*;
 public class BunnyComms extends Comms {
 
 //    public final int MESSAGE_BUFFER_SIZE = 5;
-    public final int MAP_COOLDOWN = 5;
+    public final int MAP_COOLDOWN = 0;
     public int lastMapUpdate = 0;
 
     // Kind of annoying way of handling larger maps.
@@ -25,10 +25,11 @@ public class BunnyComms extends Comms {
         assert roundNum <= 2001;
         assert sectorID < 144;
         messageBuffer[messageBufferIndex] = (roundNum << 16) + (sectorID << 8) + msg;
+        Util.log("RoundNum = " + roundNum + ", sectorID = " + sectorID + ", msg = " + msg);
+        Util.log("Bunny buffer updated to " + messageBuffer[messageBufferIndex]);
         messageBufferIndex++;
         messageBufferIndex %= messageBuffer.length;
-        System.out.println("RoundNum = " + roundNum + ", sectorID = " + sectorID + ", msg = " + msg);
-        System.out.println("Bunny buffer updated to " + messageBuffer[messageBufferIndex]);
+        Util.log("New buffer index: " + messageBufferIndex);
 
         bufferIsEmpty = false;
     }
@@ -42,6 +43,7 @@ public class BunnyComms extends Comms {
         if(messageBufferIndex < 0) {
             messageBufferIndex += messageBuffer.length;
         }
+
         // You can only send one message per round. If there's no messages left in the buffer, request a map!
         if(messageBuffer[messageBufferIndex] != -1) {
             if(rc.canSendMessage(tower.getLocation())) {
@@ -51,10 +53,10 @@ public class BunnyComms extends Comms {
                 if(messageBufferIndex < 0) {
                     messageBufferIndex += messageBuffer.length;
                 }
-                System.out.println("BunnyComms sendMessages successful!! to " + tower.getLocation());
+                Util.log("BunnyComms sendMessages successful!! to " + tower.getLocation());
 
             } else {
-                System.out.println("BunnyComms sendMessages failed for " + tower.getLocation());
+                Util.log("BunnyComms sendMessages failed for " + tower.getLocation());
             }
         }
         else {
@@ -62,17 +64,20 @@ public class BunnyComms extends Comms {
             messageBufferIndex++;
             messageBufferIndex %= messageBuffer.length;
             bufferIsEmpty = true;
+        }
 
-            // When finished sending the buffer messages, request the map.
-            // TODO: Large maps require two requests for the map. Right now this code only does one.
-
-            // If you need a map update, request one.
-            if(rc.canSendMessage(tower.getLocation()) && (rc.getRoundNum() - lastMapUpdate > MAP_COOLDOWN)) {
-
+        // When finished sending the buffer messages, request the map.
+        // TODO: Large maps require two requests for the map. Right now this code only does one.
+        // If you need a map update, request one.
+        if((rc.getRoundNum() - lastMapUpdate < MAP_COOLDOWN)) {
+            // Didn't need a map!
+            Util.log("BunnyComms map is fresh enough! (no map request sent!)");
+        } else {
+            if(rc.canSendMessage(tower.getLocation())) {
                 rc.sendMessage(tower.getLocation(), MAP_UPDATE_REQUEST_CODE);
-                System.out.println("BunnyComms requested map from " + tower.getLocation());
+                Util.log("BunnyComms requested map from " + tower.getLocation());
             } else {
-                System.out.println("BunnyComms couldn't request map from " + tower.getLocation());
+                Util.log("BunnyComms couldn't request map from " + tower.getLocation());
             }
         }
     }
@@ -85,29 +90,37 @@ public class BunnyComms extends Comms {
     public void processMap() throws GameActionException {
         // Queue should be max 20 messages describing (first half of) the map.
         Message[] messages = rc.readMessages(rc.getRoundNum());
+        Util.log("Bunny " + rc.getID() + " received " + messages.length + " map messages");
 
         if(messages.length == 0){
             return;
         }
 
         int sectorIndex = sectorStartIndex;
+        int mapMessageCount = 0;
         for(Message message : messages) {
             int msgBytes = message.getBytes();
             for(int bitshift = 0; bitshift < 4; bitshift++) {
                 // If there are still sectors to process, we should update the map.
                 if(sectorIndex < sectorCount) {
-                        // Always take the towers map.
-                        myWorld[sectorIndex] = msgBytes & 0xFF;
-                        msgBytes >>>= 8;
-                        sectorIndex++;
+                    // Always take the towers map.
+                    // sectorCount - 1 is the greatest index achieved
+                    Util.log("Sector being updated: " + sectorIndex + "/" + (sectorCount-1));
+                    myWorld[sectorIndex] = msgBytes & 0xFF;
+                    msgBytes >>>= 8;
+                    sectorIndex++;
                 }
-                // If all sectors have been processed, there shouldn't be any other data sent.
                 else {
-                    // 8-bit sector indices.
-                    Util.log("The map has been processed, why are you still sending me data????");
+                    // Only map sectors are processed. Anything sent after is thrown away.
+                    break;
                 }
             }
+            mapMessageCount++;
+            Util.log("Bunny processed " + mapMessageCount+" map messages");
         }
+        Util.log("Bunny has finished processing it's new map.");
+        Util.logArray("Bunny's new world", myWorld);
+
 
         if(sectorIndex >= sectorCount) {
             sectorStartIndex = 0; // Map is complete, reset to start of map.

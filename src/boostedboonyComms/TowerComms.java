@@ -20,8 +20,9 @@ public class TowerComms extends Comms {
      */
     public void processSectorMessages() throws GameActionException {
         // The buffer makes sense: what if the tower is called after?
+        // Don't want to check the whole queue because then elements in the buffer will be processed multiple times.
         Message[] messages = rc.readMessages(rc.getRoundNum()-1); // Read all messages from this round.
-        System.out.println("Received " + messages.length + " messages");
+        Util.log("Tower " + rc.getID() + " received " + messages.length + " sector messages");
 
         for (Message message : messages) {
             if(message.getBytes() == MAP_UPDATE_REQUEST_CODE) {
@@ -36,16 +37,19 @@ public class TowerComms extends Comms {
                 int sectorID = (message.getBytes() & 0xFFFF) >> 8;
                 int msg = message.getBytes() & 0xFF;
 
-                System.out.println("Received a sector update from robot: " + message.getSenderID() + "\n");
-                System.out.println("Contents robot: " + roundNum + ", " + sectorID + ", " + msg + "\n");
-                System.out.println("-------------------------------------");
-                System.out.println(Util.getSectorDescription(sectorID));
+                Util.log("Received a sector update from robot: " + message.getSenderID() + "\n");
+                Util.log("Contents: " + roundNum + ", " + sectorID + ", " + msg + "\n");
+                Util.log("Sector Center: " + getSectorCenter(sectorID));
+                Util.log("-------------------------------------");
+                Util.log(Util.getSectorDescription(sectorID));
 
                 // If the last time I saw this sector is older, update my world.
                 if (roundLastSeen[sectorID] < roundNum) {
                     myWorld[sectorID] = msg;
                     roundLastSeen[sectorID] = roundNum;
                 }
+                Util.logArray("Tower world", myWorld);
+                Util.logArray("Last Round Seen", roundLastSeen);
             }
 
         }
@@ -68,13 +72,13 @@ public class TowerComms extends Comms {
                 // Send the message once 32-bits are filled.
                 if (rc.canSenseRobot(robotID)) {
                     rc.sendMessage(rc.senseRobot(robotID).getLocation(), message);
+                    Util.log("Sent a map message to robot: " + robotID);
                     shiftIndex = 0;
                     message = 0;
                 } else {
                     Util.log("Tower couldn't find the robot that requested a map!!");
                 }
             }
-
         }
 
         // TODO: Check to make that it's never intended to send 0

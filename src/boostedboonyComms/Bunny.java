@@ -47,14 +47,13 @@ public class Bunny extends Robot {
             // This has been tested! Scan result works!
             ScanResult sr = comms.scanSector(sectorIndex);
 
-            System.out.println("Sector Index: " + sectorIndex);
-            System.out.println("Sector Center: " + comms.getSectorCenter(sectorIndex));
-            System.out.println("This is what the sector to look");
-            System.out.println(sr.toString());
+            Util.log("Sector Index: " + sectorIndex);
+            Util.log("Sector Center: " + comms.getSectorCenter(sectorIndex));
+            Util.log(sr.toString());
 
             int encodedSector = comms.encodeSector(sr);
 
-            System.out.println("Encoded Sector: " + encodedSector);
+            Util.log("Encoded Sector: " + encodedSector);
 
             // If this encoding is different from the known encoding, add the message to the buffer.
             if(encodedSector != comms.myWorld[sectorIndex]) {
@@ -68,12 +67,12 @@ public class Bunny extends Robot {
         // Check the bunny buffer
         Util.logArray("bunnyBuffer", comms.messageBuffer);
         // Checking bunny world
-        System.out.println("Checking bunny world for updates");
+        Util.log("Bunny looking for a sector to update its world with");
         if(sectorIndex == -1) {
-            System.out.println("No sector found");
+            Util.log("No sector found");
         }
         else {
-            System.out.println(Util.getSectorDescription(comms.myWorld[sectorIndex]));
+            Util.log(Util.getSectorDescription(comms.myWorld[sectorIndex]));
         }
 
 
@@ -97,12 +96,8 @@ public class Bunny extends Robot {
             MapLocation myLocation = rc.getLocation();
 
             // TODO Run comms here.
-            System.out.println("My world before");
-            System.out.println(comms.myWorld[0]);
             comms.sendMessages(bot);
             comms.processMap();
-            System.out.println("My world after");
-            System.out.println(comms.myWorld[0]);
 
             // Update nearest allied tower location
             if (nearestAlliedTowerLoc == null ||

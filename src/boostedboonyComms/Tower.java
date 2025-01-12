@@ -16,17 +16,16 @@ public class Tower extends Robot {
 
     public void run() throws GameActionException {
         super.run();
-
         scanSurroundings();
-        // Only make soldiers (for comms testing purposes).
-        if(rc.getRoundNum() <= 1) {
+
+        // Only make one soldier from the paint tower.
+        if(rc.getRoundNum() <= 1 && rc.getType() == UnitType.LEVEL_ONE_PAINT_TOWER) {
             openingBots();
         }
 
         if(rc.getRoundNum() >= 39) {
             Util.logArray("Tower's World", comms.myWorld);
         }
-        comms.processSectorMessages();
     }
 
     public void scanSurroundings() throws GameActionException {
@@ -49,7 +48,7 @@ public class Tower extends Robot {
 
         if (rc.canBuildRobot(UnitType.SOLDIER, nextLoc)) {
             rc.buildRobot(UnitType.SOLDIER, nextLoc);
-            System.out.println("BUILT A SOLDIER");
+            Util.log("BUILT A SOLDIER");
         }
     }
 
@@ -60,13 +59,13 @@ public class Tower extends Robot {
 
         if (robotType == 0 && rc.canBuildRobot(UnitType.SOLDIER, nextLoc)) {
             rc.buildRobot(UnitType.SOLDIER, nextLoc);
-            System.out.println("BUILT A SOLDIER");
+            Util.log("BUILT A SOLDIER");
         } else if (robotType == 1 && rc.canBuildRobot(UnitType.MOPPER, nextLoc)) {
             rc.buildRobot(UnitType.MOPPER, nextLoc);
-            System.out.println("BUILT A MOPPER");
+            Util.log("BUILT A MOPPER");
         } else if (robotType == 2 && rc.canBuildRobot(UnitType.SPLASHER, nextLoc)) {
             rc.buildRobot(UnitType.SPLASHER, nextLoc);
-            System.out.println("BUILT A SPLASHER");
+            Util.log("BUILT A SPLASHER");
         }
     }
 
