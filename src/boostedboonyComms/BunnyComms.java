@@ -12,6 +12,7 @@ public class BunnyComms extends Comms {
     // -1 is used to represent empty messages.
     public int[] messageBuffer = {-1,-1,-1,-1,-1}; // Buffer fills up at 5 sectors. Hardcoded for bytecode.
     public int messageBufferIndex = 0; // Stores the first invalid index.
+    public boolean bufferIsEmpty = true;
 
     public BunnyComms(RobotController rc, Robot robot) {
         super(rc);
@@ -23,13 +24,15 @@ public class BunnyComms extends Comms {
         messageBuffer[messageBufferIndex] = roundNum << 16 + sectorID << 8 + msg;
         messageBufferIndex++;
         messageBufferIndex %= messageBuffer.length;
-        Util.log("RoundNum = " + roundNum + ", sectorID = " + sectorID + ", msg = " + msg);
-        Util.log("Bunny buffer updated to " + messageBuffer[messageBufferIndex]);
+        System.out.println("RoundNum = " + roundNum + ", sectorID = " + sectorID + ", msg = " + msg);
+        System.out.println("Bunny buffer updated to " + messageBuffer[messageBufferIndex]);
+
+        bufferIsEmpty = false;
     }
 
     // If there's a friendly tower nearby, send all messages in the buffer.
     // Goes through the buffer backwards. Retracing steps because the current index is the first invalid.
-    public void sendMessages(Tower tower) throws GameActionException {
+    public void sendMessages(RobotInfo tower) throws GameActionException {
         // Go back one for the first valid index.
         messageBufferIndex--;
         // Remember that % is remainder, not modulus in Java.
@@ -38,26 +41,29 @@ public class BunnyComms extends Comms {
         }
 
         while(messageBuffer[messageBufferIndex] != -1) {
-            if(rc.canSendMessage(tower.myLoc)) {
-                rc.sendMessage(tower.myLoc, messageBuffer[messageBufferIndex]);
+            if(rc.canSendMessage(tower.getLocation())) {
+                rc.sendMessage(tower.getLocation(), messageBuffer[messageBufferIndex]);
                 messageBuffer[messageBufferIndex] = -1;
                 messageBufferIndex--;
                 if(messageBufferIndex < 0) {
                     messageBufferIndex += messageBuffer.length;
                 }
             } else {
-                Util.log("BunnyComms sendMessages failed for " + tower.myLoc);
+                System.out.println("BunnyComms sendMessages failed for " + tower.getLocation());
                 break;
             }
         }
+
+        bufferIsEmpty = true;
+
         // When finished sending the buffer messages, request the map.
         // TODO: Large maps require two requests for the map. Right now this code only does one.
 
-        if(rc.canSendMessage(tower.myLoc)) {
-            rc.sendMessage(tower.myLoc, MAP_UPDATE_REQUEST_CODE);
-            Util.log("BunnyComms requested map from " + tower.myLoc);
+        if(rc.canSendMessage(tower.getLocation())) {
+            rc.sendMessage(tower.getLocation(), MAP_UPDATE_REQUEST_CODE);
+            System.out.println("BunnyComms requested map from " + tower.getLocation());
         } else {
-            Util.log("BunnyComms couldn't request map from " + tower.myLoc);
+            System.out.println("BunnyComms couldn't request map from " + tower.getLocation());
         }
 
     }

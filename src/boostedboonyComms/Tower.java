@@ -18,7 +18,6 @@ public class Tower extends Robot {
         super.run();
 
         scanSurroundings();
-        comms.sendMessages();
 
         if (rc.getRoundNum() > 10){
             rc.resign();

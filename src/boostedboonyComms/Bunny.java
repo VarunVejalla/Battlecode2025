@@ -21,7 +21,6 @@ public class Bunny extends Robot {
 
     public void run() throws GameActionException {
         super.run();
-//        comms.receiveMessages();
     }
 
     /**
@@ -32,7 +31,16 @@ public class Bunny extends Robot {
         nearbyMapInfos = rc.senseNearbyMapInfos();
         nearbyFriendlies = rc.senseNearbyRobots(-1, rc.getTeam());
         nearbyOpponents = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
+
+        // TODO: Update everything that is within my vision radius here. Compare to my internal world.
+        // TODO: Figure out what sector is entirely visible from where I am.
+        // TODO: Given my location, what sectorID can I fully see?
+        // TODO: For that sectorID, how do I scan and update?
+
+        // Updates both nearest allied paint tower and nearest allied tower.
         updateNearestAlliedPaintTowerLoc();
+
+
 
     }
 
@@ -49,6 +57,13 @@ public class Bunny extends Robot {
 
             MapLocation currAlliedTowerLocation = bot.getLocation();
             MapLocation myLocation = rc.getLocation();
+
+            // TODO Run comms here.
+            System.out.println("My world before");
+            System.out.println(comms.myWorld[0]);
+            comms.sendMessages(bot);
+            System.out.println("My world after");
+            System.out.println(comms.myWorld[0]);
 
             // Update nearest allied tower location
             if (nearestAlliedTowerLoc == null ||
