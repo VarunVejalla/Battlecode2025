@@ -12,6 +12,11 @@ public class Bunny extends Robot {
     RobotInfo[] nearbyOpponents;
     boolean tryingToReplenish = false;
 
+
+    boolean isSendingMessages = false;
+    boolean isWaitingToReceiveMessages = false;
+
+
     BunnyComms comms = new BunnyComms(rc, this);
 
     public Bunny(RobotController rc) throws GameActionException {
@@ -32,6 +37,7 @@ public class Bunny extends Robot {
         nearbyFriendlies = rc.senseNearbyRobots(-1, rc.getTeam());
         nearbyOpponents = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
 
+
         // HERE IS COMMS
         // Find sector index that is fully enclosed.
         int sectorIndex = comms.getFullyEnclosedSectorID(rc.getLocation());
@@ -42,8 +48,14 @@ public class Bunny extends Robot {
             // If this encoding is different from the known encoding, add the message to the buffer.
             if(encodedSector != comms.myWorld[sectorIndex]) {
                 comms.updateBunnyBuffer(rc.getRoundNum(), sectorIndex, encodedSector);
+
+                // update comms.myWorld with this new information
+                comms.myWorld[sectorIndex] = encodedSector;
             }
         }
+
+
+
 
         // Updates both nearest allied paint tower and nearest allied tower.
         updateNearestAlliedPaintTowerLoc();
@@ -68,6 +80,7 @@ public class Bunny extends Robot {
 //            System.out.println("My world before");
 //            System.out.println(comms.myWorld[0]);
             comms.sendMessages(bot);
+            comms.processMap();
 //            System.out.println("My world after");
 //            System.out.println(comms.myWorld[0]);
 

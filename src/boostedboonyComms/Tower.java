@@ -44,6 +44,9 @@ public class Tower extends Robot {
         // processMessages
         comms.processSectorMessages();
 
+
+        //
+
     }
 
 

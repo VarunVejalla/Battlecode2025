@@ -16,7 +16,6 @@ public class BunnyComms extends Comms {
     public int messageBufferIndex = 0; // Stores the first invalid index.
     public boolean bufferIsEmpty = true;
 
-//    public int lastMapUpdateTime = 0;
 
     public BunnyComms(RobotController rc, Robot robot) {
         super(rc);
@@ -78,9 +77,13 @@ public class BunnyComms extends Comms {
     // TODO: For large maps processMap needs to be called twice. Make sure that this is being done properly.
     // For large maps we need to run this twice. sectorStartIndex stores the shift.
     public void processMap() throws GameActionException {
-
         // Queue should be max 20 messages describing (first half of) the map.
         Message[] messages = rc.readMessages(rc.getRoundNum());
+
+        if(messages.length == 0){
+            return;
+        }
+
         int sectorIndex = sectorStartIndex;
         for(Message message : messages) {
             int msgBytes = message.getBytes();

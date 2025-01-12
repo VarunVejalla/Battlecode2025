@@ -51,7 +51,7 @@ public class Comms {
         sectorValue |= (convertTileCounts(sr.enemyPaintCount) & 0b11) << 6;
 
         // Next 2 bits: empty cell count
-        sectorValue |= (convertTileCounts(sr.enemyPaintCount) & 0b11) << 4;
+        sectorValue |= (convertTileCounts(sr.emptyPaintCount) & 0b11) << 4;
 
         // Next 3 bits: ruin condition (assumed 3 bits)
         sectorValue |= (sr.towerType & 0b111) << 1;
@@ -61,12 +61,6 @@ public class Comms {
         return sectorValue;
     }
 
-//    /**
-//     * Builds the 32-bit sector message.
-//     */
-//    public int buildSectorMessage(int roundNum, int sectorID, int message) {
-//        return ((roundNum << 16) + sectorID) << 8 + message;
-//    }
 
     /**
      * Decodes the sector data and returns an array of values:
@@ -172,8 +166,8 @@ public class Comms {
         }
 
         return new ScanResult(towerType,
-                convertPaintCountToLevel(enemyPaintCount),
-                convertPaintCountToLevel(emptyPaintCount));
+                convertTileCounts(enemyPaintCount),
+                convertTileCounts(emptyPaintCount));
     }
 
 
@@ -226,12 +220,6 @@ public class Comms {
         return 0; // Default case, should not happen
     }
 
-    public int convertPaintCountToLevel(int paintCount) {
-        if (paintCount < 2) return 0;
-        if (paintCount < 5) return 1;
-        if (paintCount <= 12) return 2;
-        return 3;
-    }
 
 }
 

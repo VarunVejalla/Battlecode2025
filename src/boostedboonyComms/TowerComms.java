@@ -22,6 +22,8 @@ public class TowerComms extends Comms {
             if(message.getBytes() == MAP_UPDATE_REQUEST_CODE) {
                 sendMap(message.getSenderID());
             }
+
+
             // Otherwise, it's potential new sector info.
             else {
                 // Decode the sector message.
@@ -48,7 +50,6 @@ public class TowerComms extends Comms {
         int message = 0;
         // Sectors should be sent in decreasing ID order within each message.
         for (int encodedSector : myWorld) {
-
             // Each 32-bit message includes 4 sectors.
             message += encodedSector << shiftIndex;
             shiftIndex += 8;
