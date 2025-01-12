@@ -19,20 +19,8 @@ public class RobotPlayer {
     public static void run(RobotController rc) throws Exception {
         int currentTurn = rc.getRoundNum();
 
-        // End early for debugging.
-//         if (currentTurn > 300) {
-//             rc.resign();
-//         }
-
-        if (rc.getRoundNum() != currentTurn) {
-            Util.log("BYTECODE EXCEEDED");
-            // rc.resign();
-        }
 
         Robot robot = switch (rc.getType()) {
-            case SOLDIER -> new Soldier(rc);
-            case MOPPER -> new Mopper(rc);
-            case SPLASHER -> new Splasher(rc);
 
             case LEVEL_ONE_DEFENSE_TOWER, LEVEL_TWO_DEFENSE_TOWER, LEVEL_THREE_DEFENSE_TOWER -> new DefenseTower(rc);
             case LEVEL_ONE_MONEY_TOWER, LEVEL_TWO_MONEY_TOWER, LEVEL_THREE_MONEY_TOWER -> new MoneyTower(rc);
@@ -42,12 +30,9 @@ public class RobotPlayer {
 
         while (true) {
             currentTurn = rc.getRoundNum();
-
             try {
                 robot.run();
                 if (rc.getRoundNum() != currentTurn) {
-                    Util.log("BYTECODE EXCEEDED");
-                    // rc.resign();
                 }
             } catch (Exception e) {
                 e.printStackTrace();
