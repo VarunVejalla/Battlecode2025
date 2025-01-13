@@ -22,16 +22,25 @@ public class TowerComms extends Comms {
 
         // Don't want to check the whole queue because then elements in the buffer will be processed multiple times.
         Message[] messages = rc.readMessages(rc.getRoundNum()-1); // Read all messages from last round.
-        Util.log("Tower " + rc.getID() + " received " + messages.length + " sector messages");
+
+        if(messages.length > 0) {
+            Util.log("Tower " + rc.getID() + " received " + messages.length + " sector messages");
+        }
+
+        boolean hasSentMap = false;
 
         for (Message message : messages) {
-            if(message.getBytes() == MAP_UPDATE_REQUEST_CODE) {
-                Util.log("Received a map request: " + message);
-                sendMap1(message.getSenderID());
-            }
-            else if(message.getBytes() == MAP2_UPDATE_REQUEST_CODE) {
-                Util.log("Received a map 2 request: " + message);
-                sendMap2(message.getSenderID());
+            if(!hasSentMap) {
+                if (message.getBytes() == MAP_UPDATE_REQUEST_CODE) {
+                    Util.log("Received a map request: " + message);
+                    sendMap1(message.getSenderID());
+                    hasSentMap = true;
+                }
+                else if (message.getBytes() == MAP2_UPDATE_REQUEST_CODE) {
+                    Util.log("Received a map 2 request: " + message);
+                    sendMap2(message.getSenderID());
+                    hasSentMap = true;
+                }
             }
 
             // Otherwise, it's potential new sector info.
@@ -75,7 +84,7 @@ public class TowerComms extends Comms {
             message |= (myWorld[sectorIndex] << shiftIndex);
             shiftIndex += 8;
 
-            if (shiftIndex == 24) {
+            if (shiftIndex == 32) {
                 rc.sendMessage(rc.senseRobot(robotID).getLocation(), message);
                 Util.log("Sent a map message to robot: " + robotID);
                 shiftIndex = 0;

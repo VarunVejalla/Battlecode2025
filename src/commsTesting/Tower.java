@@ -22,18 +22,24 @@ public class Tower extends Robot {
 
         // TESTING CODE FOR A: largeCommsTestSimple, SinglePlayer
         // Description: A single soldier explores the map and comes to the paint tower to report
-//        if(rc.getRoundNum() <= 1 && rc.getType() == UnitType.LEVEL_ONE_PAINT_TOWER) {
-//            openingBots();
-//        }
-//
-//        if(rc.getRoundNum() >= 74) {
-//            Util.log("Tower " + rc.getID() + " World: \n");
-//            comms.describeWorld();
-//        }
-//
-//        if(rc.getRoundNum() > 120) {
-//            rc.resign();
-//        }
+        if(rc.getRoundNum() <= 1 && rc.getType() == UnitType.LEVEL_ONE_PAINT_TOWER) {
+            openingBots();
+        }
+
+        if(rc.getRoundNum() >= 74) {
+            Util.log("Tower " + rc.getID() + " World: \n");
+            comms.describeWorld();
+        }
+
+
+        if (rc.getRoundNum() == 80 || rc.getRoundNum() == 10 ){
+            Util.log("TOWER's world!!");
+            comms.describeWorld();
+        }
+
+        if(rc.getRoundNum() > 120) {
+            rc.resign();
+        }
 
 
 

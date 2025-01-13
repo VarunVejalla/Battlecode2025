@@ -33,16 +33,18 @@ public class Soldier extends Bunny {
      */
     public void moveLogic() throws GameActionException {
 
-//        // Testing code for A map: largeCommsTestSimple, single player
-//        if(rc.getRoundNum() < 40){
-//            nav.goTo(new MapLocation(8, 40), 0);
-//        }
-//        else if(rc.getRoundNum() < 80){
-//            nav.goTo(new MapLocation(8, 10), 0);
-//        }
-//        else{
-//            rc.resign();
-//        }
+        // Testing code for A map: largeCommsTestSimple, single player
+        if(rc.getRoundNum() < 40){
+            nav.goTo(new MapLocation(8, 40), 0);
+        }
+        else if(rc.getRoundNum() < 80){
+            nav.goTo(new MapLocation(8, 10), 0);
+        }
+        else{
+            Util.log("END OF TEST!!!");
+            comms.describeWorld();
+            rc.resign();
+        }
 //
 //
 //
