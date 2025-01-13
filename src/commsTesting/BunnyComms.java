@@ -119,15 +119,18 @@ public class BunnyComms extends Comms {
             Util.log("Bunny processed " + mapMessageCount+" map messages");
         }
 
-        Util.log("Bunny has finished processing it's new map.");
-        Util.logArray("Bunny's new world", myWorld);
+
         if(sectorIndex >= sectorCount) {
             sectorStartIndex = 0; // Map is complete, reset to start of map.
-        }
-        Util.log("BunnyComms successfully loaded new map!");
 
-        lastMapUpdate = rc.getRoundNum(); // set the last map update to the current round.
-        waitingForMap = false; // set waiting for map to false to unlock regular moveLogic behavior
+            Util.log("Bunny has finished processing its new map.");
+            Util.logArray("Bunny's new world", myWorld);
+
+            Util.log("BunnyComms successfully loaded new map!");
+            lastMapUpdate = rc.getRoundNum(); // set the last map update to the current round.
+            waitingForMap = false; // set waiting for map to false to unlock regular moveLogic behavior
+            rc.resign();
+        }
 
     }
 }

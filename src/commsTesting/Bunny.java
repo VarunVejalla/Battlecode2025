@@ -99,7 +99,6 @@ public class Bunny extends Robot {
 
 
             if(comms.waitingForMap) {  // if we have previously requested a map from a tower and are waiting for a tower to send it...
-//                rc.resign();
                 comms.processMap();  // try reading the map
 
                 // if we've waited long enough for a map update, stop waiting
