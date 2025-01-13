@@ -15,7 +15,6 @@ enum SymmetryType {
 public class Robot {
     RobotController rc;
     Navigation nav;
-    Constants constants = new Constants();
     MapLocation myLoc; // current loc of robot
     MapInfo myLocInfo;
     int mapWidth, mapHeight;

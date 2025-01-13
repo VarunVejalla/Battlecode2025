@@ -36,15 +36,32 @@ enum PatternStatus {
 
 public class Soldier extends Bunny {
 
+    int knownSpawnTowersIdx = 0;
+    MapLocation[] knownSpawnTowers = new MapLocation[5];
+    MapLocation[] knownEnemyTowerLocs = new MapLocation[10];
+    MapLocation[] emptyPotentialEnemyTowersLocs = new MapLocation[20];
+    MapLocation blitzDestination = null;
+    SymmetryType blitzSymmetry = null;
+
     public Soldier(RobotController rc) throws GameActionException {
         super(rc);
-
+        scanSurroundings();
+        for(RobotInfo info : nearbyFriendlies){
+            Util.log("Friendly: " + info);
+            if(info.getTeam() == myTeam && Util.isTower(info.getType())){
+                knownSpawnTowers[knownSpawnTowersIdx] = info.getLocation();
+                knownSpawnTowersIdx++;
+            }
+        }
     }
 
     public void run() throws GameActionException {
         super.run(); // Call the shared logic for all bunnies
-        scanSurroundings();
+        scanSurroundings(); // TODO: Can delete this?
+        updateEnemyTowerLocs();
+        updateSymmetries();
         updateDestinationIfNeeded();
+        updateBlitzDestination();
 
         // 1. Handle Ruins
         // Check if there are any unmarked ruins nearby. If a ruin is found:
@@ -119,7 +136,7 @@ public class Soldier extends Bunny {
      */
     public void handleUnmarkedRuin(MapInfo ruinInfo) throws GameActionException {
         MapLocation ruinLoc = ruinInfo.getMapLocation();
-        if (!isRuinMarked(ruinLoc)) {
+        if (!Util.isRuinMarked(ruinLoc)) {
             // Move towards hte ruin if we're too far to mark it (we need to be adjacent to
             // it to mark it)
             if (ruinLoc.distanceSquaredTo(rc.getLocation()) > Constants.MAX_RUIN_DISTANCE_SQUARED) {
@@ -140,18 +157,106 @@ public class Soldier extends Bunny {
         }
     }
 
-
-    /**
-     * Check if the ruin is already marked by an ally tower pattern.
-     */
-    public boolean isRuinMarked(MapLocation ruinLoc) throws GameActionException {
-        MapInfo[] tilesNearRuin = rc.senseNearbyMapInfos(ruinLoc, 1);
-        for (MapInfo tile : tilesNearRuin) {
-            if (tile.getMark() == PaintType.ALLY_PRIMARY) {
-                return true;
+    public void updateEnemyTowerLocs() throws GameActionException {
+        // Clear existing slots
+        for(int i = 0; i < knownEnemyTowerLocs.length; i++){
+            if(knownEnemyTowerLocs[i] != null && rc.canSenseLocation(knownEnemyTowerLocs[i])){
+                RobotInfo info = rc.senseRobotAtLocation(knownEnemyTowerLocs[i]);
+                if(info == null || info.getTeam() != oppTeam || !Util.isTower(info.getType())){
+                    knownEnemyTowerLocs[i] = null;
+                }
             }
         }
-        return false;
+        for(int i = 0; i < emptyPotentialEnemyTowersLocs.length; i++){
+            if(emptyPotentialEnemyTowersLocs[i] == null){
+                continue;
+            }
+            if(rc.canSenseRobotAtLocation(emptyPotentialEnemyTowersLocs[i])){
+                RobotInfo info = rc.senseRobotAtLocation(emptyPotentialEnemyTowersLocs[i]);
+                if(info != null && info.getTeam() != oppTeam && Util.isTower(info.getType())){
+                    emptyPotentialEnemyTowersLocs[i] = null;
+                }
+            }
+        }
+        for(int s = 0; s < possibleSymmetries.length; s++){
+            SymmetryType symmetry = possibleSymmetries[s];
+            if(symmetry == null){
+                continue;
+            }
+            for(int i = 0; i < knownSpawnTowers.length; i++){
+                if(knownSpawnTowers[i] == null){
+                    continue;
+                }
+                MapLocation potentialEnemyLoc = Util.applySymmetry(knownSpawnTowers[i], symmetry);
+                if(rc.canSenseLocation(potentialEnemyLoc)){
+                    RobotInfo info = rc.senseRobotAtLocation(potentialEnemyLoc);
+                    if(info == null || info.getTeam() != oppTeam || !Util.isTower(info.getType())){
+                        boolean alreadyIn = false;
+                        for(int j = 0; j < emptyPotentialEnemyTowersLocs.length; j++){
+                            if(potentialEnemyLoc.equals(emptyPotentialEnemyTowersLocs[j])){
+                                alreadyIn = true;
+                                break;
+                            }
+                        }
+                        if(!alreadyIn){
+                            for(int j = 0; j < emptyPotentialEnemyTowersLocs.length; j++){
+                                if(emptyPotentialEnemyTowersLocs[j] == null){
+                                    emptyPotentialEnemyTowersLocs[j] = potentialEnemyLoc;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        for(RobotInfo info : nearbyOpponents){
+//            Util.log("Nearby opponent: " + info);
+            if(Util.isTower(info.getType())){
+                MapLocation enemyTowerLoc = info.getLocation();
+                boolean alreadyIn = false;
+                for(int i = 0; i < 10; i++){
+                    if(enemyTowerLoc.equals(knownEnemyTowerLocs[i])){
+                        alreadyIn = true;
+                        break;
+                    }
+                }
+                if(!alreadyIn){
+                    for(int i = 0; i < 10; i ++){
+                        if(knownEnemyTowerLocs[i] == null){
+                            knownEnemyTowerLocs[i] = enemyTowerLoc;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    void updateSymmetries() throws GameActionException {
+        for(int i = 0; i < possibleSymmetries.length; i++){
+            SymmetryType symmetry = possibleSymmetries[i];
+            if(symmetry == null){
+                continue;
+            }
+            for(int j = 0; j < knownSpawnTowersIdx; j++){
+                MapLocation symmetryLoc = Util.applySymmetry(knownSpawnTowers[j], symmetry);
+                if(rc.canSenseLocation(symmetryLoc)){
+                    // Check if symmetry is violated.
+                    RobotInfo info = rc.senseRobotAtLocation(symmetryLoc);
+                    MapInfo tile = rc.senseMapInfo(symmetryLoc);
+                    boolean symmetryViolated = true;
+                    if(tile.hasRuin()) {
+                        symmetryViolated = false;
+                    } else if(info != null && Util.isTower(info.getType())){
+                        symmetryViolated = false;
+                    }
+                    if(symmetryViolated){
+                        possibleSymmetries[i] = null;
+                        break;
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -187,6 +292,16 @@ public class Soldier extends Bunny {
             return; // Not enough paint to do anything in this method
         }
 
+        // Prioritize attacking enemy towers.
+        for(RobotInfo info : rc.senseNearbyRobots(GameConstants.VISION_RADIUS_SQUARED, oppTeam)) {
+            if (info != null && info.getTeam() == oppTeam && Util.isTower(info.getType())) {
+                if (rc.isActionReady() && rc.canAttack(info.getLocation())) {
+                    rc.attack(info.getLocation());
+                    Util.log("SQUARE ATTACKED: " + info.getLocation());
+                    return;
+                }
+            }
+        }
 
         // loop over actionable enemies and try to attack them if they're a tower
         for (RobotInfo robot : rc.senseNearbyRobots(UnitType.SOLDIER.actionRadiusSquared, rc.getTeam().opponent())) {
@@ -246,6 +361,70 @@ public class Soldier extends Bunny {
         if (bestPaintLoc != null && rc.isActionReady()) {
             rc.attack(bestPaintLoc, secondaryPaint);
             Util.log("Square Attacked: " + bestPaintLoc.toString());
+        }
+    }
+
+    public void updateBlitzDestination() throws GameActionException {
+        if(blitzDestination != null){
+            // Check if the blitz destination is still valid.
+            if(blitzSymmetry == null){
+                for(int i = 0; i < knownEnemyTowerLocs.length; i++){
+                    if(blitzDestination.equals(knownEnemyTowerLocs[i])){
+                        return;
+                    }
+                }
+            } else {
+                // Check if the blitz destination is in the empty tower locs.
+                boolean locIsInvalid = false;
+                for (int i = 0; i < emptyPotentialEnemyTowersLocs.length; i++) {
+                    if (blitzDestination.equals(emptyPotentialEnemyTowersLocs[i])) {
+                        locIsInvalid = true;
+                        break;
+                    }
+                }
+                if(!locIsInvalid) {
+                    for (int i = 0; i < possibleSymmetries.length; i++) {
+                        if (possibleSymmetries[i] == blitzSymmetry) {
+                            return;
+                        }
+                    }
+                }
+            }
+            // If not, calculate a new one.
+            blitzDestination = null;
+            blitzSymmetry = null;
+        }
+        for(int i = 0; i < knownEnemyTowerLocs.length; i++){
+            if(knownEnemyTowerLocs[i] != null){
+                blitzDestination = knownEnemyTowerLocs[i];
+                blitzSymmetry = null;
+                return;
+            }
+        }
+        for(int s = 0; s < possibleSymmetries.length; s++){
+            SymmetryType symmetry = possibleSymmetries[s];
+            if(symmetry == null){
+                continue;
+            }
+            for(int i = 0; i < knownSpawnTowers.length; i++){
+                if(knownSpawnTowers[i] == null){
+                    continue;
+                }
+                MapLocation potentialEnemyLoc = Util.applySymmetry(knownSpawnTowers[i], symmetry);
+                boolean validLoc = true;
+                for(int j = 0; j < emptyPotentialEnemyTowersLocs.length; j++){
+                    if(potentialEnemyLoc.equals(emptyPotentialEnemyTowersLocs[j])){
+                        validLoc = false;
+                        break;
+                    }
+                }
+                if(validLoc){
+                    blitzDestination = potentialEnemyLoc;
+                    blitzSymmetry = symmetry;
+                    Util.log("GOT BLITZ DESTINATION: " + blitzDestination + " WITH SYMMETRY " + symmetry);
+                    return;
+                }
+            }
         }
     }
 
@@ -318,12 +497,14 @@ public class Soldier extends Bunny {
         myLoc = rc.getLocation();
 
         // If trying to replenish, go to nearest tower immediately.
-        if (tryingToReplenish &&
-                nearestAlliedPaintTowerLoc != null &&
-                myLoc.distanceSquaredTo(nearestAlliedPaintTowerLoc) > GameConstants.PAINT_TRANSFER_RADIUS_SQUARED) {
-
+        if (tryingToReplenish && nearestAlliedPaintTowerLoc != null) {
             nav.goTo(nearestAlliedPaintTowerLoc, GameConstants.PAINT_TRANSFER_RADIUS_SQUARED);
             Util.log("Trying to replenish paint");
+            return;
+        }
+
+        if(blitzDestination != null){
+            nav.goTo(blitzDestination, rc.getType().actionRadiusSquared);
             return;
         }
 

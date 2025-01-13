@@ -2,8 +2,14 @@ package blitz2;
 
 import battlecode.common.*;
 
+enum TowerType {
+    PaintTower, MoneyTower, DefenseTower
+}
+
 public abstract class Bunny extends Robot {
 
+    MapLocation[] knownAlliedTowerLocs = new MapLocation[20];
+    TowerType[] knownAlliedTowerTypes = new TowerType[20];
     MapLocation nearestAlliedTowerLoc;
     MapLocation nearestAlliedPaintTowerLoc;
     MapLocation destination; // long-term destination
@@ -19,6 +25,13 @@ public abstract class Bunny extends Robot {
     public Bunny(RobotController rc) throws GameActionException {
         super(rc);
         destination = Util.getRandomMapLocation();
+        if(this.mapHeight != this.mapWidth){
+            for(int i = 0; i < possibleSymmetries.length; i++){
+                if(possibleSymmetries[i] == SymmetryType.DIAGONAL_LEFT || possibleSymmetries[i] == SymmetryType.DIAGONAL_RIGHT){
+                    possibleSymmetries[i] = null;
+                }
+            }
+        }
     }
 
     public void run() throws GameActionException {
@@ -67,13 +80,40 @@ public abstract class Bunny extends Robot {
      * surroundings
      */
     public void updateNearestAlliedPaintTowerLoc() throws GameActionException {
+        // Filter out old locs.
+        for(int i = 0; i < knownAlliedTowerLocs.length; i++){
+            if(knownAlliedTowerLocs[i] == null){
+                continue;
+            }
+            if(rc.canSenseLocation(knownAlliedTowerLocs[i])){
+                RobotInfo info = rc.senseRobotAtLocation(knownAlliedTowerLocs[i]);
+                boolean valid = true;
+                if(info == null) {
+                    valid = false;
+                }
+                else if (info.getTeam() != myTeam) {
+                    valid = false;
+                } else if (knownAlliedTowerTypes[i] == TowerType.PaintTower && !Util.isPaintTower(info.getType())) {
+                    valid = false;
+                } else if (knownAlliedTowerTypes[i] == TowerType.MoneyTower && !Util.isMoneyTower(info.getType())) {
+                    valid = false;
+                } else if (knownAlliedTowerTypes[i] == TowerType.DefenseTower && !Util.isDefenseTower(info.getType())) {
+                    valid = false;
+                }
+                if(!valid){
+                    knownAlliedTowerLocs[i] = null;
+                    knownAlliedTowerTypes[i] = null;
+                }
+            }
+        }
+
+        MapLocation myLocation = rc.getLocation();
         for (RobotInfo bot : nearbyFriendlies) {
             if (!Util.isTower(bot.getType())) {
                 continue;
             }
 
             MapLocation currAlliedTowerLocation = bot.getLocation();
-            MapLocation myLocation = rc.getLocation();
 
             // TODO This is wasteful. We request a map multiple times even if ours is currently being serviced.
             // Always sendMessages if you're in range of a tower. The sendMessages method assesses what message to send.
@@ -81,18 +121,66 @@ public abstract class Bunny extends Robot {
             Util.log("Bunny " + rc.getID() + " at " + rc.getLocation() +  " found a tower nearby " + bot.getLocation());
             comms.sendMessages(bot);
 
+            boolean alreadyIn = false;
+            for(int i = 0; i < knownAlliedTowerLocs.length; i++) {
+                if (knownAlliedTowerLocs[i] == null) {
+                    continue;
+                }
+                if(currAlliedTowerLocation.equals(knownAlliedTowerLocs[i])){
+                    alreadyIn = true;
+                }
+            }
+            if(!alreadyIn){
+                for(int i = 0; i < knownAlliedTowerLocs.length; i++) {
+                    if (knownAlliedTowerLocs[i] == null) {
+                        knownAlliedTowerLocs[i] = currAlliedTowerLocation;
+                        if(Util.isPaintTower(bot.getType())) {
+                            knownAlliedTowerTypes[i] = TowerType.PaintTower;
+                        } else if(Util.isMoneyTower(bot.getType())) {
+                            knownAlliedTowerTypes[i] = TowerType.MoneyTower;
+                        } else {
+                            knownAlliedTowerTypes[i] = TowerType.DefenseTower;
+                        }
+                        break;
+                    }
+                }
+            }
 
             // Update nearest allied tower location
             if (nearestAlliedTowerLoc == null ||
                     myLocation.distanceSquaredTo(currAlliedTowerLocation) < myLocation.distanceSquaredTo(nearestAlliedTowerLoc)) {
                 nearestAlliedTowerLoc = currAlliedTowerLocation;
             }
+        }
 
-            // Update nearest allied paint tower location
-            if (Util.isPaintTower(bot.getType()) &&
-                    (nearestAlliedPaintTowerLoc == null ||
-                            myLocation.distanceSquaredTo(currAlliedTowerLocation) < myLocation.distanceSquaredTo(nearestAlliedPaintTowerLoc))) {
-                nearestAlliedPaintTowerLoc = currAlliedTowerLocation;
+
+        // TODO: Current behavior may cause paint tower to switch between two constantly while tryna navigate to it.
+        // TODO: If that happens, then we needa hold a consistent nearestAlliedPaintTowerLoc, so the code below might help.
+//        if(nearestAlliedPaintTowerLoc != null){
+//            if(!rc.canSenseLocation(nearestAlliedPaintTowerLoc)){
+//                // Keep going towards the existing nearest paint tower loc.
+//                return;
+//            }
+//            RobotInfo info = rc.senseRobotAtLocation(nearestAlliedPaintTowerLoc);
+//            if(info.getTeam() == myTeam && Util.isPaintTower(info.getType())){
+//                return;
+//            }
+//            // Paint tower missing, need to find a new one.
+//            nearestAlliedPaintTowerLoc = null;
+//        }
+
+        int maxDist = Integer.MAX_VALUE;
+        nearestAlliedPaintTowerLoc = null;
+        for(int i = 0; i < knownAlliedTowerLocs.length; i++){
+            if(knownAlliedTowerLocs[i] == null){
+                continue;
+            }
+            if(knownAlliedTowerTypes[i] == TowerType.PaintTower){
+                int dist = myLocation.distanceSquaredTo(knownAlliedTowerLocs[i]);
+                if(dist < maxDist){
+                    nearestAlliedPaintTowerLoc = knownAlliedTowerLocs[i];
+                    maxDist = dist;
+                }
             }
         }
     }

@@ -87,6 +87,29 @@ public class Util {
         }
     }
 
+    public static boolean isMoneyTower(UnitType unitType) {
+        // List all the tower unit types
+        switch (unitType) {
+            case LEVEL_ONE_MONEY_TOWER:
+            case LEVEL_TWO_MONEY_TOWER:
+            case LEVEL_THREE_MONEY_TOWER:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    public static boolean isDefenseTower(UnitType unitType) {
+        // List all the tower unit types
+        switch (unitType) {
+            case LEVEL_ONE_DEFENSE_TOWER:
+            case LEVEL_TWO_DEFENSE_TOWER:
+            case LEVEL_THREE_DEFENSE_TOWER:
+                return true;
+            default:
+                return false;
+        }
+    }
 
 
     public static <T> boolean checkIfItemInArray(T item, T[] array) {
@@ -618,6 +641,19 @@ public class Util {
                 emptyCount, emptyCountDescription,
                 ruinCondition, ruinConditionDescription
         );
+    }
+
+    /**
+     * Check if the ruin is already marked by an ally tower pattern.
+     */
+    public static boolean isRuinMarked(MapLocation ruinLoc) throws GameActionException {
+        MapInfo[] tilesNearRuin = rc.senseNearbyMapInfos(ruinLoc, 1);
+        for (MapInfo tile : tilesNearRuin) {
+            if (tile.getMark() == PaintType.ALLY_PRIMARY) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }
