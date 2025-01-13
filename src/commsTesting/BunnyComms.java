@@ -9,8 +9,13 @@ public class BunnyComms extends Comms {
 
 //    public final int MAP_COOLDOWN = 100;
     public final int MAP_COOLDOWN = 50;
-    public final int NUM_ROUNDS_TO_WAIT_FOR_MAP_UPDATE = 4;
     public int lastMapUpdate = 0;
+
+    public final int BUFFER_COOLDOWN = 10;
+    public int lastBufferUpdate = 0;
+
+    public final int NUM_ROUNDS_TO_WAIT_FOR_MAP_UPDATE = 4;
+
 
     // Kind of annoying way of handling larger maps.
     public int sectorStartIndex = 0;
@@ -38,46 +43,73 @@ public class BunnyComms extends Comms {
         Util.log("New buffer index: " + messageBufferIndex);
     }
 
-    // If there's a friendly tower nearby, send all messages in the buffer.
-    // Goes through the buffer backwards. Retracing steps because the current index is the first invalid.
+    /**
+     * To be called when there is a friendly tower nearby. Chooses to send either buffer information or map request.
+     */
     public void sendMessages(RobotInfo tower) throws GameActionException {
-        // Send messages until messagesTransmitted is the size of the buffer.
 
+        // When the buffer cooldown expires, prioritize sending bunny memories.
+        if(rc.getRoundNum() - lastBufferUpdate > BUFFER_COOLDOWN) {
+            sendBufferUpdateMessage(tower);
+        } else {
+            Util.log("Robot " + rc.getID() + ": Buffer transmission is already complete. Skipping retransmission.");
+        }
+
+        // TODO: Large maps require two requests for the map. Right now this code only does one.
+        // Otherwise, when the map cooldown expires, request a map.
+        if(rc.getRoundNum() - lastMapUpdate > MAP_COOLDOWN) {
+            // Map cooldown has expired, request a map.
+            sendMapUpdateRequestMessage(tower);
+        } else {
+            Util.log("BunnyComms map is fresh enough! (no map request sent!)");
+            Util.log("Last Map Update: " + lastMapUpdate + ", Current Round: " + rc.getRoundNum());
+        }
+    }
+
+
+    /**
+     * Bunny sends a tower the next entry in its buffer.
+     */
+    public void sendBufferUpdateMessage(RobotInfo tower) throws GameActionException {
+        // Send messages until messagesTransmitted is the size of the buffer.
         // You can only send one message per round. If there's no messages left in the buffer, request a map!
         if(messagesTransmitted < messageBuffer.length && messageBuffer[messagesTransmitted] != -1) {
             if(rc.canSendMessage(tower.getLocation())) {
+
+                // Send the next message in the buffer.
                 rc.sendMessage(tower.getLocation(), messageBuffer[messagesTransmitted]);
-                // Keep the message in the buffer!
-                // messageBuffer[messagesTransmitted] = -1;
-                Util.log("BunnyComms sendMessages successful!! to " + tower.getLocation());
+                Util.log("BunnyComms sendMessages successful to " + tower.getLocation());
+
+                // Shift to next index of the buffer to transmit.
                 messagesTransmitted++;
             } else {
                 Util.log("BunnyComms sendMessages failed for " + tower.getLocation());
             }
         }
         else {
+            // Buffer transfer is complete and cooldown is reset.
             messagesTransmitted = 0;
+            lastBufferUpdate = rc.getRoundNum();
         }
+    }
 
-        // When finished sending the buffer messages, request the map.
-        // TODO: Large maps require two requests for the map. Right now this code only does one.
-        // If you need a map update, request one.
-        if((rc.getRoundNum() - lastMapUpdate < MAP_COOLDOWN)) {
-            // Didn't need a map!
-            Util.log("BunnyComms map is fresh enough! (no map request sent!)");
-            Util.log("Last Map Update: " + lastMapUpdate + ", Current Round: " + rc.getRoundNum());
+
+    /**
+     * Bunny sends a request to a tower for a map.
+     */
+    public void sendMapUpdateRequestMessage(RobotInfo tower) throws GameActionException {
+        if(rc.canSendMessage(tower.getLocation())) {
+            rc.sendMessage(tower.getLocation(), MAP_UPDATE_REQUEST_CODE);
+            Util.log("BunnyComms requested map from " + tower.getLocation());
+
+            // Map transfer is complete and cooldown is reset.
+            mapRequestRound = rc.getRoundNum();
+
+            // Boolean updated to constrain motion and wait for map.
+            waitingForMap = true;
+
         } else {
-            if(rc.canSendMessage(tower.getLocation())) {
-                rc.sendMessage(tower.getLocation(), MAP_UPDATE_REQUEST_CODE);
-                Util.log("BunnyComms requested map from " + tower.getLocation());
-
-                // Set the round that the map was requested.
-                mapRequestRound = rc.getRoundNum();
-                waitingForMap = true;
-
-            } else {
-                Util.log("BunnyComms couldn't request map from " + tower.getLocation());
-            }
+            Util.log("BunnyComms couldn't request map from " + tower.getLocation());
         }
     }
 

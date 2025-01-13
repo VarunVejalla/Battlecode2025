@@ -2,7 +2,7 @@ package commsTesting;
 
 import battlecode.common.*;
 
-public class Bunny extends Robot {
+public abstract class Bunny extends Robot {
 
     MapLocation nearestAlliedTowerLoc;
     MapLocation nearestAlliedPaintTowerLoc;
@@ -26,8 +26,19 @@ public class Bunny extends Robot {
 
     public void run() throws GameActionException {
         super.run();
+        // Comms is run inside of scan surroundings (and nearest allied paint tower, which is called in surroundings)!
         scanSurroundings();
+
+        // If waiting for a map, stay in place. Otherwise, move!
+        if(comms.waitingForMap){ // don't move if we're waiting to receive a map from a tower
+            Util.log("Bunny @ " + rc.getLocation() + ". Pausing movement because I'm waiting for a map!");
+        }
+        else {
+            moveLogic();
+        }
     }
+
+    public abstract void moveLogic() throws GameActionException;
 
     /**
      * Scan stuff around you (this method is executed at the beginning of every
@@ -78,7 +89,6 @@ public class Bunny extends Robot {
 
         // Updates both nearest allied paint tower and nearest allied tower.
         updateNearestAlliedPaintTowerLoc();
-
     }
 
 
