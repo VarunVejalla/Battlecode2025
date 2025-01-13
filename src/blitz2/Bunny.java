@@ -11,6 +11,7 @@ public abstract class Bunny extends Robot {
     RobotInfo[] nearbyFriendlies;
     RobotInfo[] nearbyOpponents;
     boolean tryingToReplenish = false;
+    SymmetryType[] possibleSymmetries = {SymmetryType.HORIZONTAL, SymmetryType.VERTICAL, SymmetryType.ROTATIONAL, SymmetryType.DIAGONAL_LEFT, SymmetryType.DIAGONAL_RIGHT};
 
     BunnyComms comms = new BunnyComms(rc, this);
 
