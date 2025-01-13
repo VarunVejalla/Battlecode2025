@@ -106,7 +106,7 @@ public class Util {
                 out += array[i] + ", ";
             }
         }
-        System.out.println(out);
+        Util.log(out);
     }
 
     public static <T> void logArray(String name, T[] array) {
@@ -122,7 +122,7 @@ public class Util {
                 out += array[i] + ", ";
             }
         }
-        System.out.println(out);
+        Util.log(out);
     }
 
     public static void fillTrue(boolean[][] arr, MapLocation center, int radiusSquared) {
@@ -206,7 +206,7 @@ public class Util {
     }
 
     public static void logBytecode(String str) {
-        System.out.println(str + ": " + Clock.getBytecodesLeft());
+        Util.log(str + ": " + Clock.getBytecodesLeft());
     }
 
     public static Direction[] closeDirections(Direction dir) {
