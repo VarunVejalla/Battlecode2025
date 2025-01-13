@@ -30,17 +30,16 @@ public class TowerComms extends Comms {
         boolean hasSentMap = false;
 
         for (Message message : messages) {
-            if(!hasSentMap) {
-                if (message.getBytes() == MAP_UPDATE_REQUEST_CODE) {
-                    Util.log("Received a map request: " + message);
-                    sendMap1(message.getSenderID());
-                    hasSentMap = true;
-                }
-                else if (message.getBytes() == MAP2_UPDATE_REQUEST_CODE) {
-                    Util.log("Received a map 2 request: " + message);
-                    sendMap2(message.getSenderID());
-                    hasSentMap = true;
-                }
+
+            if (message.getBytes() == MAP_UPDATE_REQUEST_CODE && !hasSentMap) {
+                Util.log("Received a map request: " + message);
+                sendMap1(message.getSenderID());
+                hasSentMap = true;
+            }
+            else if (message.getBytes() == MAP2_UPDATE_REQUEST_CODE && !hasSentMap) {
+                Util.log("Received a map 2 request: " + message);
+                sendMap2(message.getSenderID());
+                hasSentMap = true;
             }
 
             // Otherwise, it's potential new sector info.

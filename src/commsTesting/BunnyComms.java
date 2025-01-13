@@ -70,7 +70,7 @@ public class BunnyComms extends Comms {
         // If there is a larger map and the larger map hasn't been updated, request it.
         if(sectorCount >= MAX_MAP_SECTORS_SENT_PER_ROUND && (rc.getRoundNum() - lastMap2Update > MAP2_COOLDOWN) ) {
             sendMap2UpdateRequestMessage(tower);
-            Util.log("Big map. " + " Bunny " + rc.getID() + "just sent second request!");
+            Util.log("Big map. Bunny " + rc.getID() + " just sent second request!");
         }
         // Otherwise, big map is not needed this round.
     }
@@ -165,7 +165,9 @@ public class BunnyComms extends Comms {
      */
     private boolean processMapUpdates(int startIndex, String successMessage, int roundNum) throws GameActionException {
         Message[] messages = rc.readMessages(roundNum);
-        Util.log("Bunny " + rc.getID() + " received " + messages.length + " map messages");
+        if(messages.length > 0) {
+            Util.log("Bunny " + rc.getID() + " received " + messages.length + " map messages");
+        }
 
         if (messages.length == 0) return false;
 
@@ -196,18 +198,20 @@ public class BunnyComms extends Comms {
      */
     public void updateSectorInVision(MapLocation currectLocation) throws GameActionException {
         int sectorIndex = getFullyEnclosedSectorID(currectLocation);
+
+
+        // Checking bunny world
+        Util.log("Bunny looking for a sector to update its world with");
         // If sector is -1, no sector is fully enclosed
         if(sectorIndex != -1) {
             // This has been tested! Scan result works!
             ScanResult sr = scanSector(sectorIndex);
-
-            Util.log("Sector Index: " + sectorIndex);
-            Util.log("Sector Center: " + getSectorCenter(sectorIndex));
-            Util.log(sr.toString());
+//            Util.log(sr.toString());
 
             int encodedSector = encodeSector(sr);
-
-            Util.log("Encoded Sector: " + encodedSector);
+            Util.log("Sector found.");
+            Util.log("Sector Index: " + sectorIndex);
+            Util.log("Sector Center: " + getSectorCenter(sectorIndex));
 
             // If this encoding is different from the known encoding, add the message to the buffer.
             if(encodedSector != myWorld[sectorIndex]) {
@@ -215,19 +219,17 @@ public class BunnyComms extends Comms {
 
                 // update comms.myWorld with this new information
                 myWorld[sectorIndex] = encodedSector;
+
+                Util.log("New info. World updated.");
             }
+            Util.log(Util.getSectorDescription(myWorld[sectorIndex]));
+
+        } else {
+            Util.log("No sector found");
         }
 
         // Check the bunny buffer
         Util.logArray("bunnyBuffer", messageBuffer);
-        // Checking bunny world
-        Util.log("Bunny looking for a sector to update its world with");
-        if(sectorIndex == -1) {
-            Util.log("No sector found");
-        }
-        else {
-            Util.log(Util.getSectorDescription(myWorld[sectorIndex]));
-        }
 
     }
 }
