@@ -9,16 +9,16 @@ public class BunnyComms extends Comms {
 
 //    public final int MAP_COOLDOWN = 100;
     public final int MAP_COOLDOWN = 50;
+    public final int MAP2_COOLDOWN = 50; // Used for larger maps
+
+
     public int lastMapUpdate = 0;
+    public int lastMap2Update = 0; // used for larger maps.
 
     public final int BUFFER_COOLDOWN = 10;
     public int lastBufferUpdate = 0;
 
     public final int NUM_ROUNDS_TO_WAIT_FOR_MAP_UPDATE = 4;
-
-
-    // Kind of annoying way of handling larger maps.
-    public int sectorStartIndex = 0;
 
     // -1 is used to represent empty messages.
     public int[] messageBuffer = {-1,-1,-1,-1,-1}; // Buffer fills up at 5 sectors. Hardcoded for bytecode.
@@ -26,6 +26,8 @@ public class BunnyComms extends Comms {
     public int messagesTransmitted = 0;
 
     boolean waitingForMap = false;
+    boolean waitingForMap2= false; // used for larger maps.
+
     public int mapRequestRound = -1;
 
     public BunnyComms(RobotController rc, Robot robot) {
@@ -55,15 +57,22 @@ public class BunnyComms extends Comms {
             Util.log("Robot " + rc.getID() + ": Buffer transmission is already complete. Skipping retransmission.");
         }
 
-        // TODO: Large maps require two requests for the map. Right now this code only does one.
         // Otherwise, when the map cooldown expires, request a map.
         if(rc.getRoundNum() - lastMapUpdate > MAP_COOLDOWN) {
             // Map cooldown has expired, request a map.
             sendMapUpdateRequestMessage(tower);
         } else {
+            // Map is fresh enough!
             Util.log("BunnyComms map is fresh enough! (no map request sent!)");
             Util.log("Last Map Update: " + lastMapUpdate + ", Current Round: " + rc.getRoundNum());
         }
+
+        // If there is a larger map and the larger map hasn't been updated, request it.
+        if(sectorCount >= MAX_MAP_SECTORS_SENT_PER_ROUND && (rc.getRoundNum() - lastMap2Update > MAP2_COOLDOWN) ) {
+            sendMap2UpdateRequestMessage(tower);
+            Util.log("Big map. " + " Bunny " + rc.getID() + "just sent second request!");
+        }
+        // Otherwise, big map is not needed this round.
     }
 
 
@@ -114,52 +123,111 @@ public class BunnyComms extends Comms {
     }
 
     /**
-     * Processes map updates and acts on received data.
+     * Bunny sends a request to a tower for a second part of the map. This is used for larger maps.
      */
-    // TODO: For large maps processMap needs to be called twice. Make sure that this is being done properly.
-    // For large maps we need to run this twice. sectorStartIndex stores the shift.
+    public void sendMap2UpdateRequestMessage(RobotInfo tower) throws GameActionException {
+        if(rc.canSendMessage(tower.getLocation())) {
+            rc.sendMessage(tower.getLocation(), MAP2_UPDATE_REQUEST_CODE);
+            Util.log("BunnyComms requested map 2 from " + tower.getLocation());
+
+            // Map transfer is complete and cooldown is reset.
+            mapRequestRound = rc.getRoundNum();
+
+            // Boolean updated to constrain motion and wait for map.
+            waitingForMap2 = true;
+
+        } else {
+            Util.log("BunnyComms couldn't request map 2 from " + tower.getLocation());
+        }
+    }
+
+    /**
+     * Processes map updates and acts on received data.
+     * Handles the first 80 sectors for large maps.
+     */
     public void processMap() throws GameActionException {
-        // Queue should be max 20 messages describing (first half of) the map.
-        Message[] messages = rc.readMessages(rc.getRoundNum());
+        boolean successfulRequest = processMapUpdates(0, "BunnyComms loaded map 1!", rc.getRoundNum());
+        waitingForMap = !successfulRequest;
+
+    }
+
+    /**
+     * Processes map2 updates and acts on received data.
+     * Handles the first 80 sectors for large maps.
+     */
+    public void processMap2() throws GameActionException {
+        boolean successfulRequest = processMapUpdates(MAX_MAP_SECTORS_SENT_PER_ROUND, "BunnyComms loaded large map 2!", rc.getRoundNum());
+        waitingForMap2 = !successfulRequest;
+    }
+
+    /**
+     * Shared logic for processing map updates. Returns if the processing was successful.
+     */
+    private boolean processMapUpdates(int startIndex, String successMessage, int roundNum) throws GameActionException {
+        Message[] messages = rc.readMessages(roundNum);
         Util.log("Bunny " + rc.getID() + " received " + messages.length + " map messages");
 
-        if(messages.length == 0){
-            return;
-        }
+        if (messages.length == 0) return false;
 
-        int sectorIndex = sectorStartIndex;
-        int mapMessageCount = 0;
-        for(Message message : messages) {
-            int msgBytes = message.getBytes();
-            for(int bitshift = 0; bitshift < 4; bitshift++) {
-                // If there are still sectors to process, we should update the map.
-                if(sectorIndex < sectorCount) {
-                    // TODO: Keep track of notable sectors here
-                    // Always take the towers map.
-                    // sectorCount - 1 is the greatest index achieved
-                    Util.log("Sector being updated: " + sectorIndex + "/" + (sectorCount-1));
-                    myWorld[sectorIndex] = msgBytes & 0xFF;
-                    msgBytes >>>= 8;
-                    sectorIndex++;
-                }
-                else {
-                    // Only map sectors are processed. Anything sent after is thrown away.
-                    break;
-                }
-            }
-            mapMessageCount++;
-            Util.log("Bunny processed " + mapMessageCount+" map messages");
-        }
+        loadSectors(startIndex, messages);
 
-        Util.log("Bunny has finished processing it's new map.");
+        Util.log("Bunny has finished processing its new map.");
         Util.logArray("Bunny's new world", myWorld);
-        if(sectorIndex >= sectorCount) {
-            sectorStartIndex = 0; // Map is complete, reset to start of map.
-        }
-        Util.log("BunnyComms successfully loaded new map!");
 
-        lastMapUpdate = rc.getRoundNum(); // set the last map update to the current round.
-        waitingForMap = false; // set waiting for map to false to unlock regular moveLogic behavior
+        lastMapUpdate = roundNum; // Refresh map update.
+        Util.log(successMessage);
+        return true;
+    }
+
+    // Starts at sectorIndex and converts messages into sectors from there.
+    public void loadSectors(int sectorIndex, Message[] messages) throws GameActionException {
+        for (Message message : messages) {
+            int bytes = message.getBytes();
+            for (int i = 0; i < 4 && sectorIndex < sectorCount; i++, sectorIndex++) {
+                Util.log("Updating sector: " + sectorIndex + "/" + (sectorCount - 1));
+                myWorld[sectorIndex] = bytes & 0xFF;
+                bytes >>>= 8;
+            }
+        }
+    }
+
+    /**
+     * Given a bunny's current location, updates the bunny's  world accordingly using visible sector.
+     */
+    public void updateSectorInVision(MapLocation currectLocation) throws GameActionException {
+        int sectorIndex = getFullyEnclosedSectorID(currectLocation);
+        // If sector is -1, no sector is fully enclosed
+        if(sectorIndex != -1) {
+            // This has been tested! Scan result works!
+            ScanResult sr = scanSector(sectorIndex);
+
+            Util.log("Sector Index: " + sectorIndex);
+            Util.log("Sector Center: " + getSectorCenter(sectorIndex));
+            Util.log(sr.toString());
+
+            int encodedSector = encodeSector(sr);
+
+            Util.log("Encoded Sector: " + encodedSector);
+
+            // If this encoding is different from the known encoding, add the message to the buffer.
+            if(encodedSector != myWorld[sectorIndex]) {
+                updateBunnyBuffer(rc.getRoundNum(), sectorIndex, encodedSector);
+
+                // update comms.myWorld with this new information
+                myWorld[sectorIndex] = encodedSector;
+            }
+        }
+
+        // Check the bunny buffer
+        Util.logArray("bunnyBuffer", messageBuffer);
+        // Checking bunny world
+        Util.log("Bunny looking for a sector to update its world with");
+        if(sectorIndex == -1) {
+            Util.log("No sector found");
+        }
+        else {
+            Util.log(Util.getSectorDescription(myWorld[sectorIndex]));
+        }
 
     }
 }
