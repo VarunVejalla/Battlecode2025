@@ -1,4 +1,4 @@
-package boostedboonyComms;
+package commsTesting;
 
 import battlecode.common.GameActionException;
 import battlecode.common.RobotController;

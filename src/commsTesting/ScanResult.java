@@ -1,4 +1,4 @@
-package boostedboonyComms;
+package commsTesting;
 
 /**
  * Basic datastructure to hold scan results that will be used to populate comms

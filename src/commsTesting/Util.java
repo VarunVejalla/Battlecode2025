@@ -1,8 +1,6 @@
-package boostedboonyComms;
+package commsTesting;
 
 import battlecode.common.*;
-
-import java.util.Arrays;
 
 public class Util {
 

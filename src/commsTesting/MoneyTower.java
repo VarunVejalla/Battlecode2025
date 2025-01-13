@@ -1,10 +1,10 @@
-package boostedboonyComms;
+package commsTesting;
 
 import battlecode.common.GameActionException;
 import battlecode.common.RobotController;
 
-public class DefenseTower extends Tower {
-    public DefenseTower(RobotController rc) throws GameActionException {
+public class MoneyTower extends Tower {
+    public MoneyTower(RobotController rc) throws GameActionException {
         super(rc);
     }
 

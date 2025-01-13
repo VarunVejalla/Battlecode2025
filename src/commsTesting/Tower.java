@@ -1,4 +1,4 @@
-package boostedboonyComms;
+package commsTesting;
 
 import battlecode.common.*;
 
@@ -18,8 +18,8 @@ public class Tower extends Robot {
         super.run();
         scanSurroundings();
 
-        // Only make one soldier from the paint tower.
-        if(rc.getRoundNum() <= 1 && rc.getType() == UnitType.LEVEL_ONE_PAINT_TOWER) {
+        // Only make one soldier from each tower.
+        if(rc.getRoundNum() <= 1) {
             openingBots();
         }
 
@@ -40,7 +40,6 @@ public class Tower extends Robot {
 
         // processMessages
         comms.processSectorMessages();
-
 
         //
 

@@ -1,7 +1,6 @@
-package boostedboonyComms;
+package commsTesting;
 
 import battlecode.common.*;
-import scala.collection.Map;
 
 public class Soldier extends Bunny {
 
@@ -31,6 +30,10 @@ public class Soldier extends Bunny {
             nav.goTo(new MapLocation(0, 30), 0);
         } else if(rc.getRoundNum() < 60) {
             nav.goTo(new MapLocation(0, 0), 0);
+        }
+        if(rc.getRoundNum() >= 74) {
+            Util.log("Bunny " + rc.getID() + " World: \n");
+            comms.describeWorld();
         }
     }
 

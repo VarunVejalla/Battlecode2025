@@ -1,4 +1,4 @@
-package boostedboonyComms;
+package commsTesting;
 
 public class Constants {
 

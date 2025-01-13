@@ -1,4 +1,4 @@
-package boostedboonyComms;
+package commsTesting;
 
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
