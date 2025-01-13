@@ -18,19 +18,90 @@ public class Tower extends Robot {
         super.run();
         scanSurroundings();
 
-        // Only make one soldier from each tower.
-        if(rc.getRoundNum() <= 1) {
-            openingBots();
-        }
 
-        if(rc.getRoundNum() >= 74) {
-            Util.log("Tower " + rc.getID() + " World: \n");
-            comms.describeWorld();
-        }
 
-        if(rc.getRoundNum() > 120) {
-            rc.resign();
-        }
+        // TESTING CODE FOR A: largeCommsTestSimple, SinglePlayer
+        // Description: A single soldier explores the map and comes to the paint tower to report
+//        if(rc.getRoundNum() <= 1 && rc.getType() == UnitType.LEVEL_ONE_PAINT_TOWER) {
+//            openingBots();
+//        }
+//
+//        if(rc.getRoundNum() >= 74) {
+//            Util.log("Tower " + rc.getID() + " World: \n");
+//            comms.describeWorld();
+//        }
+//
+//        if(rc.getRoundNum() > 120) {
+//            rc.resign();
+//        }
+
+
+
+
+        // TESTING CODE FOR B: largeCommsTestSimple, TwoPlayer
+        // Description: Two soldiers, spawned by different towers, explore the same area of the map and come to the paint tower to report
+//        if(rc.getRoundNum() <= 1) {
+//            openingBots();
+//        }
+//
+//        if(rc.getRoundNum() >= 74) {
+//            Util.log("Tower " + rc.getID() + " World: \n");
+//            comms.describeWorld();
+//        }
+//
+//        if(rc.getRoundNum() > 120) {
+//            rc.resign();
+//        }
+
+
+
+
+        // TESTING CODE for C: largeCommsTestSimple, DoublePlayer, different regions
+        // Description: Two soldiers, spawned by different towers, explore different areas of the map and
+//        if(rc.getRoundNum() <= 1) {
+//            openingBots();
+//        }
+//
+//        if(rc.getRoundNum() >= 74) {
+//            Util.log("Tower " + rc.getID() + " World: \n");
+//            comms.describeWorld();
+//        }
+
+
+
+
+
+//        // TESTING CODE for D: largeCommsTestSimple, MultiPlayer, different regions
+//        if(rc.getRoundNum() <= 5){
+//            openingBots();
+//
+//            if(rc.getRoundNum() >= 145) {
+//                Util.log("Tower " + rc.getID() + " World: \n");
+//                comms.describeWorld();
+//            }
+//        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     }
 
@@ -50,6 +121,7 @@ public class Tower extends Robot {
     public void openingBots() throws GameActionException {
         Direction dir = directions[rng.nextInt(directions.length)];
         MapLocation nextLoc = rc.getLocation().add(dir);
+
 
         if (rc.canBuildRobot(UnitType.SOLDIER, nextLoc)) {
             rc.buildRobot(UnitType.SOLDIER, nextLoc);

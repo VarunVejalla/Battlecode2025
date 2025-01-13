@@ -21,6 +21,9 @@ public class Comms {
     // TODO: Does this work for large maps? no. :(( (not yet!)
 
     public final int MAP_UPDATE_REQUEST_CODE = 0xFFFF;
+    public final int MAP2_UPDATE_REQUEST_CODE = 0xFFFE; // Used for larger maps.
+    public final int MAX_MAP_SECTORS_SENT_PER_ROUND = 80;
+
 
     RobotController rc;
     int[] myWorld;
@@ -248,7 +251,6 @@ public class Comms {
 
     }
 }
-
 
 
 
