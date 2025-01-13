@@ -255,6 +255,10 @@ public class Soldier extends Bunny {
         int numPossibleCenters = 69;
 
 
+        if (rc.getID() == 13775) {
+            Util.logBytecode("before wall/ruin scanning");
+        }
+
 
         int index_indexer = 0;
         int index;
@@ -265,6 +269,7 @@ public class Soldier extends Bunny {
 
             if (notPossibleCenters[index]) {
                 // this is to avoid updating too much (basically saying that if we already know this can't be a valid center, don't update the squares around it)
+                index_indexer += 1;
                 continue;
             }
 
@@ -278,7 +283,7 @@ public class Soldier extends Bunny {
                         }
                     }
                 }
-                index_indexer += 4;
+                index_indexer += 3;
             } else if (nearbyMapInfos[index].hasRuin()) {
                 for (int small_index : Util.getIndicesForSquareSpiral(dx, dy)) {
                     if (small_index == index) {
@@ -293,19 +298,33 @@ public class Soldier extends Bunny {
                         }
                     }
                 }
+                index_indexer += 3;
             }
 
             if (numPossibleCenters == 0) {
                 break;
             }
+            index_indexer += 1;
 
             // if this is a wall, mark all patterns that would overlap with this as invalid
             // i.e. squares in that 5x5 grid centered at wall
 
             // if this is a ruin, mark all pattern that would overlap with this as invalid
             // except for possibly that one itself
+        }
 
+        if (rc.getID() == 13775) {
+            Util.logBytecode("after wall/ruin scanning");
+        }
 
+        if (numPossibleCenters == 0) {
+            patternCenter = Util.getRandomMapLocation();
+            definiteCenter = false;
+            patternType = PatternType.RESOURCE;
+            if (rc.getID() == 13775) {
+                Util.logBytecode("after pattern removal, after pattern update");
+            }
+            return;
         }
 
         for (int center_index : Constants.spiralOutwardIndices) {
