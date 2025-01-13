@@ -11,4 +11,9 @@ public class Splasher extends Bunny {
     public void run() throws GameActionException {
         super.run(); // Call shared logic for all bunnies
     }
+
+    @Override
+    public void moveLogic() throws GameActionException {
+
+    }
 }
