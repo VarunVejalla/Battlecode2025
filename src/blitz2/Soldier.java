@@ -57,7 +57,6 @@ public class Soldier extends Bunny {
 
     public void run() throws GameActionException {
         super.run(); // Call the shared logic for all bunnies
-        scanSurroundings(); // TODO: Can delete this?
         updateEnemyTowerLocs();
         updateSymmetries();
         updateDestinationIfNeeded();
@@ -103,7 +102,7 @@ public class Soldier extends Bunny {
         // - Otherwise Prioritize moving toward ally-marked tiles that are empty
         // (unpainted).
         // - If no such tiles are found, move to your destination
-        if (rc.isMovementReady()) {
+        if (rc.isMovementReady() && !comms.waitingForMap) {
             moveLogic();
         }
 

@@ -30,7 +30,7 @@ public class Splasher extends Bunny {
         }
 
         // 3. Movement Logic
-        if (rc.isMovementReady()) {
+        if (rc.isMovementReady() && !comms.waitingForMap) {
             moveLogic();
         }
 

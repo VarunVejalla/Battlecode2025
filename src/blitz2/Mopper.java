@@ -29,7 +29,7 @@ public class Mopper extends Bunny {
             }
         }
 
-        if (rc.isMovementReady()) {
+        if (rc.isMovementReady() && !comms.waitingForMap) {
             moveLogic();
         }
 
