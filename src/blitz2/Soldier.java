@@ -88,6 +88,8 @@ public class Soldier extends Bunny {
             boolean runningAttackStrat = runAttackStrat();
             // Don't do any other movements / painting if we're running the strat.
             if (!runningAttackStrat) {
+                tryPatternCompletion();
+
                 // 3. Replenish or Paint/Attack if you can
                 // After handling ruins and resource marking, check if we can act:
                 // If we're trying to replenish and we're in range of a tower, try to replenish
@@ -122,8 +124,6 @@ public class Soldier extends Bunny {
                 if (rc.isActionReady()) {
                     paintOrAttack();
                 }
-
-                tryPatternCompletion();
             }
         }
 
@@ -260,6 +260,22 @@ public class Soldier extends Bunny {
         }
     }
 
+    public boolean shouldRunBlitz() {
+        // Only run blitz if you can retreat when you run out of paint.
+        if(nearestAlliedPaintTowerLoc == null){
+            Util.log("Not running blitz cuz unaware of paint towers");
+            return false;
+        }
+        // Only run blitz if there is a destination to go to.
+        if(blitzDestination == null){
+            Util.log("Not running blitz cuz no destination");
+            return false;
+        }
+        // Only run blitz if the retreat isn't too far away.
+        Util.log("Should run blitz? " + (nearestAlliedPaintTowerLoc.distanceSquaredTo(blitzDestination) <= Constants.MAX_DIST_FROM_PAINT_TOWER_TO_BLITZ));
+        return nearestAlliedPaintTowerLoc.distanceSquaredTo(blitzDestination) <= Constants.MAX_DIST_FROM_PAINT_TOWER_TO_BLITZ;
+    }
+
     /**
      * Attempt to mark a resource pattern at your current location if no ally mark
      * that would conflict with it is present.
@@ -366,7 +382,6 @@ public class Soldier extends Bunny {
                 }
             }
         }
-
 
         MapLocation bestPaintLoc = null;
         int bestScore = 0;
@@ -503,10 +518,10 @@ public class Soldier extends Bunny {
      * Perform the attack, and if we have a ruin to complete, do it.
      */
     public void tryPatternCompletion() throws GameActionException {
-
         // TODO: handle resource pattern completion too, not just tower pattern
         // completion
 
+        Util.log("Running tryPatternCompletion");
         // Possibly complete tower pattern near a ruin if it exists
         nearbyMapInfos = rc.senseNearbyMapInfos();
         for (MapInfo tile : nearbyMapInfos) {
@@ -514,13 +529,25 @@ public class Soldier extends Bunny {
                 // We might want to check if we can complete the tower
                 MapLocation ruinLoc = tile.getMapLocation();
 
+                // TODO: Fix this logic when we handle tower upgrades.
+//                if(rc.canSenseRobotAtLocation(ruinLoc)){
+//                    RobotInfo info = rc.senseRobotAtLocation(ruinLoc);
+//                    if(info != null){
+//                        continue;
+//                    }
+//                }
+
                 // Check if you can complete a tower pattern.
                 if(rc.canCompleteTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, ruinLoc)) {
                     rc.completeTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, ruinLoc);
                 } else if (rc.canCompleteTowerPattern(UnitType.LEVEL_ONE_MONEY_TOWER, ruinLoc)) {
                     rc.completeTowerPattern(UnitType.LEVEL_ONE_MONEY_TOWER, ruinLoc);
                 }
-
+//                else if(rc.getChips() >= UnitType.LEVEL_ONE_PAINT_TOWER.moneyCost) {
+//                    // We have the chips, so we must just not be on the pattern. Step into the pattern.
+//                    Util.log("Moving towards ruin");
+//                    nav.goToFuzzy(ruinLoc, 0);
+//                }
             }
         }
 
@@ -557,7 +584,8 @@ public class Soldier extends Bunny {
             return;
         }
 
-        if(blitzDestination != null){
+        if(shouldRunBlitz() && blitzDestination != null){
+            Util.log("Going to blitz destination: " + blitzDestination);
             nav.goTo(blitzDestination, rc.getType().actionRadiusSquared);
             return;
         }

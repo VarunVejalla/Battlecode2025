@@ -38,11 +38,11 @@ public class BunnyComms extends Comms {
         assert roundNum <= 2001;
         assert sectorID < 144;
         messageBuffer[messageBufferIndex] = (roundNum << 16) + (sectorID << 8) + msg;
-        Util.log("RoundNum = " + roundNum + ", sectorID = " + sectorID + ", msg = " + msg);
-        Util.log("Bunny buffer updated to " + messageBuffer[messageBufferIndex]);
+//        Util.log("RoundNum = " + roundNum + ", sectorID = " + sectorID + ", msg = " + msg);
+//        Util.log("Bunny buffer updated to " + messageBuffer[messageBufferIndex]);
         messageBufferIndex++;
         messageBufferIndex %= messageBuffer.length;
-        Util.log("New buffer index: " + messageBufferIndex);
+//        Util.log("New buffer index: " + messageBufferIndex);
     }
 
     /**
@@ -87,7 +87,7 @@ public class BunnyComms extends Comms {
 
                 // Send the next message in the buffer.
                 rc.sendMessage(tower.getLocation(), messageBuffer[messagesTransmitted]);
-                Util.log("BunnyComms sendMessages successful to " + tower.getLocation());
+//                Util.log("BunnyComms sendMessages successful to " + tower.getLocation());
 
                 // Shift to next index of the buffer to transmit.
                 messagesTransmitted++;
@@ -109,7 +109,7 @@ public class BunnyComms extends Comms {
     public void sendMapUpdateRequestMessage(RobotInfo tower) throws GameActionException {
         if(rc.canSendMessage(tower.getLocation())) {
             rc.sendMessage(tower.getLocation(), MAP_UPDATE_REQUEST_CODE);
-            Util.log("BunnyComms requested map from " + tower.getLocation());
+//            Util.log("BunnyComms requested map from " + tower.getLocation());
 
             // Map transfer is complete and cooldown is reset.
             mapRequestRound = rc.getRoundNum();
@@ -128,7 +128,7 @@ public class BunnyComms extends Comms {
     public void sendMap2UpdateRequestMessage(RobotInfo tower) throws GameActionException {
         if(rc.canSendMessage(tower.getLocation())) {
             rc.sendMessage(tower.getLocation(), MAP2_UPDATE_REQUEST_CODE);
-            Util.log("BunnyComms requested map 2 from " + tower.getLocation());
+//            Util.log("BunnyComms requested map 2 from " + tower.getLocation());
 
             // Map transfer is complete and cooldown is reset.
             mapRequestRound = rc.getRoundNum();
@@ -166,18 +166,18 @@ public class BunnyComms extends Comms {
     private boolean processMapUpdates(int startIndex, String successMessage, int roundNum) throws GameActionException {
         Message[] messages = rc.readMessages(roundNum);
         if(messages.length > 0) {
-            Util.log("Bunny " + rc.getID() + " received " + messages.length + " map messages");
+//            Util.log("Bunny " + rc.getID() + " received " + messages.length + " map messages");
         }
 
         if (messages.length == 0) return false;
 
         loadSectors(startIndex, messages);
 
-        Util.log("Bunny has finished processing its new map.");
-        Util.logArray("Bunny's new world", myWorld);
+//        Util.log("Bunny has finished processing its new map.");
+//        Util.logArray("Bunny's new world", myWorld);
 
         lastMapUpdate = roundNum; // Refresh map update.
-        Util.log(successMessage);
+//        Util.log(successMessage);
         return true;
     }
 
@@ -186,7 +186,7 @@ public class BunnyComms extends Comms {
         for (Message message : messages) {
             int bytes = message.getBytes();
             for (int i = 0; i < 4 && sectorIndex < sectorCount; i++, sectorIndex++) {
-                Util.log("Updating sector: " + sectorIndex + "/" + (sectorCount - 1));
+//                Util.log("Updating sector: " + sectorIndex + "/" + (sectorCount - 1));
                 myWorld[sectorIndex] = bytes & 0xFF;
                 bytes >>>= 8;
             }
@@ -229,7 +229,7 @@ public class BunnyComms extends Comms {
         }
 
         // Check the bunny buffer
-        Util.logArray("bunnyBuffer", messageBuffer);
+//        Util.logArray("bunnyBuffer", messageBuffer);
 
     }
 }
