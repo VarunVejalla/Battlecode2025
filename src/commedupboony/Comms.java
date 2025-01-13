@@ -16,9 +16,9 @@ public class Comms {
     // Does the tower correctly transmit the map to the bunny? Yes.
     // Does the bunny's map correctly update? Yes.
     // Is message conversion working correctly? Yes.
-    // TODO: Make the bunny's movement match up with comms (comms will work anyway!! but may not be optimized)
-    // TODO: Does this work for multiple robots with a single tower?
-    // TODO: Does this work for large maps? no. :(( (not yet!)
+    // Make the bunny's movement match up with comms? (comms will work anyway!! but may not be optimized)
+    // TODO: Does this work for multiple robots with a single tower? maybe
+    // Does this work for large maps? yes!!!
 
     public final int MAP_UPDATE_REQUEST_CODE = 0xFFFF;
     public final int MAP2_UPDATE_REQUEST_CODE = 0xFFFE; // Used for larger maps.
