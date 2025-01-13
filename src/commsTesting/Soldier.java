@@ -32,12 +32,6 @@ public class Soldier extends Bunny {
      * Choose where to move:
      */
     public void moveLogic() throws GameActionException {
-        // move up.
-        if(comms.waitingForMap){ // don't move if we're waiting to receive a map from a tower
-            Util.log("Soldier @ " + rc.getLocation() + ". Pausing movement because I'm waiting for a map!");
-            return;
-        }
-
 
 //        // Testing code for A map: largeCommsTestSimple, single player
 //        if(rc.getRoundNum() < 40){

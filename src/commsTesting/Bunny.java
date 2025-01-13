@@ -2,7 +2,7 @@ package commsTesting;
 
 import battlecode.common.*;
 
-public class Bunny extends Robot {
+public abstract class Bunny extends Robot {
 
     MapLocation nearestAlliedTowerLoc;
     MapLocation nearestAlliedPaintTowerLoc;
@@ -26,8 +26,19 @@ public class Bunny extends Robot {
 
     public void run() throws GameActionException {
         super.run();
+        // Comms is run inside of scan surroundings (and nearest allied paint tower, which is called in surroundings)!
         scanSurroundings();
+
+        // If waiting for a map, stay in place. Otherwise, move!
+        if(comms.waitingForMap){ // don't move if we're waiting to receive a map from a tower
+            Util.log("Bunny @ " + rc.getLocation() + ". Pausing movement because I'm waiting for a map!");
+        }
+        else {
+            moveLogic();
+        }
     }
+
+    public abstract void moveLogic() throws GameActionException;
 
     /**
      * Scan stuff around you (this method is executed at the beginning of every
@@ -38,47 +49,19 @@ public class Bunny extends Robot {
         nearbyFriendlies = rc.senseNearbyRobots(-1, rc.getTeam());
         nearbyOpponents = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
 
+        // TODO: COMMS IS HERE
+        // Find sector that is fully enclosed and update bunny world.
+        comms.updateSectorInVision(rc.getLocation());
 
-        // HERE IS COMMS
-        // Find sector index that is fully enclosed.
-        int sectorIndex = comms.getFullyEnclosedSectorID(rc.getLocation());
-        // If sector is -1, no sector is fully enclosed
-        if(sectorIndex != -1) {
-            // This has been tested! Scan result works!
-            ScanResult sr = comms.scanSector(sectorIndex);
-
-            Util.log("Sector Index: " + sectorIndex);
-            Util.log("Sector Center: " + comms.getSectorCenter(sectorIndex));
-            Util.log(sr.toString());
-
-            int encodedSector = comms.encodeSector(sr);
-
-            Util.log("Encoded Sector: " + encodedSector);
-
-            // If this encoding is different from the known encoding, add the message to the buffer.
-            if(encodedSector != comms.myWorld[sectorIndex]) {
-                comms.updateBunnyBuffer(rc.getRoundNum(), sectorIndex, encodedSector);
-
-                // update comms.myWorld with this new information
-                comms.myWorld[sectorIndex] = encodedSector;
-            }
+        // If you requested a map, wait for the tower to send it.
+        if(comms.waitingForMap) {
+            comms.processMap();
+        } else if (comms.waitingForMap2) {
+            comms.processMap2();
         }
-
-        // Check the bunny buffer
-        Util.logArray("bunnyBuffer", comms.messageBuffer);
-        // Checking bunny world
-        Util.log("Bunny looking for a sector to update its world with");
-        if(sectorIndex == -1) {
-            Util.log("No sector found");
-        }
-        else {
-            Util.log(Util.getSectorDescription(comms.myWorld[sectorIndex]));
-        }
-
 
         // Updates both nearest allied paint tower and nearest allied tower.
         updateNearestAlliedPaintTowerLoc();
-
     }
 
 
@@ -95,22 +78,9 @@ public class Bunny extends Robot {
             MapLocation currAlliedTowerLocation = bot.getLocation();
             MapLocation myLocation = rc.getLocation();
 
-            // TODO Run comms here.
-
-
-            if(comms.waitingForMap) {  // if we have previously requested a map from a tower and are waiting for a tower to send it...
-                comms.processMap();  // try reading the map
-
-                // if we've waited long enough for a map update, stop waiting
-                if(rc.getRoundNum() - comms.mapRequestRound > comms.NUM_ROUNDS_TO_WAIT_FOR_MAP_UPDATE) {
-                    comms.waitingForMap = false;
-                    comms.mapRequestRound = -1;
-                }
-            }
-            else {
-                // if we're not waiting for a map, send whatever messages we have in the buffer
-                comms.sendMessages(bot);
-            }
+            // TODO This is wasteful. We request a map multiple times even if ours is currently being serviced.
+            // Always sendMessages if you're in range of a tower. The sendMessages method assesses what message to send.
+            comms.sendMessages(bot);
 
 
             // Update nearest allied tower location
