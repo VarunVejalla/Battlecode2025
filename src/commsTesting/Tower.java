@@ -28,7 +28,7 @@ public class Tower extends Robot {
             comms.describeWorld();
         }
 
-        if(rc.getRoundNum() > 75) {
+        if(rc.getRoundNum() > 120) {
             rc.resign();
         }
 

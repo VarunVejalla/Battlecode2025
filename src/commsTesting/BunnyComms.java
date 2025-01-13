@@ -5,7 +5,11 @@ import battlecode.common.*;
 public class BunnyComms extends Comms {
 
 //    public final int MESSAGE_BUFFER_SIZE = 5;
-    public final int MAP_COOLDOWN = 100;
+
+
+//    public final int MAP_COOLDOWN = 100;
+    public final int MAP_COOLDOWN = 50;
+    public final int NUM_ROUNDS_TO_WAIT_FOR_MAP_UPDATE = 4;
     public int lastMapUpdate = 0;
 
     // Kind of annoying way of handling larger maps.
@@ -15,6 +19,9 @@ public class BunnyComms extends Comms {
     public int[] messageBuffer = {-1,-1,-1,-1,-1}; // Buffer fills up at 5 sectors. Hardcoded for bytecode.
     public int messageBufferIndex = 0; // Stores the first invalid index.
     public int messagesTransmitted = 0;
+
+    boolean waitingForMap = false;
+    public int mapRequestRound = -1;
 
     public BunnyComms(RobotController rc, Robot robot) {
         super(rc);
@@ -58,10 +65,16 @@ public class BunnyComms extends Comms {
         if((rc.getRoundNum() - lastMapUpdate < MAP_COOLDOWN)) {
             // Didn't need a map!
             Util.log("BunnyComms map is fresh enough! (no map request sent!)");
+            Util.log("Last Map Update: " + lastMapUpdate + ", Current Round: " + rc.getRoundNum());
         } else {
             if(rc.canSendMessage(tower.getLocation())) {
                 rc.sendMessage(tower.getLocation(), MAP_UPDATE_REQUEST_CODE);
                 Util.log("BunnyComms requested map from " + tower.getLocation());
+
+                // Set the round that the map was requested.
+                mapRequestRound = rc.getRoundNum();
+                waitingForMap = true;
+
             } else {
                 Util.log("BunnyComms couldn't request map from " + tower.getLocation());
             }
@@ -105,15 +118,16 @@ public class BunnyComms extends Comms {
             mapMessageCount++;
             Util.log("Bunny processed " + mapMessageCount+" map messages");
         }
+
         Util.log("Bunny has finished processing it's new map.");
         Util.logArray("Bunny's new world", myWorld);
-
-
         if(sectorIndex >= sectorCount) {
             sectorStartIndex = 0; // Map is complete, reset to start of map.
         }
-
         Util.log("BunnyComms successfully loaded new map!");
+
+        lastMapUpdate = rc.getRoundNum(); // set the last map update to the current round.
+        waitingForMap = false; // set waiting for map to false to unlock regular moveLogic behavior
 
     }
 }

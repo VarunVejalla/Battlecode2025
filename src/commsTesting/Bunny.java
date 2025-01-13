@@ -96,8 +96,23 @@ public class Bunny extends Robot {
             MapLocation myLocation = rc.getLocation();
 
             // TODO Run comms here.
-            comms.sendMessages(bot);
-            comms.processMap();
+
+
+            if(comms.waitingForMap) {  // if we have previously requested a map from a tower and are waiting for a tower to send it...
+//                rc.resign();
+                comms.processMap();  // try reading the map
+
+                // if we've waited long enough for a map update, stop waiting
+                if(rc.getRoundNum() - comms.mapRequestRound > comms.NUM_ROUNDS_TO_WAIT_FOR_MAP_UPDATE) {
+                    comms.waitingForMap = false;
+                    comms.mapRequestRound = -1;
+                }
+            }
+            else {
+                // if we're not waiting for a map, send whatever messages we have in the buffer
+                comms.sendMessages(bot);
+            }
+
 
             // Update nearest allied tower location
             if (nearestAlliedTowerLoc == null ||

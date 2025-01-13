@@ -26,12 +26,22 @@ public class Soldier extends Bunny {
      */
     public void moveLogic() throws GameActionException {
         // move up.
-        if(rc.getRoundNum() < 30) {
-            nav.goTo(new MapLocation(0, 30), 0);
-        } else if(rc.getRoundNum() < 60) {
-            nav.goTo(new MapLocation(0, 0), 0);
+        if(comms.waitingForMap){ // don't move if we're waiting to receive a map from a tower
+            Util.log("Soldier @ " + rc.getLocation() + ". Pausing movement because I'm waiting for a map!");
+            return;
         }
-        if(rc.getRoundNum() >= 74) {
+
+
+        if(comms.lastMapUpdate > 70){
+            nav.goTo(new MapLocation(40, 40), 0);
+        }
+
+        else if(rc.getRoundNum() < 40) {
+            nav.goTo(new MapLocation(0, 40), 0);
+        } else if(rc.getRoundNum() < 100) {
+            nav.goTo(new MapLocation(7, 5), 0);
+        }
+        else if(rc.getRoundNum() >= 74) {
             Util.log("Bunny " + rc.getID() + " World: \n");
             comms.describeWorld();
         }
