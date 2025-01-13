@@ -2,6 +2,8 @@ package boostedboonyComms;
 
 import battlecode.common.*;
 
+import java.util.Arrays;
+
 public class Util {
 
     static RobotController rc;
@@ -263,6 +265,7 @@ public class Util {
         return rc.senseMapInfo(rc.getLocation().translate(deltaX, deltaY));
     }
 
+
     public static String getSectorDescription(int sectorValue) {
         int ruinCondition = (sectorValue >> 1) & 0b111;
         int emptyCount = (sectorValue >> 4) & 0b11;
@@ -347,4 +350,5 @@ public class Util {
                 ruinCondition, ruinConditionDescription
         );
     }
+
 }

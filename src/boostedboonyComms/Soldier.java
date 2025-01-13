@@ -27,14 +27,10 @@ public class Soldier extends Bunny {
      */
     public void moveLogic() throws GameActionException {
         // move up.
-        if(rc.getRoundNum() < 20) {
-            nav.goTo(new MapLocation(0, 20), 0);
-        } else {
+        if(rc.getRoundNum() < 30) {
+            nav.goTo(new MapLocation(0, 30), 0);
+        } else if(rc.getRoundNum() < 60) {
             nav.goTo(new MapLocation(0, 0), 0);
-        }
-
-        if(rc.getRoundNum() > 40) {
-            rc.resign();
         }
     }
 

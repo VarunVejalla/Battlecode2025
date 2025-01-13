@@ -23,9 +23,15 @@ public class Tower extends Robot {
             openingBots();
         }
 
-        if(rc.getRoundNum() >= 39) {
-            Util.logArray("Tower's World", comms.myWorld);
+        if(rc.getRoundNum() >= 74) {
+            Util.log("Tower " + rc.getID() + " World: \n");
+            comms.describeWorld();
         }
+
+        if(rc.getRoundNum() > 75) {
+            rc.resign();
+        }
+
     }
 
     public void scanSurroundings() throws GameActionException {

@@ -6,7 +6,6 @@ import battlecode.common.*;
 
 public class Comms {
 
-
     // TODO: Things to test for.
     // Does Scan Result work? Yes.
     // Did the bunny's world update? Yes.
@@ -17,8 +16,7 @@ public class Comms {
     // Does the tower correctly transmit the map to the bunny? Yes.
     // Does the bunny's map correctly update? Yes.
     // Is message conversion working correctly? Yes.
-    // TODO: Make the bunny's movement match up with comms (if you request a map don't move!!)
-    // TODO: If you are communicating, make sure that you stay connected by paint! (heuristic check? just touch paint?)
+    // TODO: Make the bunny's movement match up with comms (comms will work anyway!! but may not be optimized)
     // TODO: Does this work for multiple robots with a single tower?
     // TODO: Does this work for large maps? no. :(( (not yet!)
 
@@ -239,7 +237,16 @@ public class Comms {
         return 0; // Default case, should not happen
     }
 
+    public void describeWorld() {
+        Util.log("\n -------------------------------- \n");
+        Util.log("My World: \n");
+        for (int sectorIndex = 0; sectorIndex < sectorCount; sectorIndex++) {
+            if (myWorld[sectorIndex] == 0) continue;
+            Util.log("Sector Center: " + getSectorCenter(sectorIndex));
+            Util.log(Util.getSectorDescription(myWorld[sectorIndex]) + "\n\n");
+        }
 
+    }
 }
 
 
