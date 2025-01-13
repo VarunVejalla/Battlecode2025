@@ -57,7 +57,6 @@ public class Soldier extends Bunny {
 
     public void run() throws GameActionException {
         super.run(); // Call the shared logic for all bunnies
-        scanSurroundings(); // TODO: Can delete this?
         updateEnemyTowerLocs();
         updateSymmetries();
         updateDestinationIfNeeded();
@@ -81,50 +80,52 @@ public class Soldier extends Bunny {
             attemptMarkResourcePattern();
         }
 
-        // 3. Replenish or Paint/Attack if you can
-        // After handling ruins and resource marking, check if we can act:
-        // If we're trying to replenish and we're in range of a tower, try to replenish
-        // Otherwise
-        // - Paint or attack a nearby tile based on priority:
-        // - Ally-marked but unpainted tiles take precedence.
-        // - If no such tiles exist, attack an unpainted tile nearby.
-        if (rc.isActionReady()) {
-            if (tryingToReplenish) {
-                tryReplenish();
-            } else {
-                paintOrAttack();
+        if (nearestAlliedPaintTowerLoc != null && tryingToReplenish) {
+            nav.goTo(nearestAlliedPaintTowerLoc, GameConstants.PAINT_TRANSFER_RADIUS_SQUARED);
+            tryReplenish();
+            Util.log("Trying to replenish paint");
+        } else {
+            boolean runningAttackStrat = runAttackStrat();
+            // Don't do any other movements / painting if we're running the strat.
+            if (!runningAttackStrat) {
+                tryPatternCompletion();
+
+                // 3. Replenish or Paint/Attack if you can
+                // After handling ruins and resource marking, check if we can act:
+                // If we're trying to replenish and we're in range of a tower, try to replenish
+                // Otherwise
+                // - Paint or attack a nearby tile based on priority:
+                // - Ally-marked but unpainted tiles take precedence.
+                // - If no such tiles exist, attack an unpainted tile nearby.
+                if (rc.isActionReady()) {
+                    paintOrAttack();
+                }
+
+                // 4. Movement Logic
+                // If movement is possible:
+                // - Move toward the nearest tower if you're trying to replenish.
+
+                // - Otherwise Prioritize moving toward ally-marked tiles that are empty
+                // (unpainted).
+                // - If no such tiles are found, move to your destination
+                if (rc.isMovementReady() && !comms.waitingForMap) {
+                    moveLogic();
+                }
+
+                // 5. Recheck for Replenish or Painting/Attacking
+
+                // After handling ruins and resource marking, check if we can act:
+                // If we're trying to replenish and we're in range of a tower, try to replenish
+
+                // Otherwise
+                // - Paint or attack a nearby tile based on priority:
+                // - Ally-marked but unpainted tiles take precedence.
+                // - If no such tiles exist, attack an unpainted tile nearby.
+                if (rc.isActionReady()) {
+                    paintOrAttack();
+                }
             }
         }
-
-        // 4. Movement Logic
-        // If movement is possible:
-        // - Move toward the nearest tower if you're trying to replenish.
-
-        // - Otherwise Prioritize moving toward ally-marked tiles that are empty
-        // (unpainted).
-        // - If no such tiles are found, move to your destination
-        if (rc.isMovementReady()) {
-            moveLogic();
-        }
-
-        // 5. Recheck for Replenish or Painting/Attacking
-
-        // After handling ruins and resource marking, check if we can act:
-        // If we're trying to replenish and we're in range of a tower, try to replenish
-
-        // Otherwise
-        // - Paint or attack a nearby tile based on priority:
-        // - Ally-marked but unpainted tiles take precedence.
-        // - If no such tiles exist, attack an unpainted tile nearby.
-        if (rc.isActionReady()) {
-            if (tryingToReplenish) {
-                tryReplenish();
-            } else {
-                paintOrAttack();
-            }
-        }
-
-        tryPatternCompletion();
 
         // 6. End of Turn Logic
         // Perform any shared cleanup or post-turn logic
@@ -259,6 +260,22 @@ public class Soldier extends Bunny {
         }
     }
 
+    public boolean shouldRunBlitz() {
+        // Only run blitz if you can retreat when you run out of paint.
+        if(nearestAlliedPaintTowerLoc == null){
+            Util.log("Not running blitz cuz unaware of paint towers");
+            return false;
+        }
+        // Only run blitz if there is a destination to go to.
+        if(blitzDestination == null){
+            Util.log("Not running blitz cuz no destination");
+            return false;
+        }
+        // Only run blitz if the retreat isn't too far away.
+        Util.log("Should run blitz? " + (nearestAlliedPaintTowerLoc.distanceSquaredTo(blitzDestination) <= Constants.MAX_DIST_FROM_PAINT_TOWER_TO_BLITZ));
+        return nearestAlliedPaintTowerLoc.distanceSquaredTo(blitzDestination) <= Constants.MAX_DIST_FROM_PAINT_TOWER_TO_BLITZ;
+    }
+
     /**
      * Attempt to mark a resource pattern at your current location if no ally mark
      * that would conflict with it is present.
@@ -279,6 +296,59 @@ public class Soldier extends Bunny {
             }
             rc.markResourcePattern(currLoc);
         }
+    }
+
+    /**
+     * Attempt to paint or attack nearby tiles if possible.
+     */
+    public boolean runAttackStrat() throws GameActionException {
+        // Get location of tower to attack.
+        MapLocation attackTarget = null;
+        RobotInfo attackInfo = null;
+        int minDist = Integer.MAX_VALUE;
+        for(RobotInfo info : nearbyOpponents){
+            if(!Util.isTower(info.getType())){
+                continue;
+            }
+            int dist = rc.getLocation().distanceSquaredTo(info.getLocation());
+            if(dist < minDist){
+                minDist = dist;
+                attackInfo = info;
+                attackTarget = info.getLocation();
+            }
+        }
+
+        if(attackTarget == null){
+            return false;
+        }
+
+        Util.log("Running attack strat on target at " + attackTarget);
+
+        // Once we have a target, run the strat.
+        Direction backoutDir = rc.getLocation().directionTo(attackTarget).opposite();
+        MapLocation oppTarget = rc.getLocation().add(backoutDir).add(backoutDir).add(backoutDir);
+
+        // 1. If you can attack him, attack him, then back out.
+        if(rc.isActionReady() && rc.canAttack(attackTarget)){
+            Util.log("Running attack and back out");
+            rc.attack(attackTarget);
+            nav.goToFuzzy(oppTarget, 0);
+        }
+        // 2. If your action is ready but you're too far away, move towards and then attack.
+        else if(rc.isActionReady()){
+            Util.log("Running push");
+            nav.goToFuzzy(attackTarget, 0);
+            if(rc.canAttack(attackTarget)){
+                rc.attack(attackTarget);
+            }
+        }
+        // 3. If your action is not ready but you're within attack radius, back out.
+        else if(!rc.isActionReady() && minDist <= attackInfo.getType().actionRadiusSquared){
+            Util.log("Pulling out");
+            nav.goToFuzzy(oppTarget, 0);
+        }
+
+        return true;
     }
 
     /**
@@ -312,7 +382,6 @@ public class Soldier extends Bunny {
                 }
             }
         }
-
 
         MapLocation bestPaintLoc = null;
         int bestScore = 0;
@@ -449,10 +518,10 @@ public class Soldier extends Bunny {
      * Perform the attack, and if we have a ruin to complete, do it.
      */
     public void tryPatternCompletion() throws GameActionException {
-
         // TODO: handle resource pattern completion too, not just tower pattern
         // completion
 
+        Util.log("Running tryPatternCompletion");
         // Possibly complete tower pattern near a ruin if it exists
         nearbyMapInfos = rc.senseNearbyMapInfos();
         for (MapInfo tile : nearbyMapInfos) {
@@ -460,13 +529,25 @@ public class Soldier extends Bunny {
                 // We might want to check if we can complete the tower
                 MapLocation ruinLoc = tile.getMapLocation();
 
+                // TODO: Fix this logic when we handle tower upgrades.
+//                if(rc.canSenseRobotAtLocation(ruinLoc)){
+//                    RobotInfo info = rc.senseRobotAtLocation(ruinLoc);
+//                    if(info != null){
+//                        continue;
+//                    }
+//                }
+
                 // Check if you can complete a tower pattern.
                 if(rc.canCompleteTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, ruinLoc)) {
                     rc.completeTowerPattern(UnitType.LEVEL_ONE_PAINT_TOWER, ruinLoc);
                 } else if (rc.canCompleteTowerPattern(UnitType.LEVEL_ONE_MONEY_TOWER, ruinLoc)) {
                     rc.completeTowerPattern(UnitType.LEVEL_ONE_MONEY_TOWER, ruinLoc);
                 }
-
+//                else if(rc.getChips() >= UnitType.LEVEL_ONE_PAINT_TOWER.moneyCost) {
+//                    // We have the chips, so we must just not be on the pattern. Step into the pattern.
+//                    Util.log("Moving towards ruin");
+//                    nav.goToFuzzy(ruinLoc, 0);
+//                }
             }
         }
 
@@ -503,7 +584,8 @@ public class Soldier extends Bunny {
             return;
         }
 
-        if(blitzDestination != null){
+        if(shouldRunBlitz() && blitzDestination != null){
+            Util.log("Going to blitz destination: " + blitzDestination);
             nav.goTo(blitzDestination, rc.getType().actionRadiusSquared);
             return;
         }

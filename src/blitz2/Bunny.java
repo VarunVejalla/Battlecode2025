@@ -38,17 +38,13 @@ public abstract class Bunny extends Robot {
         super.run();
         // Comms is run inside of scan surroundings (and nearest allied paint tower, which is called in surroundings)!
         scanSurroundings();
+        Util.log("Just rescanned surroundings");
 
         // If waiting for a map, stay in place. Otherwise, move!
         if(comms.waitingForMap){ // don't move if we're waiting to receive a map from a tower
             Util.log("Bunny @ " + rc.getLocation() + ". Pausing movement because I'm waiting for a map!");
         }
-        else {
-            moveLogic();
-        }
     }
-
-    public abstract void moveLogic() throws GameActionException;
 
     /**
      * Scan stuff around you (this method is executed at the beginning of every
@@ -193,7 +189,6 @@ public abstract class Bunny extends Robot {
         if (nearestAlliedPaintTowerLoc != null) {
             if (rc.getLocation()
                     .distanceSquaredTo(nearestAlliedPaintTowerLoc) <= GameConstants.PAINT_TRANSFER_RADIUS_SQUARED) {
-
                 int towerPaintQuantity = rc.senseRobotAtLocation(nearestAlliedPaintTowerLoc).getPaintAmount();
                 int paintToFillUp = Math.min(
                         rc.getType().paintCapacity - rc.getPaint(), // amount of paint needed to fully top off
@@ -203,7 +198,8 @@ public abstract class Bunny extends Robot {
                     rc.transferPaint(nearestAlliedPaintTowerLoc, -paintToFillUp);
                 }
 
-                if (!checkIfIShouldReplenish()) {
+                if (checkIfImDoneReplenishing()) {
+                    Util.log("DONE REPLENISHING");
                     tryingToReplenish = false;
                 }
             }
@@ -216,14 +212,19 @@ public abstract class Bunny extends Robot {
      * paint
      * based on current paint quantity and distance to nearest tower.
      */
-    public boolean checkIfIShouldReplenish() throws GameActionException {
+    public boolean checkIfIShouldStartReplenishing() throws GameActionException {
         // TODO: make this a more intelligent decision based on factors like:
         // - distance to nearest tower
         // - whether you're really close to finishing a pattern, in which case you
         // should consider sacrificing yourself for the greater good
-        // - how much paint you have left
 
         return rc.getPaint() <= Constants.PAINT_THRESHOLD_TO_REPLENISH;
+    }
+
+    public boolean checkIfImDoneReplenishing() throws GameActionException {
+        // TODO: make this a more intelligent decision based on factors like:
+        // - how much paint the tower im getting it from has
+        return rc.getPaint() >= rc.getType().paintCapacity * 0.8;
     }
 
     /**
@@ -248,7 +249,7 @@ public abstract class Bunny extends Robot {
      * reached our current destination
      */
     public void updateDestinationIfNeeded() throws GameActionException {
-        if (nearestAlliedPaintTowerLoc != null && (tryingToReplenish || checkIfIShouldReplenish())) {
+        if (nearestAlliedPaintTowerLoc != null && (tryingToReplenish || checkIfIShouldStartReplenishing())) {
             destination = nearestAlliedPaintTowerLoc;
             tryingToReplenish = true;
             Util.addToIndicatorString("REP");
