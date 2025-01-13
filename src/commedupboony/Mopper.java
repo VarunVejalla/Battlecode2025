@@ -1,6 +1,7 @@
 package commedupboony;
 
 import battlecode.common.*;
+import org.apache.commons.lang3.NotImplementedException;
 
 public class Mopper extends Bunny {
     RobotInfo[] actionableOpponents;
@@ -50,6 +51,14 @@ public class Mopper extends Bunny {
         super.scanSurroundings();
         actionableOpponents = rc.senseNearbyRobots(2, rc.getTeam().opponent());
         actionableTiles = rc.senseNearbyMapInfos(2);
+    }
+
+    /**
+     * Returns a score evaluating how favorable it would be for this robot to move to this sector.
+     */
+    public int evaluateSector(int encodedSector) {
+//        throw new NotImplementedException();
+        return 0; // this should not be called yet
     }
 
     /**

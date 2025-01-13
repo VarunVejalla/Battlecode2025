@@ -17,6 +17,10 @@ public class Tower extends Robot {
         super.run();
         scanSurroundings();
 
+//        if(rc.getRoundNum() > 20) {
+//            rc.resign();
+//        }
+
         if (rc.getRoundNum() < 50) {
             openingBots();
         } else if (rc.getMoney() > 1500) {

@@ -1,6 +1,7 @@
 package commedupboony;
 
 import battlecode.common.*;
+import org.apache.commons.lang3.NotImplementedException;
 
 enum PatternType {
     RESOURCE,
@@ -310,6 +311,32 @@ public class Soldier extends Bunny {
     }
 
     /**
+     * Returns a score evaluating how favorable it would be for this robot to move to this sector.
+     */
+    public int evaluateSector(int encodedSector) {
+        ScanResult sr = comms.decodeSector(encodedSector);
+        int sectorScore = 0;
+
+        // If the region is mostly empty and there's an unbuilt ruin, go there first.
+        if(sr.emptyPaintLevel >= 2 && sr.towerType == 1) {
+            sectorScore += 1000;
+        }
+
+        // Prefer regions with 5-12 empty cells.
+        if(sr.emptyPaintLevel == 2) {
+            sectorScore += 500;
+        }
+
+        // Avoid regions with enemy cells.
+        if(sr.enemyPaintLevel >= 1) {
+            sectorScore -= 500;
+        }
+
+        return sectorScore;
+
+    }
+
+    /**
      * Choose where to move:
      * - If there’s an ally-marked empty tile, move toward it to paint/attack.
      * - Otherwise move randomly.
@@ -364,6 +391,10 @@ public class Soldier extends Bunny {
             Util.log("Moving in direction: " + bestDirection.toString());
             nav.goTo(bestDirection, 0);
         } else {
+
+//            // Make a macro informed movement.
+//            macroMove();
+
             // Move in a pre-determined global direction.
             Util.log("Moving to destination " + destination.toString());
             nav.goTo(destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);

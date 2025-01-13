@@ -4,6 +4,8 @@ import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 import battlecode.common.*;
 
+import java.util.Arrays;
+
 public class Comms {
 
     // TODO: Things to test for.
@@ -40,9 +42,6 @@ public class Comms {
         this.sectorCount = sectorCols * sectorRows;
         this.myWorld = new int[sectorCount];
     }
-
-
-
 
     /**
      * Converts tile counts into 2-bit representation:
@@ -85,16 +84,14 @@ public class Comms {
      * Decodes the sector data and returns an array of values:
      * [enemyPaintCount, emptyCount, ruinCondition, staleBit]
      */
-    public int[] decodeSector(int sectorIndex) {
+    public ScanResult decodeSector(int sectorIndex) {
         int sectorValue = myWorld[sectorIndex];
 
-        int staleBit = sectorValue & 0b1;
         int ruinCondition = (sectorValue >> 1) & 0b111;
         int emptyCount = (sectorValue >> 4) & 0b11;
         int enemyPaintCount = (sectorValue >> 6) & 0b11;
 
-        // TODO: Change this to return a ScanResult object instead.
-        return new int[]{enemyPaintCount, emptyCount, ruinCondition, staleBit};
+        return new ScanResult(enemyPaintCount, emptyCount, ruinCondition);
     }
 
     /**
@@ -117,6 +114,39 @@ public class Comms {
         int col = loc.x / 5;
         int row = loc.y / 5;
         return row * sectorCols + col;
+    }
+
+    /**
+     * Returns an array containing the index of the sector that contains the given MapLocation
+     * as well as the indices of its neighboring sectors.
+     */
+    public int[] getSectorAndNeighbors(MapLocation loc) {
+        int col = loc.x / 5;
+        int row = loc.y / 5;
+
+        // Center sector index
+        int centerIndex = row * sectorCols + col;
+
+        // Precompute bounds to avoid repeated checks
+        int minRow = Math.max(0, row - 1);
+        int maxRow = Math.min(sectorRows - 1, row + 1);
+        int minCol = Math.max(0, col - 1);
+        int maxCol = Math.min(sectorCols - 1, col + 1);
+
+        // Calculate the number of valid neighbors
+        int neighborCount = (maxRow - minRow + 1) * (maxCol - minCol + 1);
+        int[] neighbors = new int[neighborCount];
+        int index = 0;
+
+        // Iterate only over valid rows and columns
+        for (int r = minRow; r <= maxRow; r++) {
+            for (int c = minCol; c <= maxCol; c++) {
+                neighbors[index++] = r * sectorCols + c;
+            }
+        }
+
+        Util.logArray("Neighboring sectors ", neighbors);
+        return neighbors;
     }
 
 

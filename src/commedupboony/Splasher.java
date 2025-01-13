@@ -1,6 +1,7 @@
 package commedupboony;
 
 import battlecode.common.*;
+import org.apache.commons.lang3.NotImplementedException;
 
 public class Splasher extends Bunny {
 
@@ -101,6 +102,14 @@ public class Splasher extends Bunny {
             }
         }
         return adjacentEnemyTiles;
+    }
+
+    /**
+     * Returns a score evaluating how favorable it would be for this robot to move to this sector.
+     */
+    public int evaluateSector(int encodedSector) {
+//        throw new NotImplementedException();
+        return 0; // this doesn't actually get called yet
     }
 
     /**
