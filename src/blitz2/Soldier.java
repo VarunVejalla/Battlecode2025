@@ -80,50 +80,52 @@ public class Soldier extends Bunny {
             attemptMarkResourcePattern();
         }
 
-        // 3. Replenish or Paint/Attack if you can
-        // After handling ruins and resource marking, check if we can act:
-        // If we're trying to replenish and we're in range of a tower, try to replenish
-        // Otherwise
-        // - Paint or attack a nearby tile based on priority:
-        // - Ally-marked but unpainted tiles take precedence.
-        // - If no such tiles exist, attack an unpainted tile nearby.
-        if (rc.isActionReady()) {
-            if (tryingToReplenish) {
-                tryReplenish();
-            } else {
-                paintOrAttack();
+        if (nearestAlliedPaintTowerLoc != null && tryingToReplenish) {
+            nav.goTo(nearestAlliedPaintTowerLoc, GameConstants.PAINT_TRANSFER_RADIUS_SQUARED);
+            tryReplenish();
+            Util.log("Trying to replenish paint");
+        } else {
+            boolean runningAttackStrat = runAttackStrat();
+            // Don't do any other movements / painting if we're running the strat.
+            if (!runningAttackStrat) {
+                // 3. Replenish or Paint/Attack if you can
+                // After handling ruins and resource marking, check if we can act:
+                // If we're trying to replenish and we're in range of a tower, try to replenish
+                // Otherwise
+                // - Paint or attack a nearby tile based on priority:
+                // - Ally-marked but unpainted tiles take precedence.
+                // - If no such tiles exist, attack an unpainted tile nearby.
+                if (rc.isActionReady()) {
+                    paintOrAttack();
+                }
+
+                // 4. Movement Logic
+                // If movement is possible:
+                // - Move toward the nearest tower if you're trying to replenish.
+
+                // - Otherwise Prioritize moving toward ally-marked tiles that are empty
+                // (unpainted).
+                // - If no such tiles are found, move to your destination
+                if (rc.isMovementReady() && !comms.waitingForMap) {
+                    moveLogic();
+                }
+
+                // 5. Recheck for Replenish or Painting/Attacking
+
+                // After handling ruins and resource marking, check if we can act:
+                // If we're trying to replenish and we're in range of a tower, try to replenish
+
+                // Otherwise
+                // - Paint or attack a nearby tile based on priority:
+                // - Ally-marked but unpainted tiles take precedence.
+                // - If no such tiles exist, attack an unpainted tile nearby.
+                if (rc.isActionReady()) {
+                    paintOrAttack();
+                }
+
+                tryPatternCompletion();
             }
         }
-
-        // 4. Movement Logic
-        // If movement is possible:
-        // - Move toward the nearest tower if you're trying to replenish.
-
-        // - Otherwise Prioritize moving toward ally-marked tiles that are empty
-        // (unpainted).
-        // - If no such tiles are found, move to your destination
-        if (rc.isMovementReady() && !comms.waitingForMap) {
-            moveLogic();
-        }
-
-        // 5. Recheck for Replenish or Painting/Attacking
-
-        // After handling ruins and resource marking, check if we can act:
-        // If we're trying to replenish and we're in range of a tower, try to replenish
-
-        // Otherwise
-        // - Paint or attack a nearby tile based on priority:
-        // - Ally-marked but unpainted tiles take precedence.
-        // - If no such tiles exist, attack an unpainted tile nearby.
-        if (rc.isActionReady()) {
-            if (tryingToReplenish) {
-                tryReplenish();
-            } else {
-                paintOrAttack();
-            }
-        }
-
-        tryPatternCompletion();
 
         // 6. End of Turn Logic
         // Perform any shared cleanup or post-turn logic
@@ -278,6 +280,59 @@ public class Soldier extends Bunny {
             }
             rc.markResourcePattern(currLoc);
         }
+    }
+
+    /**
+     * Attempt to paint or attack nearby tiles if possible.
+     */
+    public boolean runAttackStrat() throws GameActionException {
+        // Get location of tower to attack.
+        MapLocation attackTarget = null;
+        RobotInfo attackInfo = null;
+        int minDist = Integer.MAX_VALUE;
+        for(RobotInfo info : nearbyOpponents){
+            if(!Util.isTower(info.getType())){
+                continue;
+            }
+            int dist = rc.getLocation().distanceSquaredTo(info.getLocation());
+            if(dist < minDist){
+                minDist = dist;
+                attackInfo = info;
+                attackTarget = info.getLocation();
+            }
+        }
+
+        if(attackTarget == null){
+            return false;
+        }
+
+        Util.log("Running attack strat on target at " + attackTarget);
+
+        // Once we have a target, run the strat.
+        Direction backoutDir = rc.getLocation().directionTo(attackTarget).opposite();
+        MapLocation oppTarget = rc.getLocation().add(backoutDir).add(backoutDir).add(backoutDir);
+
+        // 1. If you can attack him, attack him, then back out.
+        if(rc.isActionReady() && rc.canAttack(attackTarget)){
+            Util.log("Running attack and back out");
+            rc.attack(attackTarget);
+            nav.goToFuzzy(oppTarget, 0);
+        }
+        // 2. If your action is ready but you're too far away, move towards and then attack.
+        else if(rc.isActionReady()){
+            Util.log("Running push");
+            nav.goToFuzzy(attackTarget, 0);
+            if(rc.canAttack(attackTarget)){
+                rc.attack(attackTarget);
+            }
+        }
+        // 3. If your action is not ready but you're within attack radius, back out.
+        else if(!rc.isActionReady() && minDist <= attackInfo.getType().actionRadiusSquared){
+            Util.log("Pulling out");
+            nav.goToFuzzy(oppTarget, 0);
+        }
+
+        return true;
     }
 
     /**
