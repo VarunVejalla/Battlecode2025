@@ -52,7 +52,6 @@ public class Robot {
         oppTeam = rc.getTeam().opponent();
         this.mapWidth = rc.getMapWidth();
         this.mapHeight = rc.getMapHeight();
-        // Util.logBytecode("After computing all spawn centers");
 
         this.nav = new Navigation(rc, this);
         rng = new Random(42); // seed the random number generator with the id of the bot

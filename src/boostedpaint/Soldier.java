@@ -44,15 +44,25 @@ public class Soldier extends Bunny {
     }
 
     public void run() throws GameActionException {
-//        if (rc.getRoundNum() > 200) {
-//            rc.resign();
-//        }
+        if (rc.getRoundNum() > 150) {
+            rc.resign();
+        }
+
+
 
 
         super.run(); // Call the shared logic for all bunnies
 
+        if (rc.getID() == 11065 && rc.getRoundNum() > 125 && rc.getRoundNum() < 150) {
+            Util.logBytecode("Before scanning");
+        }
+
         scanSurroundings();
         updateDestinationIfNeeded();
+
+        if (rc.getID() == 11065 && rc.getRoundNum() > 125 && rc.getRoundNum() < 150) {
+            Util.logBytecode("after scanning");
+        }
 
         if (tryingToReplenish) {
             if (rc.isActionReady()) {
@@ -95,20 +105,47 @@ public class Soldier extends Bunny {
             }
         }
 
+        if (rc.getID() == 11065 && rc.getRoundNum() > 125 && rc.getRoundNum() < 150) {
+            Util.logBytecode("after identifying ruins");
+        }
+
         if (highPriorityRuinIndex != -1) {
             workOnRuin(highPriorityRuinIndex, pattern);
             if (rc.canCompleteTowerPattern(intendedType, nearbyMapInfos[highPriorityRuinIndex].getMapLocation())) {
                 rc.completeTowerPattern(intendedType, nearbyMapInfos[highPriorityRuinIndex].getMapLocation());
             }
             sharedEndFunction();
+            if (rc.getID() == 11065 && rc.getRoundNum() > 125 && rc.getRoundNum() < 150) {
+                Util.logBytecode("after doing high priority ruin");
+            }
             return;
         }
 
+
+
         int resourceCenterIndex = Util.getPotentialResourcePatternCenterIndex(nearbyMapInfos);
 
+        if (rc.getID() == 11065 && rc.getRoundNum() > 125 && rc.getRoundNum() < 150) {
+            Util.logBytecode("after finding resource pattern center, " + rc.getRoundNum());
+        }
+
         if (resourceCenterIndex != -1) {
+
+
+
             pattern = rc.getResourcePattern();
+
+            if (rc.getID() == 11065 && rc.getRoundNum() > 125 && rc.getRoundNum() < 150) {
+                Util.logBytecode("before starting resource pattern processing, " + rc.getRoundNum());
+            }
+
+
             workOnResourcePattern(Shifts.dx[resourceCenterIndex], Shifts.dy[resourceCenterIndex], pattern);
+
+            if (rc.getID() == 11065 && rc.getRoundNum() > 125 && rc.getRoundNum() < 150) {
+                Util.logBytecode("after working on resource pattern, " + rc.getRoundNum());
+            }
+
             if (rc.isMovementReady()) {
                 nav.goTo(nearbyMapInfos[resourceCenterIndex].getMapLocation(), 0);
             }
@@ -118,6 +155,12 @@ public class Soldier extends Bunny {
                 rc.completeResourcePattern(nearbyMapInfos[resourceCenterIndex].getMapLocation());
             }
             sharedEndFunction();
+
+            if (rc.getID() == 11065 && rc.getRoundNum() > 125 && rc.getRoundNum() < 150) {
+                Util.logBytecode("after resource pattern processing, " + rc.getRoundNum());
+            }
+
+
             return;
         }
         if (mediumPriorityRuinIndex != -1) {
@@ -178,6 +221,12 @@ public class Soldier extends Bunny {
                 if (attackIndex == index) {
                     continue;
                 }
+
+                if (nearbyMapInfos[attackIndex].isWall()) {
+                    continue;
+                }
+
+
                 PaintType currentPaint = nearbyMapInfos[attackIndex].getPaint();
                 if (currentPaint == PaintType.EMPTY) {
 
@@ -415,11 +464,9 @@ public class Soldier extends Bunny {
         }
 
         if (bestDirection != null) {
-            Util.log("Moving in direction: " + bestDirection);
             nav.goTo(bestDirection, 0);
         } else {
             // Move in a pre-determined global direction.
-            Util.log("Moving to destination " + destination.toString());
             nav.goTo(destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
         }
     }

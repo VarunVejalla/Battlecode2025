@@ -31,7 +31,6 @@ public class Tower extends Robot {
 
         if (rc.canBuildRobot(UnitType.SOLDIER, nextLoc)) {
             rc.buildRobot(UnitType.SOLDIER, nextLoc);
-            System.out.println("BUILT A SOLDIER");
         }
     }
 
@@ -42,13 +41,10 @@ public class Tower extends Robot {
 
         if (robotType == 0 && rc.canBuildRobot(UnitType.SOLDIER, nextLoc)) {
             rc.buildRobot(UnitType.SOLDIER, nextLoc);
-            System.out.println("BUILT A SOLDIER");
         } else if (robotType == 1 && rc.canBuildRobot(UnitType.MOPPER, nextLoc)) {
             rc.buildRobot(UnitType.MOPPER, nextLoc);
-            System.out.println("BUILT A MOPPER");
         } else if (robotType == 2 && rc.canBuildRobot(UnitType.SPLASHER, nextLoc)) {
             rc.buildRobot(UnitType.SPLASHER, nextLoc);
-            System.out.println("BUILT A SPLASHER");
         }
     }
 
@@ -82,12 +78,10 @@ public class Tower extends Robot {
         // see if there's an enemy to attack
         MapLocation target = findBestAttackTarget();
         if (target != null && rc.isActionReady() && rc.canAttack(target)) {
-            Util.log("Tower running attack");
             rc.attack(target);
         }
         // run AoE attack if needed
         if (rc.isActionReady() && shouldRunAoEAttack()) {
-            Util.log("Tower running AoE attack");
             rc.attack(null);
         }
     }
