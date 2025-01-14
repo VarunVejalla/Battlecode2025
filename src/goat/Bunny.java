@@ -130,25 +130,32 @@ public abstract class Bunny extends Robot {
      * transfer paint
      */
     public void tryReplenish() throws GameActionException {
-        if (nearestAlliedPaintTowerLoc != null) {
-            if (rc.getLocation()
-                    .distanceSquaredTo(nearestAlliedPaintTowerLoc) <= GameConstants.PAINT_TRANSFER_RADIUS_SQUARED) {
+        if(nearestAlliedPaintTowerLoc == null) return;
 
-                int towerPaintQuantity = rc.senseRobotAtLocation(nearestAlliedPaintTowerLoc).getPaintAmount();
-                int paintToFillUp = Math.min(
-                        rc.getType().paintCapacity - rc.getPaint(), // amount of paint needed to fully top off
-                        towerPaintQuantity); // amount of paint available in the tower
+        if (rc.getLocation()
+                .distanceSquaredTo(nearestAlliedPaintTowerLoc) <= GameConstants.PAINT_TRANSFER_RADIUS_SQUARED) {
 
-                if (rc.isActionReady() && rc.canTransferPaint(nearestAlliedPaintTowerLoc, -paintToFillUp)) {
-                    rc.transferPaint(nearestAlliedPaintTowerLoc, -paintToFillUp);
-                }
-
-                if (!checkIfIShouldReplenish()) {
-                    tryingToReplenish = false;
-                }
+            // Paint tower has been destroyed.
+            if(rc.senseRobotAtLocation(nearestAlliedPaintTowerLoc) == null) {
+                nearestAlliedPaintTowerLoc = null;
+                return;
             }
 
+            int towerPaintQuantity = rc.senseRobotAtLocation(nearestAlliedPaintTowerLoc).getPaintAmount();
+            int paintToFillUp = Math.min(
+                    rc.getType().paintCapacity - rc.getPaint(), // amount of paint needed to fully top off
+                    towerPaintQuantity); // amount of paint available in the tower
+
+            if (rc.isActionReady() && rc.canTransferPaint(nearestAlliedPaintTowerLoc, -paintToFillUp)) {
+                rc.transferPaint(nearestAlliedPaintTowerLoc, -paintToFillUp);
+            }
+
+            if (!checkIfIShouldReplenish()) {
+                tryingToReplenish = false;
+            }
         }
+
+
     }
 
     /**
@@ -172,7 +179,7 @@ public abstract class Bunny extends Robot {
     public MapInfo findUnmarkedRuin() throws GameActionException {
         // MapInfo[] nearbyTiles = rc.senseNearbyMapInfos();
         for (MapInfo tile : nearbyMapInfos) {
-            if (tile.hasRuin()) {
+            if (rc.canSenseLocation(tile.getMapLocation()) && tile.hasRuin()) {
                 RobotInfo robotAtRuin = rc.senseRobotAtLocation(tile.getMapLocation());
                 // We want a ruin either unoccupied or not controlled by our team
                 if (robotAtRuin == null || robotAtRuin.team != rc.getTeam()) {

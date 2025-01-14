@@ -25,7 +25,7 @@ public class Tower extends Robot {
         // Read incoming messages
         Message[] messages = rc.readMessages(-1);
         for (Message m : messages) {
-            System.out.println("Tower received message: '#" + m.getSenderID() + " " + m.getBytes());
+            Util.log("Tower received message: '#" + m.getSenderID() + " " + m.getBytes());
         }
         runAttack();
 
