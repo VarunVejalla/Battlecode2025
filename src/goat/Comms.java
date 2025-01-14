@@ -274,16 +274,5 @@ public class Comms {
             Util.log("Sector Center: " + getSectorCenter(sectorIndex));
             Util.log(Util.getSectorDescription(myWorld[sectorIndex]) + "\n\n");
         }
-
     }
 }
-
-
-
-
-
-
-
-
-
-
