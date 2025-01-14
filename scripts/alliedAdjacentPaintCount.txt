@@ -1,0 +1,60 @@
+switch (dx) {
+case -3:
+switch (dy) {
+case 0: return isAllied[3] + isAllied[4] + isAllied[5] + isAllied[12] + isAllied[14] + isAllied[21] + isAllied[22] + isAllied[23];
+default: return 0;
+}
+case -2:
+switch (dy) {
+case -2: return isAllied[10] + isAllied[11] + isAllied[12] + isAllied[19] + isAllied[21] + isAllied[28] + isAllied[29] + isAllied[30];
+case -1: return isAllied[11] + isAllied[12] + isAllied[13] + isAllied[20] + isAllied[22] + isAllied[29] + isAllied[30] + isAllied[31];
+case 0: return isAllied[12] + isAllied[13] + isAllied[14] + isAllied[21] + isAllied[23] + isAllied[30] + isAllied[31] + isAllied[32];
+case 1: return isAllied[13] + isAllied[14] + isAllied[15] + isAllied[22] + isAllied[24] + isAllied[31] + isAllied[32] + isAllied[33];
+case 2: return isAllied[14] + isAllied[15] + isAllied[16] + isAllied[23] + isAllied[25] + isAllied[32] + isAllied[33] + isAllied[34];
+default: return 0;
+}
+case -1:
+switch (dy) {
+case -2: return isAllied[19] + isAllied[20] + isAllied[21] + isAllied[28] + isAllied[30] + isAllied[37] + isAllied[38] + isAllied[39];
+case -1: return isAllied[20] + isAllied[21] + isAllied[22] + isAllied[29] + isAllied[31] + isAllied[38] + isAllied[39] + isAllied[40];
+case 0: return isAllied[21] + isAllied[22] + isAllied[23] + isAllied[30] + isAllied[32] + isAllied[39] + isAllied[40] + isAllied[41];
+case 1: return isAllied[22] + isAllied[23] + isAllied[24] + isAllied[31] + isAllied[33] + isAllied[40] + isAllied[41] + isAllied[42];
+case 2: return isAllied[23] + isAllied[24] + isAllied[25] + isAllied[32] + isAllied[34] + isAllied[41] + isAllied[42] + isAllied[43];
+default: return 0;
+}
+case 0:
+switch (dy) {
+case -3: return isAllied[27] + isAllied[28] + isAllied[29] + isAllied[36] + isAllied[38] + isAllied[45] + isAllied[46] + isAllied[47];
+case -2: return isAllied[28] + isAllied[29] + isAllied[30] + isAllied[37] + isAllied[39] + isAllied[46] + isAllied[47] + isAllied[48];
+case -1: return isAllied[29] + isAllied[30] + isAllied[31] + isAllied[38] + isAllied[40] + isAllied[47] + isAllied[48] + isAllied[49];
+case 0: return isAllied[30] + isAllied[31] + isAllied[32] + isAllied[39] + isAllied[41] + isAllied[48] + isAllied[49] + isAllied[50];
+case 1: return isAllied[31] + isAllied[32] + isAllied[33] + isAllied[40] + isAllied[42] + isAllied[49] + isAllied[50] + isAllied[51];
+case 2: return isAllied[32] + isAllied[33] + isAllied[34] + isAllied[41] + isAllied[43] + isAllied[50] + isAllied[51] + isAllied[52];
+case 3: return isAllied[33] + isAllied[34] + isAllied[35] + isAllied[42] + isAllied[44] + isAllied[51] + isAllied[52] + isAllied[53];
+default: return 0;
+}
+case 1:
+switch (dy) {
+case -2: return isAllied[37] + isAllied[38] + isAllied[39] + isAllied[46] + isAllied[48] + isAllied[55] + isAllied[56] + isAllied[57];
+case -1: return isAllied[38] + isAllied[39] + isAllied[40] + isAllied[47] + isAllied[49] + isAllied[56] + isAllied[57] + isAllied[58];
+case 0: return isAllied[39] + isAllied[40] + isAllied[41] + isAllied[48] + isAllied[50] + isAllied[57] + isAllied[58] + isAllied[59];
+case 1: return isAllied[40] + isAllied[41] + isAllied[42] + isAllied[49] + isAllied[51] + isAllied[58] + isAllied[59] + isAllied[60];
+case 2: return isAllied[41] + isAllied[42] + isAllied[43] + isAllied[50] + isAllied[52] + isAllied[59] + isAllied[60] + isAllied[61];
+default: return 0;
+}
+case 2:
+switch (dy) {
+case -2: return isAllied[46] + isAllied[47] + isAllied[48] + isAllied[55] + isAllied[57] + isAllied[64] + isAllied[65] + isAllied[66];
+case -1: return isAllied[47] + isAllied[48] + isAllied[49] + isAllied[56] + isAllied[58] + isAllied[65] + isAllied[66] + isAllied[67];
+case 0: return isAllied[48] + isAllied[49] + isAllied[50] + isAllied[57] + isAllied[59] + isAllied[66] + isAllied[67] + isAllied[68];
+case 1: return isAllied[49] + isAllied[50] + isAllied[51] + isAllied[58] + isAllied[60] + isAllied[67] + isAllied[68] + isAllied[69];
+case 2: return isAllied[50] + isAllied[51] + isAllied[52] + isAllied[59] + isAllied[61] + isAllied[68] + isAllied[69] + isAllied[70];
+default: return 0;
+}
+case 3:
+switch (dy) {
+case 0: return isAllied[57] + isAllied[58] + isAllied[59] + isAllied[66] + isAllied[68] + isAllied[75] + isAllied[76] + isAllied[77];
+default: return 0;
+}
+default: return 0;
+}
