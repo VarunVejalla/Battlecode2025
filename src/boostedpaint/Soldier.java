@@ -48,9 +48,6 @@ public class Soldier extends Bunny {
             rc.resign();
         }
 
-
-
-
         super.run(); // Call the shared logic for all bunnies
 
         if (rc.getID() == 11065 && rc.getRoundNum() > 125 && rc.getRoundNum() < 150) {

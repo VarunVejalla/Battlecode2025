@@ -156,26 +156,6 @@ public class Util {
         };
     }
 
-    public static int getMapInfoIndex(int deltaX, int deltaY) {
-        if (deltaX*deltaX + deltaY*deltaY > 20) {
-            return -1;
-        }
-        if (deltaX < 3) {
-            if (deltaX > -3) {
-                return deltaY+9*deltaX+34;
-            } else if (deltaX == -3) {
-                return deltaY+8;
-            } else {
-                return deltaY+2;
-            }
-        } else if (deltaX == 3) {
-            return deltaY+60;
-        } else if (deltaX == 4) {
-            return deltaY+66;
-        }
-        return -1;
-    }
-
     public static String getSectorDescription(int sectorValue) {
         int ruinCondition = (sectorValue >> 1) & 0b111;
         int emptyCount = (sectorValue >> 4) & 0b11;
