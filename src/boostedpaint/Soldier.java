@@ -3,7 +3,7 @@ package boostedpaint;
 import battlecode.common.*;
 
 enum PatternPriority {
-    LOW, MEDIUM, HIGH;
+    LOW, MEDIUM, HIGH
 }
 
 enum PatternType {
@@ -35,27 +35,20 @@ enum PatternStatus {
     POSSIBLY_FINISHED,
     BLOCKED_BY_ENEMY,
     BLOCKED_BY_SELF,
-    BLOCKED_BY_NOTHING;
+    BLOCKED_BY_NOTHING
 }
 
 public class Soldier extends Bunny {
-//    MapLocation patternCenter;
-//    PatternType patternType;
-//    boolean definiteCenter = false;
-
-    // only looking at the ruins without a tower on them already
-//    int[] nearbyRuinIndices = new int[4]; // can have at most 4 ruins in vision radius
-//    int numEmptyRuins = 0;
-//    PatternPriority[] ruinPriorities = new PatternPriority[4];
-
     public Soldier(RobotController rc) throws GameActionException {
         super(rc);
     }
 
     public void run() throws GameActionException {
-//        if (rc.getRoundNum() > 15) {
+//        if (rc.getRoundNum() > 200) {
 //            rc.resign();
 //        }
+
+
         super.run(); // Call the shared logic for all bunnies
 
         scanSurroundings();
@@ -115,7 +108,12 @@ public class Soldier extends Bunny {
 
         if (resourceCenterIndex != -1) {
             pattern = rc.getResourcePattern();
-            workOnResourcePattern(resourceCenterIndex, pattern);
+            workOnResourcePattern(Shifts.dx[resourceCenterIndex], Shifts.dy[resourceCenterIndex], pattern);
+            if (rc.isMovementReady()) {
+                nav.goTo(nearbyMapInfos[resourceCenterIndex].getMapLocation(), 0);
+            }
+            // TODO do this pattern completion efficiently
+//            tryResourcePatternCompletion();
             if (rc.canCompleteResourcePattern(nearbyMapInfos[resourceCenterIndex].getMapLocation())) {
                 rc.completeResourcePattern(nearbyMapInfos[resourceCenterIndex].getMapLocation());
             }
@@ -133,140 +131,40 @@ public class Soldier extends Bunny {
 
         // TODO: default behavior
 
+        runDefaultBehavior();
+
+
+
         sharedEndFunction();
         return;
-//
-//
-//
-//
-//
-////        if (potentialResourceCenter != null) {
-////            Util.log(potentialResourceCenter.toString());
-////        } else {
-////            Util.log("null");
-////        }
-//
-////        Util.logBytecode("after finding resource pattern");
-//
-//        // if we see a definitely unfinished ruin that we could possibly finish, go for that one
-//            // means
-//        //
-//
-////        updatePatternCenterInfo();
-//
-////        if (rc.getRoundNum() > 10) {
-////            rc.resign();
-////        }
-//
-//
-//        // TODO: when are we allowing repainting??
-//        // i think it should be never for resource patterns
-//        // but when for tower patterns?
-//        // for now, it's not allowed at all
-//        // need to change other things depending on how generous we are with repainting
-//
-//        // NOTE: I HAD IT ORGANIZED LIKE THIS SPECIFICALLY IN ORDER TO CHANGE MACRO MORE EASILY IF WE WANTED TO LATER
-//        if (definiteCenter && patternType.isTower()) {
-//            // this is guaranteed to be in line with what has been put down so far, since we are not repainting
-//            boolean canPaint = rc.isActionReady() && rc.getPaint() >= UnitType.SOLDIER.attackCost;
-//            boolean paintedPattern = false;
-//            boolean moved = false;
-//
-//            MapLocation newLoc = myLoc;
-//
-//
-//
-//            if (rc.isMovementReady()) {
-//                nav.goTo(patternCenter, 2);
-//                newLoc = rc.getLocation();
-//                moved = !newLoc.equals(myLoc);
-//            }
-//            if (moved) {
-//                myLoc = newLoc;
-//
-//                // TODO: Could probably do this, but maybe bytecode issues
-////                if (canPaint) {
-////                scanSurroundings();
-////                updatePatternCenterInfo();
-////                }
-//            }
-//            if (canPaint) {
-//                paintedPattern = fillInPattern();
-//            }
-//
-//            if (rc.canCompleteTowerPattern(patternType.getUnitType(), patternCenter)) {
-//                rc.completeTowerPattern(patternType.getUnitType(), patternCenter);
-//                patternCenter = null;
-//            }
-//
-//            // TODO: do we care about other ruins right here?
-////            else if (rc.getChips() >= patternType.getUnitType().moneyCost) {
-////                // try completing other ones?
-////            }
-//
-////            if () {
-////                tryTowerPatternCompletion();
-////            }
-//        } else if (definiteCenter) {
-//            // guaranteed that we see all 5x5 of these tiles and that any tower we see doesn't conflict with this pattern
-//            // want to a) end turn on our tile, b) move towards the emptier tiles, and c)
-//
-//            boolean canPaint = rc.isActionReady() && rc.getPaint() >= UnitType.SOLDIER.attackCost;
-//            boolean paintedPattern = false;
-//            boolean moved = false;
-//
-//            MapLocation newLoc = myLoc;
-//            if (rc.isMovementReady()) {
-//                nav.goTo(patternCenter, 0);
-//                newLoc = rc.getLocation();
-//                moved = !newLoc.equals(myLoc);
-//            }
-//            if (moved) {
-//                myLoc = newLoc;
-//                // TODO: Could probably do this, but maybe bytecode issues
-////                if (canPaint) {
-////                scanSurroundings();
-////                updatePatternCenterInfo();
-////                }
-//            }
-//            if (canPaint) {
-//                paintedPattern = fillInPattern();
-//            }
-//
-//            if (paintedPattern && myLoc.isWithinDistanceSquared(patternCenter, 8) && rc.canCompleteResourcePattern(patternCenter)) {
-//                rc.completeResourcePattern(patternCenter);
-//                patternCenter = null;
-//            }
-//
-////            // TODO: do we care about completing towers?
-////            if (rc.getChips() >= patternType.getUnitType().moneyCost) {
-////                tryTowerPatternCompletion();
-////            }
-//        } else {
-//            // if it's not a definite center, that means it's a) an unfinished resource pattern and b) not fully contained within vision radius
-//            // it's a resource pattern, because if it were a tower pattern, we'd be able to see the ruin and mark it as definite
-//
-//            boolean canPaint = rc.isActionReady() && rc.getPaint() >= UnitType.SOLDIER.attackCost;
-//            boolean paintedPattern = false;
-//            if (canPaint) {
-//                paintedPattern = fillInTowardPattern();
-//            }
-//            if (rc.isMovementReady()) {
-//                nav.goTo(patternCenter, 0);
-//            }
-//
-//        }
-//        sharedEndFunction();
     }
 
-    public int getTowerAsInt(UnitType type) {
-        if (type == UnitType.LEVEL_ONE_PAINT_TOWER) {
-            return 0;
-        } else if (type == UnitType.LEVEL_ONE_MONEY_TOWER) {
-            return 1;
-        } else { //(type == UnitType.LEVEL_ONE_DEFENSE_TOWER) {
-            return 2;
+    private void runDefaultBehavior() throws GameActionException {
+        // move destination to be on the line connecting what it currently is to right outside any overlap with vision radius
+        boolean isPaintReady = rc.isActionReady() && rc.getPaint() >= UnitType.SOLDIER.attackCost;
+        if (isPaintReady) {
+            for (int i = 0; i < 29; i++) {
+                int index = Shifts.spiralOutwardIndices[i];
+                if (nearbyMapInfos[index].hasRuin() || nearbyMapInfos[index].isWall()) {
+                    continue;
+                } else {
+                    if (nearbyMapInfos[index].getPaint() == PaintType.EMPTY) {
+                        MapLocation location = nearbyMapInfos[index].getMapLocation();
+                        rc.attack(location, (location.x+location.y)%2 == 0);
+                        break;
+                    }
+                }
+            }
         }
+
+        if (rc.isMovementReady()) {
+            nav.goTo(destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
+        }
+
+
+
+
+        // paint around us
     }
 
     public void workOnRuin(int index, boolean[][] paintPattern) throws GameActionException {
@@ -280,12 +178,6 @@ public class Soldier extends Bunny {
                 if (attackIndex == index) {
                     continue;
                 }
-                if (nearbyMapInfos[attackIndex].hasRuin() || nearbyMapInfos[attackIndex].isWall()) {
-                    rc.resign();
-                } else if (nearbyMapInfos[attackIndex].isWall()) {
-                    rc.resign();
-                }
-
                 PaintType currentPaint = nearbyMapInfos[attackIndex].getPaint();
                 if (currentPaint == PaintType.EMPTY) {
 
@@ -313,40 +205,72 @@ public class Soldier extends Bunny {
         }
 
         if (rc.isMovementReady()) {
-            nav.circle(nearbyMapInfos[index].getMapLocation(), 1, 2);
+            int r2 = myLoc.distanceSquaredTo(nearbyMapInfos[index].getMapLocation());
+
+            if (r2 == 1) {
+                // try going counter-clockwise around those r^2 = 1 squares
+                Direction direction = myLoc.directionTo(nearbyMapInfos[index].getMapLocation());
+
+                if (rc.canMove(direction.rotateRight())) {
+                    rc.move(direction.rotateRight());
+                }
+
+            } else if (r2 == 2) {
+                // diagonally adjacent to center
+                Direction direction = myLoc.directionTo(nearbyMapInfos[index].getMapLocation());
+                if (rc.canMove(direction.rotateRight())) {
+                    rc.move(direction.rotateRight());
+                } else if (rc.canMove(direction.rotateLeft())) {
+                    rc.move(direction.rotateLeft());
+                }
+            } else if (r2 == 4) {
+                Direction direction = myLoc.directionTo(nearbyMapInfos[index].getMapLocation());
+                if (rc.canMove(direction)) {
+                    rc.move(direction);
+                } else if (rc.canMove(direction.rotateRight())) {
+                    rc.move(direction.rotateRight());
+                } else if (rc.canMove(direction.rotateLeft())) {
+                    rc.move(direction.rotateLeft());
+                }
+            } else {
+                nav.goTo(nearbyMapInfos[index].getMapLocation(), 0);
+            }
         }
     }
 
-    public void workOnResourcePattern(int index, boolean[][] paintPattern) throws GameActionException {
+    public void workOnResourcePattern(int dx, int dy, boolean[][] paintPattern) throws GameActionException {
         boolean isPaintReady = rc.isActionReady() && rc.getPaint() >= UnitType.SOLDIER.attackCost;
 
         if (isPaintReady) {
-            int dx = Shifts.dx[index];
-            int dy = Shifts.dy[index];
+//            int dx = Shifts.dx[index];
+//            int dy = Shifts.dy[index];
             int[] ordering = PatternFillingIterators.orderFillingResource[13*dx + dy + 84];
-
+            MapLocation attackSquare;
             for (int attackIndex : ordering) {
+                if (nearbyMapInfos[attackIndex].hasRuin() || nearbyMapInfos[attackIndex].isWall()) {
+                    continue;
+                }
                 PaintType currentPaint = nearbyMapInfos[attackIndex].getPaint();
                 int offsetX = Shifts.dx[attackIndex] - dx;
                 int offsetY = Shifts.dy[attackIndex] - dy;
 
                 if (currentPaint == PaintType.EMPTY) {
-                    if (offsetX*offsetX + offsetY*offsetY <= 8) {
-                        rc.attack(nearbyMapInfos[attackIndex].getMapLocation(), paintPattern[offsetX+2][offsetY+2]);
-                    } else {
-                        rc.attack(nearbyMapInfos[attackIndex].getMapLocation(), (offsetX+dx+offsetY+dy)%2==0);
+                    attackSquare = nearbyMapInfos[attackIndex].getMapLocation();
+                    // this check is needed for when we're near the edges
+                    if (0 <= attackSquare.x && 0 <= attackSquare.y && attackSquare.x < rc.getMapWidth() && attackSquare.y < rc.getMapHeight()) {
+                        if (offsetX * offsetX + offsetY * offsetY <= 8) {
+                            rc.attack(nearbyMapInfos[attackIndex].getMapLocation(), paintPattern[offsetX + 2][offsetY + 2]);
+                        } else {
+                            rc.attack(nearbyMapInfos[attackIndex].getMapLocation(), (offsetX + dx + offsetY + dy) % 2 == 0);
+                        }
+                        break;
                     }
-                    break;
                 }
             }
         }
-
-        if (rc.isMovementReady()) {
-            nav.goTo(nearbyMapInfos[index].getMapLocation(), 0);
-        }
     }
 
-    public PatternPriority findPriority(int index, boolean[][] pattern) throws GameActionException {
+    public PatternPriority findPriority(int index, boolean[][] pattern) {
         // guaranteed that this is a ruin
 
         boolean hasEmpty = false;
@@ -384,7 +308,7 @@ public class Soldier extends Bunny {
     }
 
 
-    public UnitType getPatternUnitType() throws GameActionException {
+    public UnitType getPatternUnitType() {
         if(nearestAlliedTowerLoc.equals(nearestAlliedPaintTowerLoc)) {
             return UnitType.LEVEL_ONE_MONEY_TOWER;
         }
@@ -430,7 +354,7 @@ public class Soldier extends Bunny {
         MapInfo[] possibleCenters = rc.senseNearbyMapInfos(8);
 
         for (MapInfo center : possibleCenters) {
-            if (center.getPaint().isAlly() && !center.getPaint().isSecondary() &&
+            if (center.getPaint() == PaintType.ALLY_PRIMARY &&
                     rc.canCompleteResourcePattern(center.getMapLocation())) {
                 rc.completeResourcePattern(center.getMapLocation());
             }
@@ -479,7 +403,7 @@ public class Soldier extends Bunny {
                 }
             }
 
-            // // If there's a mark and it's unpainted, favor that too.
+            // If there's a mark and it's unpainted, favor that too.
             // if (tile.getMark().isAlly() && tile.getPaint() == PaintType.EMPTY) {
             // tileScore += 100;
             // }
@@ -491,7 +415,7 @@ public class Soldier extends Bunny {
         }
 
         if (bestDirection != null) {
-            Util.log("Moving in direction: " + bestDirection.toString());
+            Util.log("Moving in direction: " + bestDirection);
             nav.goTo(bestDirection, 0);
         } else {
             // Move in a pre-determined global direction.

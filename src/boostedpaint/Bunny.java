@@ -131,10 +131,14 @@ public class Bunny extends Robot {
             Util.addToIndicatorString("REP");
         }
 
-        else if (destination == null ||
-                rc.getLocation().distanceSquaredTo(destination) <= Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION) {
+        else if (destination == null || rc.getLocation().distanceSquaredTo(destination) <= Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION) {
             destination = Util.getRandomMapLocation();
         }
+
+        // probability of failure can be up to 69/400, so might need a lot of redraws :(
+//        while (rc.getLocation().distanceSquaredTo(destination) <= Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION) {
+//            destination = Util.getRandomMapLocation();
+//        }
     }
 
     public MapLocation findEmptyTiles() throws GameActionException {
