@@ -2,10 +2,13 @@ package goat;
 
 import battlecode.common.*;
 
+
 public class Soldier extends Bunny {
 
     public Soldier(RobotController rc) throws GameActionException {
         super(rc);
+        PatternUtils.soldier = this;
+        PatternUtils.rc = rc;
     }
 
     public void run() throws GameActionException {
@@ -30,47 +33,24 @@ public class Soldier extends Bunny {
             MarkingUtils.attemptMarkResourcePattern();
         }
 
-        // 2. Replenish or Paint/Attack if you can
-        // After handling ruins and resource marking, check if we can act:
-        // If we're trying to replenish and we're in range of a tower, try to replenish
-        // Otherwise
-        // - Paint or attack a nearby tile based on priority:
-        // - Ally-marked but unpainted tiles take precedence.
-        // - If no such tiles exist, attack an unpainted tile nearby.
-        if (rc.isActionReady()) {
-            if (tryingToReplenish) {
-                tryReplenish();
-            } else {
-                paintOrAttack();
+        // 2. If trying to replenish, go do that.
+        // TODO: If nearestAlliedPaintTowerLoc == null, should we explore or smth?
+        if(tryingToReplenish && nearestAlliedPaintTowerLoc != null){
+            Util.log("Trying to replenish paint");
+            tryReplenish();
+
+            if (myLoc.distanceSquaredTo(nearestAlliedPaintTowerLoc) > GameConstants.PAINT_TRANSFER_RADIUS_SQUARED) {
+                Util.log("Moving towards nearest paint tower");
+                nav.goTo(nearestAlliedPaintTowerLoc, GameConstants.PAINT_TRANSFER_RADIUS_SQUARED);
             }
         }
-
-        // 3. Movement Logic
-        // If movement is possible:
-        // - Move toward the nearest tower if you're trying to replenish.
-
-        // - Otherwise Prioritize moving toward ally-marked tiles that are empty
-        // (unpainted).
-        // - If no such tiles are found, move to your destination
-        if (canMove()) {
-            moveLogic();
+        else if(isAttacking()){
+            // 3. TODO: Attacking logic.
+            runAttackLogic();
         }
-
-        // 4. Recheck for Replenish or Painting/Attacking
-
-        // After handling ruins and resource marking, check if we can act:
-        // If we're trying to replenish and we're in range of a tower, try to replenish
-
-        // Otherwise
-        // - Paint or attack a nearby tile based on priority:
-        // - Ally-marked but unpainted tiles take precedence.
-        // - If no such tiles exist, attack an unpainted tile nearby.
-        if (rc.isActionReady()) {
-            if (tryingToReplenish) {
-                tryReplenish();
-            } else {
-                paintOrAttack();
-            }
+        else {
+            // 4. If not attacking, run pattern painting logic.
+            buildPattern();
         }
 
         MarkingUtils.tryRuinPatternCompletion();
@@ -79,6 +59,68 @@ public class Soldier extends Bunny {
         // 6. End of Turn Logic
         // Perform any shared cleanup or post-turn logic
         sharedEndFunction();
+    }
+
+    // TODO implement this
+    public boolean isAttacking() throws GameActionException {
+        return false;
+    }
+
+    // TODO implement this
+    public void runAttackLogic() throws GameActionException {
+        return;
+    }
+
+    public void buildPattern() throws GameActionException {
+        int highPriorityRuinIndex = -1;
+        int mediumPriorityRuinIndex = -1;
+
+        UnitType intendedType = PatternUtils.getPatternUnitType();
+        boolean[][] pattern = rc.getTowerPattern(intendedType);
+
+        for(int index : Constants.spiralOutwardIndices) {
+            if (!nearbyMapInfos[index].hasRuin() || rc.senseRobotAtLocation(nearbyMapInfos[index].getMapLocation()) != null) {
+                continue;
+            }
+            PatternPriority priority = PatternUtils.findPriority(index, pattern);
+            if (priority == PatternPriority.HIGH) {
+                highPriorityRuinIndex = index;
+                break;
+            } else if (mediumPriorityRuinIndex == -1 && priority == PatternPriority.MEDIUM) {
+                mediumPriorityRuinIndex = index;
+            }
+        }
+
+        if (highPriorityRuinIndex != -1) {
+            PatternUtils.workOnRuin(highPriorityRuinIndex, pattern);
+            if (rc.canCompleteTowerPattern(intendedType, nearbyMapInfos[highPriorityRuinIndex].getMapLocation())) {
+                rc.completeTowerPattern(intendedType, nearbyMapInfos[highPriorityRuinIndex].getMapLocation());
+            }
+            return;
+        }
+
+        int resourceCenterIndex = Util.getPotentialResourcePatternCenterIndex(nearbyMapInfos);
+
+        if (resourceCenterIndex != -1) {
+            pattern = rc.getResourcePattern();
+            PatternUtils.workOnResourcePattern(Constants.shift_dx[resourceCenterIndex], Constants.shift_dy[resourceCenterIndex], pattern);
+
+            if (rc.isMovementReady()) {
+                nav.goTo(nearbyMapInfos[resourceCenterIndex].getMapLocation(), 0);
+            }
+            if (rc.canCompleteResourcePattern(nearbyMapInfos[resourceCenterIndex].getMapLocation())) {
+                rc.completeResourcePattern(nearbyMapInfos[resourceCenterIndex].getMapLocation());
+            }
+            return;
+        }
+        if (mediumPriorityRuinIndex != -1) {
+            PatternUtils.workOnRuin(mediumPriorityRuinIndex, pattern);
+            if (rc.canCompleteTowerPattern(intendedType, nearbyMapInfos[mediumPriorityRuinIndex].getMapLocation())) {
+                rc.completeTowerPattern(intendedType, nearbyMapInfos[mediumPriorityRuinIndex].getMapLocation());
+            }
+            return;
+        }
+        PatternUtils.runDefaultBehavior();
     }
 
     /**
