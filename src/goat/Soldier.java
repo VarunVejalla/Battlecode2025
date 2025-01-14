@@ -43,7 +43,6 @@ public class Soldier extends Bunny {
 
     public void run() throws GameActionException {
         super.run(); // Call the shared logic for all bunnies
-        scanSurroundings();
         updateDestinationIfNeeded();
 
         // 1. Handle Ruins
