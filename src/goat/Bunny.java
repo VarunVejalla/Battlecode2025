@@ -130,25 +130,32 @@ public abstract class Bunny extends Robot {
      * transfer paint
      */
     public void tryReplenish() throws GameActionException {
-        if (nearestAlliedPaintTowerLoc != null) {
-            if (rc.getLocation()
-                    .distanceSquaredTo(nearestAlliedPaintTowerLoc) <= GameConstants.PAINT_TRANSFER_RADIUS_SQUARED) {
+        if(nearestAlliedPaintTowerLoc == null) return;
 
-                int towerPaintQuantity = rc.senseRobotAtLocation(nearestAlliedPaintTowerLoc).getPaintAmount();
-                int paintToFillUp = Math.min(
-                        rc.getType().paintCapacity - rc.getPaint(), // amount of paint needed to fully top off
-                        towerPaintQuantity); // amount of paint available in the tower
+        if (rc.getLocation()
+                .distanceSquaredTo(nearestAlliedPaintTowerLoc) <= GameConstants.PAINT_TRANSFER_RADIUS_SQUARED) {
 
-                if (rc.isActionReady() && rc.canTransferPaint(nearestAlliedPaintTowerLoc, -paintToFillUp)) {
-                    rc.transferPaint(nearestAlliedPaintTowerLoc, -paintToFillUp);
-                }
-
-                if (!checkIfIShouldReplenish()) {
-                    tryingToReplenish = false;
-                }
+            // Paint tower has been destroyed.
+            if(rc.senseRobotAtLocation(nearestAlliedPaintTowerLoc) == null) {
+                nearestAlliedPaintTowerLoc = null;
+                return;
             }
 
+            int towerPaintQuantity = rc.senseRobotAtLocation(nearestAlliedPaintTowerLoc).getPaintAmount();
+            int paintToFillUp = Math.min(
+                    rc.getType().paintCapacity - rc.getPaint(), // amount of paint needed to fully top off
+                    towerPaintQuantity); // amount of paint available in the tower
+
+            if (rc.isActionReady() && rc.canTransferPaint(nearestAlliedPaintTowerLoc, -paintToFillUp)) {
+                rc.transferPaint(nearestAlliedPaintTowerLoc, -paintToFillUp);
+            }
+
+            if (!checkIfIShouldReplenish()) {
+                tryingToReplenish = false;
+            }
         }
+
+
     }
 
     /**
