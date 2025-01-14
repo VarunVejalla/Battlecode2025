@@ -1,7 +1,6 @@
 package goat;
 
 import battlecode.common.*;
-import boostedpaint.BigGridIterators;
 
 enum PatternPriority {
     LOW, MEDIUM, HIGH
@@ -104,7 +103,7 @@ public class PatternUtils {
                     rc.move(direction.rotateLeft());
                 }
             } else {
-                nav.goTo(soldier.nearbyMapInfos[index].getMapLocation(), 0);
+                soldier.nav.goTo(soldier.nearbyMapInfos[index].getMapLocation(), 0);
             }
         }
     }
@@ -173,6 +172,45 @@ public class PatternUtils {
         } else {
             return PatternPriority.MEDIUM;
         }
+    }
+
+    public static int getPotentialResourcePatternCenterIndex(MapInfo[] nearbyMapInfos) throws GameActionException {
+        long validBitstring = -1;
+        long unfinishedBitstring = 0;
+
+        for(int i = 0; i < 69; i++) {
+            if (nearbyMapInfos[i].hasRuin() || nearbyMapInfos[i].isWall()) {
+                // if it's a ruin, we might actually want a bit bigger radius around it, but whatever
+                validBitstring &= Constants.invalidSquareForResource[i];
+            } else {
+                PaintType paint = nearbyMapInfos[i].getPaint();
+                if (paint.isEnemy()) {
+                    validBitstring &= Constants.invalidSquareForResource[i];
+                } else if (paint == PaintType.EMPTY) {
+                    unfinishedBitstring |= Constants.emptySquareForResource[i];
+                } else if (paint == PaintType.ALLY_PRIMARY) {
+                    validBitstring &= Constants.primaryColorMask[i];
+                } else {
+                    validBitstring &= Constants.secondaryColorMask[i];
+                }
+            }
+        }
+
+        validBitstring &= unfinishedBitstring;
+        if (validBitstring == 0) {
+            return -1;
+        }
+
+        int counter = 64; // c will be the number of zero bits on the right
+        validBitstring &= -validBitstring;
+        if (validBitstring != 0) counter--;
+        if ((validBitstring & 0x00000000FFFFFFFFL) != 0) counter -= 32;
+        if ((validBitstring & 0x0000FFFF0000FFFFL) != 0) counter -= 16;
+        if ((validBitstring & 0x00FF00FF00FF00FFL) != 0) counter -= 8;
+        if ((validBitstring & 0x0F0F0F0F0F0F0F0FL) != 0) counter -= 4;
+        if ((validBitstring & 0x3333333333333333L) != 0) counter -= 2;
+        if ((validBitstring & 0x5555555555555555L) != 0) counter -= 1;
+        return Constants.spiralOutwardIndices[counter];
     }
 
     public static int[] getIndicesForSquareSpiral(int dx, int dy) {

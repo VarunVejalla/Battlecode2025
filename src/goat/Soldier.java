@@ -15,25 +15,7 @@ public class Soldier extends Bunny {
         super.run(); // Call the shared logic for all bunnies
         updateDestinationIfNeeded();
 
-        // 1. Handle Marking
-        if (!tryingToReplenish) {
-            // Check if there are any unmarked ruins nearby. If a ruin is found:
-            // - Move toward the ruin if we are far away (distance > 2).
-            // - Once in range, try mark it with a tower pattern (so we can build a tower)
-
-            MapInfo ruin = MarkingUtils.findUnclaimedRuin();
-            if(ruin != null && !MarkingUtils.isRuinMarked(ruin.getMapLocation())){
-                MarkingUtils.handleUnmarkedRuin(ruin.getMapLocation()); // Move to and interact with the ruin if you're not trying to replenish
-            }
-
-            // Attempt to Mark a Resource Pattern if you're not trying to replenish
-            // If no ruins are found, check if we can mark a resource pattern at our current
-            // location.
-            // - Only do this if the location is not already marked by our team
-            MarkingUtils.attemptMarkResourcePattern();
-        }
-
-        // 2. If trying to replenish, go do that.
+        // 1. If trying to replenish, go do that.
         // TODO: If nearestAlliedPaintTowerLoc == null, should we explore or smth?
         if(tryingToReplenish && nearestAlliedPaintTowerLoc != null){
             Util.log("Trying to replenish paint");
@@ -45,11 +27,11 @@ public class Soldier extends Bunny {
             }
         }
         else if(isAttacking()){
-            // 3. TODO: Attacking logic.
+            // 2. TODO: Attacking logic.
             runAttackLogic();
         }
         else {
-            // 4. If not attacking, run pattern painting logic.
+            // 3. If not attacking, run pattern painting logic.
             buildPattern();
         }
 
@@ -99,7 +81,7 @@ public class Soldier extends Bunny {
             return;
         }
 
-        int resourceCenterIndex = Util.getPotentialResourcePatternCenterIndex(nearbyMapInfos);
+        int resourceCenterIndex = PatternUtils.getPotentialResourcePatternCenterIndex(nearbyMapInfos);
 
         if (resourceCenterIndex != -1) {
             pattern = rc.getResourcePattern();
