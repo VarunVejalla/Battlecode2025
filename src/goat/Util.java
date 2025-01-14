@@ -27,20 +27,6 @@ public class Util {
         robot.indicatorString += str + ";";
     }
 
-    public static void printBytecode(String prefix) {
-        Util.log(prefix + ": " + Clock.getBytecodesLeft());
-    }
-
-    public static int countBotsOfTeam(Team team, RobotInfo[] bots) {
-        int count = 0;
-        for (RobotInfo bot : bots) {
-            if (bot.getTeam() == team) {
-                count++;
-            }
-        }
-        return count;
-    }
-
     public static <T> int getItemIndexInArray(T item, T[] array) {
         // helper method to get the index of an item in an array
         for (int i = 0; i < array.length; i++) {
@@ -74,7 +60,6 @@ public class Util {
         }
     }
 
-
     public static boolean isPaintTower(UnitType unitType) {
         // List all the tower unit types
         switch (unitType) {
@@ -86,8 +71,6 @@ public class Util {
                 return false;
         }
     }
-
-
 
     public static <T> boolean checkIfItemInArray(T item, T[] array) {
         return getItemIndexInArray(item, array) != -1;
@@ -125,37 +108,6 @@ public class Util {
         Util.log(out);
     }
 
-    public static void fillTrue(boolean[][] arr, MapLocation center, int radiusSquared) {
-        int ceiledRadius = (int) Math.ceil(Math.sqrt(radiusSquared)) + 1; // add +1 just to be safe
-        int minX = Math.max(center.x - ceiledRadius, 0);
-        int minY = Math.max(center.y - ceiledRadius, 0);
-        int maxX = Math.min(center.x + ceiledRadius, rc.getMapWidth() - 1);
-        int maxY = Math.min(center.y + ceiledRadius, rc.getMapHeight() - 1);
-        for (int x = minX; x <= maxX; x++) {
-            for (int y = minY; y <= maxY; y++) {
-                MapLocation newLocation = new MapLocation(x, y);
-                if (center.isWithinDistanceSquared(newLocation, radiusSquared)) {
-                    arr[x][y] = true;
-                }
-            }
-        }
-    }
-
-    // public static MapLocation getNearestHomeSpawnLoc(MapLocation loc) throws
-    // GameActionException{
-    //// MapLocation[] homeSpawnLocs = rc.getAllySpawnLocations();
-    // int minDist = Integer.MAX_VALUE;
-    // MapLocation nearestHomeSpawnLoc = null;
-    // for(MapLocation homeSpawnLoc : homeSpawnLocs){
-    // int dist = loc.distanceSquaredTo(homeSpawnLoc);
-    // if(dist < minDist){
-    // minDist = dist;
-    // nearestHomeSpawnLoc = homeSpawnLoc;
-    // }
-    // }
-    // return nearestHomeSpawnLoc;
-    // }
-
     // TODO: fix the right and left diagonal symmetry cases
     public static MapLocation applySymmetry(MapLocation loc, SymmetryType type) {
         int width = rc.getMapWidth();
@@ -179,28 +131,6 @@ public class Util {
         return null;
     }
 
-    public static boolean locIsASpawnLoc(MapLocation loc) throws GameActionException {
-        // this method checks if the robot is on a spawn location
-        for (MapLocation spawnCenter : robot.spawnCenters) {
-            if (Util.minMovesToReach(loc, spawnCenter) <= 1) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public static int encodeMapLocation(MapLocation loc) {
-        return loc.x * (robot.mapHeight + 1) + loc.y;
-    }
-
-    public static int encodeMapLocation(int x, int y) {
-        return x * (robot.mapHeight + 1) + y;
-    }
-
-    public static MapLocation decodeMapLocation(int code) {
-        return new MapLocation(code / (robot.mapHeight + 1), code % (robot.mapHeight + 1));
-    }
-
     public static void log(String str) {
         if(Constants.MUTE){
             return;
@@ -208,8 +138,8 @@ public class Util {
         System.out.println(str);
     }
 
-    public static void logBytecode(String str) {
-        Util.log(str + ": " + Clock.getBytecodesLeft());
+    public static void logBytecode(String prefix) {
+        Util.log(prefix + ": " + Clock.getBytecodesLeft());
     }
 
     public static Direction[] closeDirections(Direction dir) {
@@ -225,34 +155,6 @@ public class Util {
         };
     }
 
-    public static MapInfo[] getFilledInMapInfo(MapInfo[] nearbyMapInfo) {
-        // assuming that we are the center of the nearbyMapInfo, and we are still at the center
-
-        if (nearbyMapInfo.length == 69) {
-            return nearbyMapInfo;
-        }
-
-        MapInfo[] filledInMapInfo = new MapInfo[69];
-        MapLocation location;
-        int deltaX, deltaY, intendedIndex;
-        for (MapInfo mapInfo : nearbyMapInfo) {
-            // get location of nearbyMapInfo[i]
-            // figure out what index of filledInMapInfo it should go in
-            location = mapInfo.getMapLocation();
-            deltaX = location.x - robot.myLoc.x;
-            deltaY = location.y - robot.myLoc.y;
-            // need reverse lookup given Constants.dx and Constants.dy
-            intendedIndex = getMapInfoIndex(deltaX, deltaY);
-            filledInMapInfo[intendedIndex] = mapInfo;
-        }
-        for (int i = 0; i < 69; i++) {
-            if ( filledInMapInfo[i] == null ) {
-                filledInMapInfo[i] = new MapInfo(robot.myLoc.translate(Constants.dx[i], Constants.dy[i]), false, true, PaintType.EMPTY, PaintType.EMPTY, false);
-            }
-        }
-        return filledInMapInfo;
-    }
-
     public static int[] getIndicesForSquareSpiral(int dx, int dy) {
         if (dx < -6 || dx > 6 || dy < -6 || dy > 6) {
             return new int[]{};
@@ -263,74 +165,6 @@ public class Util {
         }
     }
 
-
-    public static PatternStatus checkPattern(int dx, int dy, MapInfo[] nearbyMapInfo, PatternType patternType) throws GameActionException {
-
-        int[] indices = getIndicesForSquareSpiral(dx, dy);
-        boolean[][] pattern;
-        int okRuinIndex = -1;
-        if (patternType == PatternType.RESOURCE) {
-            pattern = rc.getResourcePattern();
-        } else {
-            pattern = rc.getTowerPattern(patternType.getUnitType());
-            okRuinIndex = getMapInfoIndex(dx, dy);
-        }
-
-        PatternStatus output = PatternStatus.POSSIBLY_FINISHED;
-        for (int index : indices) {
-            // if it has a ruin when it shouldn't
-
-            if (nearbyMapInfo[index].hasRuin()) {
-                if (index != okRuinIndex || patternType == PatternType.RESOURCE) {
-                    return PatternStatus.INVALID;
-                }
-                continue;
-            } else if (nearbyMapInfo[index].isWall()) {
-                return PatternStatus.INVALID;
-            } else {
-                if (output == PatternStatus.BLOCKED_BY_ENEMY) {
-                    continue;
-                } else if (nearbyMapInfo[index].getPaint().isEnemy()) {
-                    output = PatternStatus.BLOCKED_BY_ENEMY;
-                } else if (nearbyMapInfo[index].getPaint() == PaintType.EMPTY) {
-                    // either finished, blocked by self, or blocked by nothing
-                    if (output == PatternStatus.POSSIBLY_FINISHED) {
-                        output = PatternStatus.BLOCKED_BY_NOTHING;
-                    }
-                } else {
-                    // continue if it's BLOCKED BY SELF
-                    if (output == PatternStatus.BLOCKED_BY_SELF) {
-                        continue;
-                    }
-                    boolean currentPaintType = nearbyMapInfo[index].getPaint().isSecondary();
-                    // want delta of current square from (dx, dy)
-                    int lookupX = Constants.dx[index] - dx + 2;
-                    int lookupY = Constants.dy[index] - dy + 2;
-                    if (pattern[lookupX][lookupY] != currentPaintType) {
-                        output = PatternStatus.BLOCKED_BY_SELF;
-                    }
-                }
-            }
-        }
-
-        if (output == PatternStatus.POSSIBLY_FINISHED && indices.length == 25) {
-            return PatternStatus.FINISHED;
-        } else {
-            return output;
-        }
-
-
-    }
-
-    // TODO: make sure this method works
-    public static boolean shouldSecondaryPaintResource(MapLocation tileToPaint, MapLocation center) {
-        if (tileToPaint.equals(center)) {
-            return false;
-        }
-        int mod = tileToPaint.x-center.x + tileToPaint.y-center.y;
-        return mod%2 == 0;
-    }
-
     public static boolean shouldSecondaryPaintResource(int dx, int dy) {
         if (dx == 0 && dy == 0) {
             return false;
@@ -338,37 +172,6 @@ public class Util {
         int mod = dx + dy;
         return mod%2 == 0;
     }
-
-    // TODO: make sure this method works
-    public static boolean shouldSecondaryPaintTower(UnitType towerType, MapLocation tileToPaint, MapLocation center) {
-        if (towerType == UnitType.LEVEL_ONE_PAINT_TOWER) {
-            if (tileToPaint.equals(center)) {
-                return false;
-            }
-            if (tileToPaint.x == center.x || tileToPaint.y == center.y) {
-                return false;
-            } else {
-                int mod = tileToPaint.x - center.x + tileToPaint.y - center.y;
-                return mod % 2 == 0;
-            }
-        } else if (towerType == UnitType.LEVEL_ONE_MONEY_TOWER) {
-            if (tileToPaint.equals(center)) {
-                return false;
-            }
-            int dx = tileToPaint.x - center.x;
-            int dy = tileToPaint.y - center.y;
-            int s = dx*dx + dy*dy;
-            if (s == 1 || s == 8) {
-                return false;
-            } else {
-                return true;
-            }
-        } else {
-            // TODO: this is definitely wrong, just a placeholder
-            return false;
-        }
-    }
-
 
     public static int getMapInfoIndex(int deltaX, int deltaY) {
         if (deltaX*deltaX + deltaY*deltaY > 20) {
@@ -391,8 +194,6 @@ public class Util {
     }
 
     public static int[] getMapInfoIndicesWithinRadiusSquared(int radius_squared, MapLocation currentLocation) {
-
-
         if (radius_squared < 0 || radius_squared >= 20) {
             return new int[] {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68};
         }
@@ -440,25 +241,6 @@ public class Util {
         }
     }
 
-
-
-    public static MapInfo[] getMapInfosWithinRadiusSquared(int radius_squared, MapInfo[] nearbyMapInfos) throws GameActionException {
-        if (radius_squared < 0 || radius_squared >= 20) {
-            return nearbyMapInfos;
-        } else {
-            int[] indices = getMapInfoIndicesWithinRadiusSquared(radius_squared, rc.getLocation());
-            if (indices != null) {
-                MapInfo[] mapInfos = new MapInfo[indices.length];
-                for (int i = 0; i < indices.length; i++) {
-                    mapInfos[i] = nearbyMapInfos[indices[i]];
-                }
-                return mapInfos;
-            } else {
-                return rc.senseNearbyMapInfos(radius_squared);
-            }
-        }
-    }
-
     public static MapInfo getMapInfo(int deltaX, int deltaY, MapInfo[] nearbyMapInfos) throws GameActionException {
         if (nearbyMapInfos.length == 69) {
             int index = getMapInfoIndex(deltaX, deltaY);
@@ -468,96 +250,6 @@ public class Util {
 
         }
         return rc.senseMapInfo(rc.getLocation().translate(deltaX, deltaY));
-    }
-
-    public static PaintType getPaintType(int dx, int dy, MapInfo[] nearbyMapInfos) throws GameActionException {
-
-        MapInfo mapInfo = getMapInfo(dx, dy, nearbyMapInfos);
-        if (mapInfo.hasRuin() || mapInfo.isWall()) {
-            return null;
-        }
-        return mapInfo.getPaint();
-    }
-
-    public static MapLocation getMapLocationForResourcePattern(MapInfo[] nearbyMapInfos) throws GameActionException {
-        // this avoids repainting squares no matter what
-
-        if (nearbyMapInfos.length == 69) {
-            int[] possibleCentersX = {0, 1, 0, -1, 0, 1, -1, -1, 1, 2, 0, -2, 0};
-            int[] possibleCentersY = {0, 0, 1, 0, -1, 1, -1, 1, -1, 0, 2, 0, -2};
-
-
-            // invalid tile or enemy paint tile or empty tile with incorrect mark
-            // empty tile with no mark or with correct mark
-            // our paint tile with no mark and agrees with what we're painting
-            // our paint tile with no mark and doesn't agree with what we're painting
-            // our paint tile with mark and agrees with what we're painting
-            // our paint tile with mark and doesn't agree with what we're painting
-
-
-            // 0 represents unknown, 1 is no paint (and not invalid and not marked), 2 is our paint (and not invalid and not marked), 3 is invalid square or marked or their paint
-            int[] validSquares = new int[nearbyMapInfos.length];
-
-
-            for (int i = 0; i < possibleCentersX.length; i++) {
-                boolean alreadyFinished = true;
-                int dx = possibleCentersX[i];
-                int dy = possibleCentersY[i];
-                int ddx;
-                int ddy;
-                boolean invalid = false;
-                for (int dx_shift = -2; dx_shift <= 2; dx_shift++) {
-                    for(int dy_shift = -2; dy_shift <= 2; dy_shift++) {
-                        ddx = dx+dx_shift;
-                        ddy = dy+dy_shift;
-
-                        int index = getMapInfoIndex(ddx, ddy);
-                        MapInfo mapInfo = nearbyMapInfos[index];
-                        PaintType paintType = mapInfo.getPaint();
-
-                        if (validSquares[index] == 0) {
-                            if (mapInfo.hasRuin() || mapInfo.isWall() || paintType.isEnemy()) {
-                                validSquares[index] = 3;
-                            } else if (mapInfo.getMark().isAlly()){
-                                validSquares[index] = 3;
-                            } else if (paintType.isAlly()) {
-                                validSquares[index] = 2;
-                            } else {
-                                validSquares[index] = 1;
-                            }
-
-                        }
-
-                        if (validSquares[index] == 1) {
-                            // unpainted and unmarked
-                            alreadyFinished = false;
-                        } else if (validSquares[index] == 2) {
-                            // painted in our color but unmarked
-                            boolean shouldBeSecondaryPaint = shouldSecondaryPaintResource(dx_shift, dy_shift);
-                            boolean isSecondaryPaint = mapInfo.getPaint().isSecondary();
-                            if (isSecondaryPaint == shouldBeSecondaryPaint) {
-                                continue;
-                            } else {
-                                invalid = true;
-                                break;
-                            }
-                        }  else if (validSquares[index] == 3) {
-                            invalid = true;
-                            break;
-                        }
-                    }
-                    if (invalid) {
-                        break;
-                    }
-                }
-                if (!invalid && !alreadyFinished) {
-                    return rc.getLocation().translate(dx, dy);
-                }
-            }
-        }
-
-        return null;
-
     }
 
     public static String getSectorDescription(int sectorValue) {

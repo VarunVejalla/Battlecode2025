@@ -16,13 +16,9 @@ public class Tower extends Robot {
         super.run();
         scanSurroundings();
 
-//        if(rc.getRoundNum() > 20) {
-//            rc.resign();
-//        }
-
-        if (rc.getRoundNum() < 50) {
+        if (rc.getRoundNum() < Constants.SPAWN_OPENING_BOTS_ROUNDS) {
             openingBots();
-        } else if (rc.getMoney() > 1500) {
+        } else if (rc.getMoney() > Constants.SPAWN_BOTS_MIDGAME_COST_THRESHOLD) {
             midGameBots();
         }
 
@@ -41,9 +37,6 @@ public class Tower extends Robot {
 
         // processMessages
         comms.processSectorMessages();
-
-        //
-
     }
 
     public void openingBots() throws GameActionException {
