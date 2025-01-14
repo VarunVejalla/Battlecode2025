@@ -11,15 +11,15 @@ public class Mopper extends Bunny {
 
     public void run() throws GameActionException {
         super.run();
+        actionableOpponents = rc.senseNearbyRobots(2, rc.getTeam().opponent());
+        actionableTiles = rc.senseNearbyMapInfos(2);
+
         if (!rc.isActionReady() && !rc.isMovementReady()) {
             sharedEndFunction();
             return;
         }
 
-        scanSurroundings();
         updateDestinationIfNeeded();
-
-
 
         if (rc.isActionReady()) {
             if (tryingToReplenish) {
@@ -44,12 +44,6 @@ public class Mopper extends Bunny {
         // 6. End of Turn Logic
         // Perform any shared cleanup or post-turn logic
         sharedEndFunction();
-    }
-
-    public void scanSurroundings() throws GameActionException {
-        super.scanSurroundings();
-        actionableOpponents = rc.senseNearbyRobots(2, rc.getTeam().opponent());
-        actionableTiles = rc.senseNearbyMapInfos(2);
     }
 
     /**
