@@ -25,8 +25,9 @@ public class RobotPlayer {
         // }
 
         if (rc.getRoundNum() != currentTurn) {
-            Util.log("BYTECODE EXCEEDED");
-            // rc.resign();
+            if (rc.getID() == 11065) {
+                Util.log("BYTECODE EXCEEDED");
+            }
         }
 
         Robot robot = switch (rc.getType()) {
@@ -46,8 +47,9 @@ public class RobotPlayer {
             try {
                 robot.run();
                 if (rc.getRoundNum() != currentTurn) {
-                    Util.log("BYTECODE EXCEEDED");
-                    // rc.resign();
+                    if (rc.getID() == 11065) {
+                        Util.log("BYTECODE EXCEEDED");
+                    }
                 }
             } catch (Exception e) {
                 e.printStackTrace();

@@ -60,7 +60,6 @@ public class Navigation {
     }
 
     public Direction bugNav(MapLocation target) throws GameActionException {
-        // Util.log("Running bugnav");
         // Every 20 turns reset the closest distance to target
         if (roundsSinceClosestDistReset >= ROUNDS_TO_RESET_BUG_CLOSEST) {
             closestDistToTarget = Integer.MAX_VALUE;
@@ -219,11 +218,9 @@ public class Navigation {
     }
 
     public boolean circle(MapLocation center, int minDist, int maxDist) throws GameActionException {
-        // Util.log("Tryna circle CCW");
         if (circle(center, minDist, maxDist, true)) {
             return true;
         }
-        // Util.log("Tryna circle CW");
         return circle(center, minDist, maxDist, false);
     }
 
@@ -235,11 +232,9 @@ public class Navigation {
         }
         MapLocation myLoc = robot.myLoc;
         if (Util.minMovesToReach(myLoc, center) > maxDist) {
-            // Util.log("Moving closer!");
             return goTo(center, minDist);
         }
         if (Util.minMovesToReach(myLoc, center) < minDist) {
-            // Util.log("Moving away!");
             Direction centerDir = myLoc.directionTo(center);
             MapLocation target = myLoc.subtract(centerDir).subtract(centerDir).subtract(centerDir).subtract(centerDir)
                     .subtract(centerDir);

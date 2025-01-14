@@ -81,7 +81,6 @@ public class Splasher extends Bunny {
 
         if (bestTarget != null && rc.isActionReady()) {
             rc.attack(bestTarget);
-            Util.log("Splasher attacked: " + bestTarget);
         }
     }
 
@@ -135,10 +134,8 @@ public class Splasher extends Bunny {
         }
 
         if (bestLocation != null) {
-            Util.log("Splasher moving to: " + bestLocation);
             nav.goTo(bestLocation, 0);
         } else {
-            Util.log("Splasher fallback to destination: " + destination);
             nav.goTo(destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
         }
     }
