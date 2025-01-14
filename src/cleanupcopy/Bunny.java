@@ -1,4 +1,4 @@
-package goat;
+package cleanupcopy;
 
 import battlecode.common.*;
 
@@ -29,11 +29,13 @@ public abstract class Bunny extends Robot {
         if(comms.waitingForMap){ // don't move if we're waiting to receive a map from a tower
             Util.log("Bunny @ " + rc.getLocation() + ". Pausing movement because I'm waiting for a map!");
         }
+        else {
+            moveLogic();
+        }
     }
 
-    public boolean canMove() {
-        return rc.isMovementReady() && !comms.waitingForMap;
-    }
+    public abstract void moveLogic() throws GameActionException;
+
 
     /**
      * Evalute the sectors that are neighboring your current sector and move towards the best one.

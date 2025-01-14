@@ -1,4 +1,4 @@
-package goat;
+package cleanupcopy;
 
 import battlecode.common.*;
 
@@ -14,6 +14,11 @@ public class Mopper extends Bunny {
         actionableOpponents = rc.senseNearbyRobots(2, rc.getTeam().opponent());
         actionableTiles = rc.senseNearbyMapInfos(2);
 
+        if (!rc.isActionReady() && !rc.isMovementReady()) {
+            sharedEndFunction();
+            return;
+        }
+
         updateDestinationIfNeeded();
 
         if (rc.isActionReady()) {
@@ -24,11 +29,11 @@ public class Mopper extends Bunny {
             }
         }
 
-        if (canMove()) {
+        if (rc.isMovementReady()) {
             moveLogic();
         }
 
-        if (rc.isActionReady()) {
+        if (!rc.isMovementReady() && rc.isActionReady()) {
             if (tryingToReplenish) {
                 tryReplenish();
             } else {

@@ -1,4 +1,4 @@
-package goat;
+package cleanupcopy;
 
 import battlecode.common.*;
 

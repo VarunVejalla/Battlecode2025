@@ -1,4 +1,4 @@
-package goat;
+package cleanupcopy;
 
 import battlecode.common.*;
 
@@ -52,7 +52,7 @@ public class Soldier extends Bunny {
         // - Otherwise Prioritize moving toward ally-marked tiles that are empty
         // (unpainted).
         // - If no such tiles are found, move to your destination
-        if (canMove()) {
+        if (rc.isMovementReady()) {
             moveLogic();
         }
 
@@ -73,8 +73,7 @@ public class Soldier extends Bunny {
             }
         }
 
-        MarkingUtils.tryRuinPatternCompletion();
-        MarkingUtils.tryResourcePatternCompletion();
+        MarkingUtils.tryPatternCompletion();
 
         // 6. End of Turn Logic
         // Perform any shared cleanup or post-turn logic

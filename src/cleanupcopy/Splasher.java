@@ -1,4 +1,4 @@
-package goat;
+package cleanupcopy;
 
 import battlecode.common.*;
 
@@ -21,7 +21,7 @@ public class Splasher extends Bunny {
         }
 
         // 2. Movement Logic
-        if (canMove()) {
+        if (rc.isMovementReady()) {
             moveLogic();
         }
 
