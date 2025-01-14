@@ -59,13 +59,12 @@ public class Soldier extends Bunny {
 //        nearbyRuinIndices[2] = -1;
 //        nearbyRuinIndices[3] = -1;
 //        numEmptyRuins = 0;
-        if (rc.getRoundNum() > 25) {
-            rc.resign();
-        }
+//        if (rc.getRoundNum() > 100) {
+//            rc.resign();
+//        }
 
         scanSurroundings();
         updateDestinationIfNeeded();
-
 
 
         if (tryingToReplenish) {
@@ -107,11 +106,6 @@ public class Soldier extends Bunny {
             } else if (mediumPriorityRuinIndex == -1 && priority == PatternPriority.MEDIUM) {
                 mediumPriorityRuinIndex = index;
             }
-        }
-
-        if (rc.getID() == 13775) {
-
-            Util.log(nearbyMapInfos[highPriorityRuinIndex].getMapLocation().toString());
         }
 
         if (highPriorityRuinIndex != -1) {
@@ -282,15 +276,27 @@ public class Soldier extends Bunny {
             int[] ordering = Masks2.orderFillingRuin[13*dx + dy + 84];
 
             for (int attackIndex : ordering) {
+                if (nearbyMapInfos[attackIndex].hasRuin()) {
+                    continue;
+                }
 
                 PaintType currentPaint = nearbyMapInfos[attackIndex].getPaint();
                 if (currentPaint == PaintType.EMPTY) {
-                    if (rc.getID() == 13775) {
-                        Util.log(nearbyMapInfos[attackIndex].getMapLocation().toString());
-                    }
+
                     int offsetX = Constants.dx[attackIndex] - dx;
                     int offsetY = Constants.dy[attackIndex] - dy;
-                    rc.attack(nearbyMapInfos[attackIndex].getMapLocation(), paintPattern[offsetX+2][offsetY+2]);
+                    if (rc.getID() == 13775) {
+                        Util.log("filling in empty");
+                        Util.log("Offset:" + offsetX+" " + offsetY);
+                        Util.log("d:" + dx+" " + dy);
+                        Util.log("sec:" + currentPaint.isSecondary());
+                        Util.log("actual attacking square:" + nearbyMapInfos[attackIndex].getMapLocation());
+                    }
+                    if (offsetX*offsetX + offsetY*offsetY <= 8) {
+                        rc.attack(nearbyMapInfos[attackIndex].getMapLocation(), paintPattern[offsetX+2][offsetY+2]);
+                    } else {
+                        rc.attack(nearbyMapInfos[attackIndex].getMapLocation(), (offsetX+dx+offsetY+dy)%2==0);
+                    }
                     break;
                 } else if (currentPaint.isEnemy()) {
                     continue;
@@ -298,15 +304,11 @@ public class Soldier extends Bunny {
                     int offsetX = Constants.dx[attackIndex] - dx;
                     int offsetY = Constants.dy[attackIndex] - dy;
 
-
-
-
                     if (offsetX*offsetX + offsetY*offsetY <= 8 && paintPattern[offsetX+2][offsetY+2] != currentPaint.isSecondary()) {
                         if (rc.getID() == 13775) {
                             Util.log("Offset:" + offsetX+" " + offsetY);
                             Util.log("d:" + dx+" " + dy);
                             Util.log("sec:" + currentPaint.isSecondary());
-                            Util.log("patt:" + paintPattern[offsetX+2][offsetY+2]);
                         }
                         rc.attack(nearbyMapInfos[attackIndex].getMapLocation(), paintPattern[offsetX+2][offsetY+2]);
                         break;
@@ -316,7 +318,7 @@ public class Soldier extends Bunny {
         }
 
         if (rc.isMovementReady()) {
-            nav.goTo(nearbyMapInfos[index].getMapLocation(), 2);
+            nav.circle(nearbyMapInfos[index].getMapLocation(), 1, 2);
         }
     }
 
@@ -332,8 +334,16 @@ public class Soldier extends Bunny {
                 PaintType currentPaint = nearbyMapInfos[attackIndex].getPaint();
                 int offsetX = Constants.dx[attackIndex] - dx;
                 int offsetY = Constants.dy[attackIndex] - dy;
+
                 if (currentPaint == PaintType.EMPTY) {
-                    rc.attack(nearbyMapInfos[attackIndex].getMapLocation(), paintPattern[offsetX+2][offsetY+2]);
+                    if (offsetX*offsetX + offsetY*offsetY <= 8) {
+                        rc.attack(nearbyMapInfos[attackIndex].getMapLocation(), paintPattern[offsetX+2][offsetY+2]);
+                        if (rc.canCompleteResourcePattern(nearbyMapInfos[index].getMapLocation())) {
+                            rc.completeResourcePattern(nearbyMapInfos[index].getMapLocation());
+                        }
+                    } else {
+                        rc.attack(nearbyMapInfos[attackIndex].getMapLocation(), (offsetX+dx+offsetY+dy)%2==0);
+                    }
                     break;
                 }
             }
