@@ -52,7 +52,7 @@ public class Soldier extends Bunny {
         // - Otherwise Prioritize moving toward ally-marked tiles that are empty
         // (unpainted).
         // - If no such tiles are found, move to your destination
-        if (rc.isMovementReady()) {
+        if (canMove()) {
             moveLogic();
         }
 

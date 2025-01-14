@@ -96,7 +96,6 @@ public class MarkingUtils {
                 } else if (rc.canCompleteTowerPattern(UnitType.LEVEL_ONE_MONEY_TOWER, ruinLoc)) {
                     rc.completeTowerPattern(UnitType.LEVEL_ONE_MONEY_TOWER, ruinLoc);
                 }
-
             }
         }
     }

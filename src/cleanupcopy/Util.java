@@ -1,9 +1,6 @@
 package cleanupcopy;
 
-import battlecode.common.Clock;
-import battlecode.common.GameActionException;
-import battlecode.common.MapLocation;
-import battlecode.common.RobotController;
+import battlecode.common.*;
 
 public class Util {
 

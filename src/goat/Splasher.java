@@ -21,7 +21,7 @@ public class Splasher extends Bunny {
         }
 
         // 2. Movement Logic
-        if (rc.isMovementReady()) {
+        if (canMove()) {
             moveLogic();
         }
 

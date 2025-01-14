@@ -14,11 +14,6 @@ public class Mopper extends Bunny {
         actionableOpponents = rc.senseNearbyRobots(2, rc.getTeam().opponent());
         actionableTiles = rc.senseNearbyMapInfos(2);
 
-        if (!rc.isActionReady() && !rc.isMovementReady()) {
-            sharedEndFunction();
-            return;
-        }
-
         updateDestinationIfNeeded();
 
         if (rc.isActionReady()) {
@@ -29,11 +24,11 @@ public class Mopper extends Bunny {
             }
         }
 
-        if (rc.isMovementReady()) {
+        if (canMove()) {
             moveLogic();
         }
 
-        if (!rc.isMovementReady() && rc.isActionReady()) {
+        if (rc.isActionReady()) {
             if (tryingToReplenish) {
                 tryReplenish();
             } else {
