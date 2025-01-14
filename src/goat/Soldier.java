@@ -73,7 +73,8 @@ public class Soldier extends Bunny {
             }
         }
 
-        MarkingUtils.tryPatternCompletion();
+        MarkingUtils.tryRuinPatternCompletion();
+        MarkingUtils.tryResourcePatternCompletion();
 
         // 6. End of Turn Logic
         // Perform any shared cleanup or post-turn logic

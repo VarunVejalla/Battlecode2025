@@ -82,13 +82,7 @@ public class MarkingUtils {
         }
     }
 
-    /**
-     * Perform the attack, and if we have a ruin to complete, do it.
-     */
-    public static void tryPatternCompletion() throws GameActionException {
-        // TODO: handle resource pattern completion too, not just tower pattern
-        // completion
-
+    public static void tryRuinPatternCompletion() throws GameActionException {
         // Possibly complete tower pattern near a ruin if it exists
         bunny.nearbyMapInfos = rc.senseNearbyMapInfos();
         for (MapInfo tile : bunny.nearbyMapInfos) {
@@ -105,8 +99,6 @@ public class MarkingUtils {
 
             }
         }
-
-        tryResourcePatternCompletion();
     }
 
     public static void tryResourcePatternCompletion() throws GameActionException {
