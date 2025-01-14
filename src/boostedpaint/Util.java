@@ -256,8 +256,98 @@ public class Util {
         }
         else {
             int index = 13*dx + dy + 84;
-            return Constants.gridLookupIndicesSpiral[index];
+            return Masks.gridLookupIndicesSpiral[index];
         }
+    }
+
+    public static int getPotentialResourcePatternCenterIndex(MapInfo[] nearbyMapInfos) throws GameActionException {
+//        for (int possibleCenterIndex = 0; possibleCenterIndex < 29; possibleCenterIndex++) {
+//            int dx_shift = Constants.dx[Constants.spiralOutwardIndices[possibleCenterIndex]];
+//            int dy_shift = Constants.dy[Constants.spiralOutwardIndices[possibleCenterIndex]];
+//            boolean invalid = false;
+//            boolean possiblyFinished = true;
+//            for (int dx = -2; dx <= 2; dx++) {
+//                for (int dy = -2; dy <= 2; dy++) {
+//                    int index = getMapInfoIndex(dx+dx_shift, dy+dy_shift);
+//                    if (index == -1) {
+//                        continue;
+//                    } else {
+//                        if (nearbyMapInfos[index].hasRuin() || nearbyMapInfos[index].isWall()) {
+//                            invalid = true;
+//                            break;
+//                        } else {
+//                            PaintType paint = nearbyMapInfos[index].getPaint();
+//                            if (paint.isEnemy()) {
+//                                invalid = true;
+//                                break;
+//                            } else if (paint == PaintType.EMPTY) {
+//                                possiblyFinished = false;
+//                            } else if (paint.isSecondary() != shouldSecondaryPaintResource(dx, dy)) {
+//                                invalid = true;
+//                                break;
+//                            }
+//                        }
+//                    }
+//                }
+//                if (invalid) {
+//                    break;
+//                }
+//            }
+//
+//            if (!invalid && possiblyFinished) {
+//                return Constants.spiralOutwardIndices[possibleCenterIndex];
+//            }
+//
+//        }
+//        return -1;
+
+
+        int validBitstring = 0xFFFFFFFF;
+        int unfinishedBitstring = 0;
+
+        for(int i = 0; i < 69; i++) {
+
+
+
+            if (nearbyMapInfos[i].hasRuin() || nearbyMapInfos[i].isWall()) {
+                // if it's a ruin, we might actually want a bit bigger radius around it, but whatever
+                validBitstring &= Masks.invalidSquareForResource[i];
+            } else {
+                PaintType paint = nearbyMapInfos[i].getPaint();
+                if (paint.isEnemy()) {
+                    validBitstring &= Masks.invalidSquareForResource[i];
+                } else if (paint == PaintType.EMPTY) {
+                    unfinishedBitstring |= Masks.emptySquareForResource[i];
+                } else if (paint == PaintType.ALLY_PRIMARY) {
+                    validBitstring &= Masks.primaryColorMask[i];
+                } else {
+                    validBitstring &= Masks.secondaryColorMask[i];
+                }
+            }
+        }
+
+
+
+
+        validBitstring &= unfinishedBitstring;
+
+        int v = validBitstring;
+        int counter = 32; // c will be the number of zero bits on the right
+        v &= -v;
+        if (v != 0) counter--;
+        if ((v & 0x0000FFFF) != 0) counter -= 16;
+        if ((v & 0x00FF00FF) != 0) counter -= 8;
+        if ((v & 0x0F0F0F0F) != 0) counter -= 4;
+        if ((v & 0x33333333) != 0) counter -= 2;
+        if ((v & 0x55555555) != 0) counter -= 1;
+
+        if (counter == 32) {
+            return -1;
+        } else {
+            return Masks2.spiralOutwardIndices[counter];
+        }
+
+
     }
 
 
