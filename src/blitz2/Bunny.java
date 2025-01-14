@@ -70,7 +70,6 @@ public abstract class Bunny extends Robot {
         updateNearestAlliedPaintTowerLoc();
     }
 
-
     /**
      * Update the nearest allied tower location to replenish paint from based on
      * surroundings

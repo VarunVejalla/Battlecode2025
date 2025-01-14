@@ -171,7 +171,6 @@ public class Soldier extends Bunny {
         return adjacentAllyTiles;
     }
 
-
     /**
      * Returns a score evaluating how favorable it would be for this robot to move to this sector.
      */
