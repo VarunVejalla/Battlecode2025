@@ -83,10 +83,12 @@ public class MarkingUtils {
     }
 
     public static void tryRuinPatternCompletion() throws GameActionException {
-        // Possibly complete tower pattern near a ruin if it exists
-        bunny.nearbyMapInfos = rc.senseNearbyMapInfos();
+        // TODO: iterate only through the nearby ones
+        if (rc.getChips() < Constants.TOWER_COST) {
+            return;
+        }
         for (MapInfo tile : bunny.nearbyMapInfos) {
-            if (tile.hasRuin()) {
+            if (tile.hasRuin() && bunny.myLoc.distanceSquaredTo(tile.getMapLocation()) <= 2) {
                 // We might want to check if we can complete the tower
                 MapLocation ruinLoc = tile.getMapLocation();
 
@@ -96,14 +98,12 @@ public class MarkingUtils {
                 } else if (rc.canCompleteTowerPattern(UnitType.LEVEL_ONE_MONEY_TOWER, ruinLoc)) {
                     rc.completeTowerPattern(UnitType.LEVEL_ONE_MONEY_TOWER, ruinLoc);
                 }
+                return;
             }
         }
     }
 
     public static void tryResourcePatternCompletion() throws GameActionException {
-        // this assumes that the whole pattern is within vision radius (and so the
-        // possible centers are closer in)
-
         // TODO: optimize this for bytecode
         MapInfo[] possibleCenters = rc.senseNearbyMapInfos(8);
 

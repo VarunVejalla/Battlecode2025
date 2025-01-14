@@ -23,6 +23,54 @@ public class Util {
         return false;
     }
 
+    public static MapInfo[] getFilledInMapInfo(MapInfo[] nearbyMapInfo) {
+        // assuming that we are the center of the nearbyMapInfo, and we are still at the center
+
+        if (nearbyMapInfo.length == 69) {
+            return nearbyMapInfo;
+        }
+
+        MapInfo[] filledInMapInfo = new MapInfo[69];
+        MapLocation location;
+        int deltaX, deltaY, intendedIndex;
+        for (MapInfo mapInfo : nearbyMapInfo) {
+            // get location of nearbyMapInfo[i]
+            // figure out what index of filledInMapInfo it should go in
+            location = mapInfo.getMapLocation();
+            deltaX = location.x - robot.myLoc.x;
+            deltaY = location.y - robot.myLoc.y;
+            // need reverse lookup given Shifts.dx and Shifts.dy
+            intendedIndex = getMapInfoIndex(deltaX, deltaY);
+            filledInMapInfo[intendedIndex] = mapInfo;
+        }
+        for (int i = 0; i < 69; i++) {
+            if ( filledInMapInfo[i] == null ) {
+                filledInMapInfo[i] = new MapInfo(robot.myLoc.translate(Shifts.dx[i], Shifts.dy[i]), false, true, PaintType.EMPTY, PaintType.EMPTY, false);
+            }
+        }
+        return filledInMapInfo;
+    }
+
+    public static int getMapInfoIndex(int deltaX, int deltaY) {
+        if (deltaX*deltaX + deltaY*deltaY > 20) {
+            return -1;
+        }
+        if (deltaX < 3) {
+            if (deltaX > -3) {
+                return deltaY+9*deltaX+34;
+            } else if (deltaX == -3) {
+                return deltaY+8;
+            } else {
+                return deltaY+2;
+            }
+        } else if (deltaX == 3) {
+            return deltaY+60;
+        } else if (deltaX == 4) {
+            return deltaY+66;
+        }
+        return -1;
+    }
+
     public static void addToIndicatorString(String str) {
         robot.indicatorString += str + ";";
     }
