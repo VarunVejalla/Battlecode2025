@@ -172,7 +172,7 @@ public abstract class Bunny extends Robot {
     public MapInfo findUnmarkedRuin() throws GameActionException {
         // MapInfo[] nearbyTiles = rc.senseNearbyMapInfos();
         for (MapInfo tile : nearbyMapInfos) {
-            if (tile.hasRuin()) {
+            if (rc.canSenseLocation(tile.getMapLocation()) && tile.hasRuin()) {
                 RobotInfo robotAtRuin = rc.senseRobotAtLocation(tile.getMapLocation());
                 // We want a ruin either unoccupied or not controlled by our team
                 if (robotAtRuin == null || robotAtRuin.team != rc.getTeam()) {
