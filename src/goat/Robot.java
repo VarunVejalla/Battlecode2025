@@ -15,7 +15,6 @@ enum SymmetryType {
 public class Robot {
     RobotController rc;
     Navigation nav;
-    Constants constants = new Constants();
     MapLocation myLoc; // current loc of robot
     MapInfo myLocInfo;
     int mapWidth, mapHeight;
@@ -37,12 +36,6 @@ public class Robot {
             Direction.WEST,
             Direction.NORTHWEST,
     };
-
-    MapLocation sharedOffensiveTarget;
-    RobotInfo[] nearbyFriendlies; // friendly bots within vision radius of bot
-
-    RobotInfo[] nearbyVisionEnemies; // enemy bots within vision radius of bot
-    MapLocation[] spawnCenters;
 
     public Robot(RobotController rc) throws GameActionException {
         this.rc = rc;
@@ -67,21 +60,7 @@ public class Robot {
         // this function is available to all robots, if they'd like to run it at the end
         // of their turn
         myLoc = rc.getLocation();
-        scanSurroundings();
         rc.setIndicatorString(indicatorString);
-    }
-
-    public void scanSurroundings() throws GameActionException {
-        // this method scans the surroundings of the bot and updates comms if needed
-
-        // TODO: maybe it would be more efficient to call rc.senseNearbyRobots once and
-        // generate the arrays ourselves?
-        nearbyFriendlies = rc.senseNearbyRobots(GameConstants.VISION_RADIUS_SQUARED, myTeam);
-        // nearbyActionFriendlies =
-        // rc.senseNearbyRobots(GameConstants.ATTACK_RADIUS_SQUARED, myTeam);
-        nearbyVisionEnemies = rc.senseNearbyRobots(GameConstants.VISION_RADIUS_SQUARED, oppTeam);
-        // nearbyActionEnemies =
-        // rc.senseNearbyRobots(GameConstants.ATTACK_RADIUS_SQUARED, oppTeam);
     }
 
     public static void updateEnemyRobots(RobotController rc) throws GameActionException {
