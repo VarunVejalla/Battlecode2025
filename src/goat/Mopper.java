@@ -94,12 +94,6 @@ public class Mopper extends Bunny {
         } else {
             // Move in the direction
             nav.goTo(destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
-
-//            MapLocation enemyCOM = findEnemyPaintCOM();
-//            if (enemyCOM == null) {
-//                Util.log("Moving to a destination");
-//                nav.goTo(destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
-
         }
     }
 

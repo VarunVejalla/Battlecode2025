@@ -11,13 +11,13 @@ public abstract class Bunny extends Robot {
     RobotInfo[] nearbyFriendlies;
     RobotInfo[] nearbyOpponents;
     boolean tryingToReplenish = false;
-
     BunnyComms comms = new BunnyComms(rc, this);
-
 
     public Bunny(RobotController rc) throws GameActionException {
         super(rc);
         destination = Util.getRandomMapLocation();
+        MarkingUtils.bunny = this;
+        MarkingUtils.rc = rc;
     }
 
     public void run() throws GameActionException {

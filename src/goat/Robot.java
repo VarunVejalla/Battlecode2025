@@ -4,14 +4,6 @@ import battlecode.common.*;
 
 import java.util.Random;
 
-enum SymmetryType {
-    HORIZONTAL,
-    VERTICAL,
-    ROTATIONAL,
-    DIAGONAL_RIGHT,
-    DIAGONAL_LEFT
-}
-
 public class Robot {
     RobotController rc;
     Navigation nav;
