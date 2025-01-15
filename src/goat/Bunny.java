@@ -39,7 +39,6 @@ public abstract class Bunny extends Robot {
 
     public Bunny(RobotController rc) throws GameActionException {
         super(rc);
-        Util.logBytecode("Bunny constructor");
         MarkingUtils.bunny = this;
         MarkingUtils.rc = rc;
         destination = Util.getRandomMapLocation();
@@ -55,9 +54,7 @@ public abstract class Bunny extends Robot {
     public void run() throws GameActionException {
         super.run();
         // Comms is run inside of scan surroundings (and nearest allied paint tower, which is called in surroundings)!
-        Util.logBytecode("Before scanning surroundings");
         scanSurroundings();
-        Util.logBytecode("Scanned surroundings");
 
         // If waiting for a map, stay in place. Otherwise, move!
         if(comms.waitingForMap){ // don't move if we're waiting to receive a map from a tower
@@ -102,17 +99,13 @@ public abstract class Bunny extends Robot {
      * turn)
      */
     public void scanSurroundings() throws GameActionException {
-        Util.logBytecode("Before filling in map info");
         nearbyMapInfos = Util.getFilledInMapInfo(rc.senseNearbyMapInfos());
-        Util.logBytecode("After filling in map info");
         nearbyFriendlies = rc.senseNearbyRobots(-1, rc.getTeam());
         nearbyOpponents = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
 
         // COMMS IS HERE
         // Find sector that is fully enclosed and update bunny world.
-        Util.logBytecode("Before updating comms");
         comms.updateSectorInVision(rc.getLocation());
-        Util.logBytecode("After updating comms");
 
         // If you requested a map, wait for the tower to send it.
         if(comms.waitingForMap) {
@@ -121,12 +114,9 @@ public abstract class Bunny extends Robot {
             comms.processMap2();
         }
 
-        Util.logBytecode("After processing maps");
-
         // Updates both nearest allied paint tower and nearest allied tower.
         updateKnownTowers();
         setNearestAlliedTowers();
-        Util.logBytecode("After updating tower info");
     }
 
     public void updateKnownTowers() throws GameActionException {

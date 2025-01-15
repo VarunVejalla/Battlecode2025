@@ -10,10 +10,8 @@ public class Soldier extends Bunny {
 
     public Soldier(RobotController rc) throws GameActionException {
         super(rc);
-        Util.logBytecode("Soldier constructor");
         PatternUtils.soldier = this;
         PatternUtils.rc = rc;
-        Util.logBytecode("After soldier constructor");
     }
 
     public void run() throws GameActionException {
@@ -28,14 +26,15 @@ public class Soldier extends Bunny {
                 nav.goTo(nearestAlliedPaintTowerLoc, GameConstants.PAINT_TRANSFER_RADIUS_SQUARED);
             }
         }
-
-        else if(isAttacking()){
-            // 2. TODO: Attacking logic.
-            runAttackLogic();
-        }
         else {
-            // 3. If not attacking, run pattern painting logic.
-            buildPattern();
+            RobotInfo attackInfo = getAttackTarget();
+            if(attackInfo != null) {
+                runAttackLogic(attackInfo);
+            }
+            else {
+                // 3. If not attacking, run pattern painting logic.
+                buildPattern();
+            }
         }
 
         MarkingUtils.tryRuinPatternCompletion();
@@ -50,14 +49,52 @@ public class Soldier extends Bunny {
         sharedEndFunction();
     }
 
-    // TODO implement this
-    public boolean isAttacking() throws GameActionException {
-        return false;
+    public RobotInfo getAttackTarget() throws GameActionException {
+        // Get location of tower to attack.
+        RobotInfo attackInfo = null;
+        int minDist = Integer.MAX_VALUE;
+        for(RobotInfo info : nearbyOpponents){
+            if(!Util.isTower(info.getType())){
+                continue;
+            }
+            int dist = rc.getLocation().distanceSquaredTo(info.getLocation());
+            if(dist < minDist){
+                minDist = dist;
+                attackInfo = info;
+            }
+        }
+
+        return attackInfo;
     }
 
-    // TODO implement this
-    public void runAttackLogic() throws GameActionException {
-        return;
+    public void runAttackLogic(RobotInfo attackInfo) throws GameActionException {
+        MapLocation attackTarget = attackInfo.getLocation();
+        Util.log("Running attack strat on target at " + attackTarget);
+
+        // Once we have a target, run the strat.
+        Direction backoutDir = rc.getLocation().directionTo(attackTarget).opposite();
+        MapLocation backoutLoc = rc.getLocation().add(backoutDir).add(backoutDir).add(backoutDir);
+        int distToTarget = rc.getLocation().distanceSquaredTo(attackTarget);
+
+        // 1. If you can attack him, attack him, then back out.
+        if(rc.isActionReady() && rc.canAttack(attackTarget)){
+            Util.log("Running attack and back out");
+            rc.attack(attackTarget);
+            nav.goToFuzzy(backoutLoc, 0);
+        }
+        // 2. If your action is ready but you're too far away, move towards and then attack.
+        else if(rc.isActionReady()){
+            Util.log("Running push");
+            nav.goToFuzzy(attackTarget, 0);
+            if(rc.canAttack(attackTarget)){
+                rc.attack(attackTarget);
+            }
+        }
+        // 3. If your action is not ready but you're within attack radius, back out.
+        else if(!rc.isActionReady() && distToTarget <= attackInfo.getType().actionRadiusSquared){
+            Util.log("Pulling out");
+            nav.goToFuzzy(backoutLoc, 0);
+        }
     }
 
     public void buildPattern() throws GameActionException {
