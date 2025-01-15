@@ -72,7 +72,11 @@ public class Soldier extends Bunny {
         // Look at ruins and assign priority.
         if (rc.getID() == 12332) { Util.logBytecode("before priority scan"); }
         // Spirals outward up to vision radius.
-        for(int index : Constants.spiralOutwardIndices) {
+        if (rc.getID() == 12332) { Util.logBytecode("before constants loading"); }
+        int[] spiral = ExcessConstants.spiralOutwardIndices;
+        if (rc.getID() == 12332) { Util.logBytecode("after constants loading"); }
+
+        for(int index : spiral) {
             if (!nearbyMapInfos[index].hasRuin() || rc.canSenseRobotAtLocation(nearbyMapInfos[index].getMapLocation())) {
                 continue;
             }

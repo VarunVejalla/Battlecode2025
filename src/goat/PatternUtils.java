@@ -15,7 +15,7 @@ public class PatternUtils {
         boolean isPaintReady = rc.isActionReady() && rc.getPaint() >= UnitType.SOLDIER.attackCost;
         if (isPaintReady) {
             for (int i = 0; i < 29; i++) {
-                int index = Constants.spiralOutwardIndices[i];
+                int index = ExcessConstants.spiralOutwardIndices[i];
                 if (soldier.nearbyMapInfos[index].hasRuin() || soldier.nearbyMapInfos[index].isWall()) {
                     continue;
                 } else {
@@ -210,7 +210,7 @@ public class PatternUtils {
         if ((validBitstring & 0x0F0F0F0F0F0F0F0FL) != 0) counter -= 4;
         if ((validBitstring & 0x3333333333333333L) != 0) counter -= 2;
         if ((validBitstring & 0x5555555555555555L) != 0) counter -= 1;
-        return Constants.spiralOutwardIndices[counter];
+        return ExcessConstants.spiralOutwardIndices[counter];
     }
 
     public static int[] getIndicesForSquareSpiral(int dx, int dy) {
