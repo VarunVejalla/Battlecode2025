@@ -2,6 +2,8 @@ package goat;
 
 import battlecode.common.*;
 
+import java.util.Arrays;
+
 enum TowerType {
     PaintTower, MoneyTower, DefenseTower;
 
@@ -19,12 +21,12 @@ enum TowerType {
 enum SymmetryType {
     HORIZONTAL,
     VERTICAL,
-    ROTATIONAL,
-    DIAGONAL_RIGHT,
-    DIAGONAL_LEFT
+    ROTATIONAL
 }
 
 public abstract class Bunny extends Robot {
+    final MapLocation noRuinLoc = new MapLocation(-1, -1);
+    MapLocation[] knownRuinsBySector = new MapLocation[144];
     MapLocation[] knownAlliedTowerLocs = new MapLocation[10];
     TowerType[] knownAlliedTowerTypes = new TowerType[10];
     TowerType nearestAlliedTowerType;
@@ -35,20 +37,14 @@ public abstract class Bunny extends Robot {
     RobotInfo[] nearbyOpponents;
     boolean tryingToReplenish = false;
     BunnyComms comms = new BunnyComms(rc, this);
-    SymmetryType[] possibleSymmetries = {SymmetryType.HORIZONTAL, SymmetryType.VERTICAL, SymmetryType.ROTATIONAL, SymmetryType.DIAGONAL_LEFT, SymmetryType.DIAGONAL_RIGHT};
+    boolean symmetryUpdate = false;
+    SymmetryType[] possibleSymmetries = {SymmetryType.HORIZONTAL, SymmetryType.VERTICAL, SymmetryType.ROTATIONAL};
 
     public Bunny(RobotController rc) throws GameActionException {
         super(rc);
         MarkingUtils.bunny = this;
         MarkingUtils.rc = rc;
         destination = Util.getRandomMapLocation();
-        if(this.mapHeight != this.mapWidth){
-            for(int i = 0; i < possibleSymmetries.length; i++){
-                if(possibleSymmetries[i] == SymmetryType.DIAGONAL_LEFT || possibleSymmetries[i] == SymmetryType.DIAGONAL_RIGHT){
-                    possibleSymmetries[i] = null;
-                }
-            }
-        }
     }
 
     public void run() throws GameActionException {
@@ -117,6 +113,65 @@ public abstract class Bunny extends Robot {
         // Updates both nearest allied paint tower and nearest allied tower.
         updateKnownTowers();
         setNearestAlliedTowers();
+        updateKnownRuinsAndSymmetries();
+    }
+
+    public void updateKnownRuinsAndSymmetries() throws GameActionException {
+        for(MapInfo info : nearbyMapInfos){
+            if(info == null || !info.hasRuin()){
+                continue;
+            }
+            MapLocation infoLoc = info.getMapLocation();
+            // There can only be one ruin per sector index.
+            int sectorIdx = comms.getSectorIndex(infoLoc);
+            if(knownRuinsBySector[sectorIdx] == null){
+                knownRuinsBySector[sectorIdx] = infoLoc;
+            }
+
+            if(possibleSymmetries.length > 1) {
+                for (int i = 0; i < possibleSymmetries.length; i++) {
+                    SymmetryType symmetry = possibleSymmetries[i];
+                    if (symmetry == null) {
+                        continue;
+                    }
+                    MapLocation symmetryLoc = Util.applySymmetry(infoLoc, symmetry);
+                    int symmetrySectorIdx = comms.getSectorIndex(symmetryLoc);
+                    if(knownRuinsBySector[symmetrySectorIdx] == null){
+                        continue;
+                    }
+
+                    // If there's no ruin in the symmetry sector (in which case its -1, -1), or there's no smth, the symmetry is invalid.
+                    if(!knownRuinsBySector[symmetrySectorIdx].equals(symmetryLoc)){
+                        possibleSymmetries[i] = null;
+                    }
+                }
+            }
+        }
+
+        // If there's no ruin at all in the sector, set it to (-1, -1). Check if this can also eliminate any symmetries.
+        int fullyEnclosedSectorID = comms.getFullyEnclosedSectorID(rc.getLocation());
+        if(fullyEnclosedSectorID != -1 && knownRuinsBySector[fullyEnclosedSectorID] == null){
+            knownRuinsBySector[fullyEnclosedSectorID] = noRuinLoc;
+
+            if(possibleSymmetries.length > 1) {
+                for (int i = 0; i < possibleSymmetries.length; i++) {
+                    SymmetryType symmetry = possibleSymmetries[i];
+                    if (symmetry == null) {
+                        continue;
+                    }
+                    MapLocation symmetryLoc = Util.applySymmetry(rc.getLocation(), symmetry);
+                    int symmetrySectorIdx = comms.getSectorIndex(symmetryLoc);
+                    if(knownRuinsBySector[symmetrySectorIdx] == null){
+                        continue;
+                    }
+
+                    // If there's a ruin in the symmetry sector, the symmetry is invalid.
+                    if(!knownRuinsBySector[symmetrySectorIdx].equals(noRuinLoc)){
+                        possibleSymmetries[i] = null;
+                    }
+                }
+            }
+        }
     }
 
     public void updateKnownTowers() throws GameActionException {

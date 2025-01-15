@@ -3,7 +3,6 @@ package goat;
 import battlecode.common.*;
 
 public class Util {
-
     static RobotController rc;
     static Robot robot;
 
@@ -255,7 +254,7 @@ public class Util {
     }
 
     public static void log(String str) {
-        if(Constants.MUTE || rc.getID() != 12836){
+        if(Constants.MUTE || rc.getID() != 11115){
             return;
         }
         System.out.println(str);
@@ -276,6 +275,20 @@ public class Util {
                 dir.rotateRight().rotateRight().rotateRight(),
                 dir.opposite()
         };
+    }
+
+    public static MapLocation applySymmetry(MapLocation loc, SymmetryType type) {
+        int width = rc.getMapWidth();
+        int height = rc.getMapHeight();
+        switch (type) {
+            case HORIZONTAL:
+                return new MapLocation(width - loc.x - 1, loc.y);
+            case VERTICAL:
+                return new MapLocation(loc.x, height - loc.y - 1);
+            case ROTATIONAL:
+                return new MapLocation(width - loc.x - 1, height - loc.y - 1);
+        }
+        return null;
     }
 
     public static String getSectorDescription(int sectorValue) {
