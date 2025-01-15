@@ -46,7 +46,7 @@ public class Comms {
      * 10: 5-12 tiles
      * 11: 13+ tiles
      */
-    private int convertTileCounts(int tileCounts) {
+    public int convertTileCounts(int tileCounts) {
         if (tileCounts < 2) return 0;
         if (tileCounts < 5) return 1;
         if (tileCounts <= 12) return 2;
@@ -161,61 +161,6 @@ public class Comms {
         return -1;
     }
 
-
-    /**
-     * Scans a sector and returns the scan result containing tower type, enemy paint count, and empty paint count.
-     */
-    public ScanResult scanSector(int sectorIndex) throws GameActionException {
-        int towerType = 0; // Default value
-        int enemyPaintCount = 0;
-        int emptyPaintCount = 0;
-
-        MapLocation sectorCenter = getSectorCenter(sectorIndex);
-        // Determine the bottom-left corner of the sector
-        int startX = sectorCenter.x - 2;
-        int startY = sectorCenter.y - 2;
-
-        for (int dx = 0; dx < 5; dx++) {
-            for (int dy = 0; dy < 5; dy++) {
-                int x = startX + dx;
-                int y = startY + dy;
-
-                MapLocation scanLoc = new MapLocation(x, y);
-                if (!rc.onTheMap(scanLoc) || !rc.canSenseLocation(scanLoc)) {
-                    continue; // Skip out-of-bounds locations
-                }
-
-                MapInfo mapInfo = rc.senseMapInfo(scanLoc);
-
-
-                if (towerType == 0) { // only Check for tower if we have not already found one
-
-                    if (mapInfo.hasRuin()) {
-                        towerType = 1; //set tower type to one if it has a ruin
-                    }
-                    if (rc.canSenseRobotAtLocation(scanLoc)) {
-                        RobotInfo robot = rc.senseRobotAtLocation(scanLoc);
-                        if (Util.isTower(robot.type)) {
-                            // Determine tower type based on additional properties
-                            towerType = determineTowerType(robot);
-                        }
-                    }
-                }
-
-                if (mapInfo.getPaint() == PaintType.ENEMY_PRIMARY || mapInfo.getPaint() == PaintType.ENEMY_SECONDARY) {
-                    enemyPaintCount++;
-                } else if (mapInfo.getPaint() == PaintType.EMPTY) {
-                    emptyPaintCount++;
-                }
-            }
-        }
-
-        return new ScanResult(towerType,
-                convertTileCounts(enemyPaintCount),
-                convertTileCounts(emptyPaintCount));
-    }
-
-
     /**
      * Determines the tower type mapping
      * 0	none
@@ -230,7 +175,7 @@ public class Comms {
      * 6	e - money
      * 7	e - defense
      */
-    private int determineTowerType(RobotInfo robot) {
+    public int determineTowerType(RobotInfo robot) {
         if (robot.getTeam() == rc.getTeam()) {
             switch (robot.type) {
                 case LEVEL_ONE_PAINT_TOWER:

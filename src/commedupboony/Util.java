@@ -245,11 +245,6 @@ public class Util {
             intendedIndex = getMapInfoIndex(deltaX, deltaY);
             filledInMapInfo[intendedIndex] = mapInfo;
         }
-        for (int i = 0; i < 69; i++) {
-            if ( filledInMapInfo[i] == null ) {
-                filledInMapInfo[i] = new MapInfo(robot.myLoc.translate(Constants.dx[i], Constants.dy[i]), false, true, PaintType.EMPTY, PaintType.EMPTY, false);
-            }
-        }
         return filledInMapInfo;
     }
 

@@ -198,6 +198,16 @@ public class PatternUtils {
         }
     }
 
+    public static UnitType getPatternUnitType() {
+        if(soldier.nearestAlliedTowerType == TowerType.PaintTower) {
+            return UnitType.LEVEL_ONE_MONEY_TOWER;
+        }
+        else {
+            return UnitType.LEVEL_ONE_PAINT_TOWER;
+        }
+    }
+
+    // TODO: Script to unroll created, but varun's gonna change some code so wait until that's done.
     public static int getPotentialResourcePatternCenterIndex(MapInfo[] nearbyMapInfos) throws GameActionException {
         long validBitstring = -1;
         long unfinishedBitstring = 0;
@@ -208,14 +218,20 @@ public class PatternUtils {
                 validBitstring &= invalidSquareForResource[i];
             } else {
                 PaintType paint = nearbyMapInfos[i].getPaint();
-                if (paint.isEnemy()) {
-                    validBitstring &= invalidSquareForResource[i];
-                } else if (paint == PaintType.EMPTY) {
-                    unfinishedBitstring |= emptySquareForResource[i];
-                } else if (paint == PaintType.ALLY_PRIMARY) {
-                    validBitstring &= primaryColorMask[i];
-                } else {
-                    validBitstring &= secondaryColorMask[i];
+                switch(paint) {
+                    case PaintType.ENEMY_PRIMARY:
+                    case PaintType.ENEMY_SECONDARY:
+                        validBitstring &= invalidSquareForResource[i];
+                        break;
+                    case PaintType.EMPTY:
+                        unfinishedBitstring |= emptySquareForResource[i];
+                        break;
+                    case PaintType.ALLY_PRIMARY:
+                        validBitstring &= primaryColorMask[i];
+                        break;
+                    default:
+                        validBitstring &= secondaryColorMask[i];
+                        break;
                 }
             }
         }
@@ -234,17 +250,7 @@ public class PatternUtils {
         if ((validBitstring & 0x0F0F0F0F0F0F0F0FL) != 0) counter -= 4;
         if ((validBitstring & 0x3333333333333333L) != 0) counter -= 2;
         if ((validBitstring & 0x5555555555555555L) != 0) counter -= 1;
-//        return ExcessConstants.spiralOutwardIndices[counter];
         return soldier.spiralOutwardIndices[counter];
-    }
-
-    public static UnitType getPatternUnitType() {
-        if(soldier.nearestAlliedTowerType == TowerType.PaintTower) {
-            return UnitType.LEVEL_ONE_MONEY_TOWER;
-        }
-        else {
-            return UnitType.LEVEL_ONE_PAINT_TOWER;
-        }
     }
 
 }

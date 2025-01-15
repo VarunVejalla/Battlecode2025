@@ -192,7 +192,7 @@ public class Util {
     }
 
     public static void log(String str) {
-        if(Constants.MUTE || rc.getID() != 13775){
+        if(Constants.MUTE || rc.getID() != 13414){
             return;
         }
         System.out.println(str);

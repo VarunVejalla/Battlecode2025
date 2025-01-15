@@ -25,9 +25,11 @@ public class BunnyComms extends Comms {
     boolean waitingForMap2= false; // used for larger maps.
 
     public int mapRequestRound = -1;
+    Bunny bunny;
 
-    public BunnyComms(RobotController rc, Robot robot) {
+    public BunnyComms(RobotController rc, Bunny bunny) {
         super(rc);
+        this.bunny = bunny;
     }
 
     public void updateBunnyBuffer(int roundNum, int sectorID, int msg) throws GameActionException {
@@ -192,8 +194,9 @@ public class BunnyComms extends Comms {
     /**
      * Given a bunny's current location, updates the bunny's  world accordingly using visible sector.
      */
-    public void updateSectorInVision(MapLocation currectLocation) throws GameActionException {
+    public void  updateSectorInVision(MapLocation currectLocation) throws GameActionException {
         int sectorIndex = getFullyEnclosedSectorID(currectLocation);
+        Util.logBytecode("After getting sectorIndex");
 
         // Checking bunny world
         // Util.log("Bunny looking for a sector to update its world with");
@@ -201,9 +204,11 @@ public class BunnyComms extends Comms {
         if(sectorIndex != -1) {
             // This has been tested! Scan result works!
             ScanResult sr = scanSector(sectorIndex);
+            Util.logBytecode("After scanning sector");
 //            // Util.log(sr.toString());
 
             int encodedSector = encodeSector(sr);
+            Util.logBytecode("After encoding sector");
             // Util.log("Sector found.");
             // Util.log("Sector Index: " + sectorIndex);
             // Util.log("Sector Center: " + getSectorCenter(sectorIndex));
@@ -211,6 +216,7 @@ public class BunnyComms extends Comms {
             // If this encoding is different from the known encoding, add the message to the buffer.
             if(encodedSector != myWorld[sectorIndex]) {
                 updateBunnyBuffer(rc.getRoundNum(), sectorIndex, encodedSector);
+                Util.logBytecode("Updated BunnyBuffer");
 
                 // update comms.myWorld with this new information
                 myWorld[sectorIndex] = encodedSector;
@@ -225,5 +231,51 @@ public class BunnyComms extends Comms {
 
         // Check the bunny buffer
         // Util.logArray("bunnyBuffer", messageBuffer);
+    }
+
+    /**
+     * Scans a sector and returns the scan result containing tower type, enemy paint count, and empty paint count.
+     */
+    public ScanResult scanSector(int sectorIndex) throws GameActionException {
+        int towerType = 0; // Default value
+        int enemyPaintCount = 0;
+        int emptyPaintCount = 0;
+
+        MapLocation myLoc = rc.getLocation();
+        MapLocation sectorCenter = getSectorCenter(sectorIndex);
+
+        // Start from the bottom-left corner of the sector
+        for (int x = sectorCenter.x - 2; x < sectorCenter.x + 3; x++) {
+            for (int y = sectorCenter.y - 2; y < sectorCenter.y + 3; y++) {
+                MapLocation scanLoc = new MapLocation(x, y);
+                if (!rc.canSenseLocation(scanLoc)) {
+                    continue; // Skip out-of-bounds locations
+                }
+                MapInfo mapInfo = bunny.nearbyMapInfos[Util.getMapInfoIndex(x - myLoc.x, y - myLoc.y)];
+
+                if (towerType == 0) { // only Check for tower if we have not already found one
+                    if (mapInfo.hasRuin()) {
+                        towerType = 1; //set tower type to one if it has a ruin
+                    }
+                    if (rc.canSenseRobotAtLocation(scanLoc)) {
+                        RobotInfo robot = rc.senseRobotAtLocation(scanLoc);
+                        if (Util.isTower(robot.type)) {
+                            // Determine tower type based on additional properties
+                            towerType = determineTowerType(robot);
+                        }
+                    }
+                }
+
+                if (mapInfo.getPaint() == PaintType.ENEMY_PRIMARY || mapInfo.getPaint() == PaintType.ENEMY_SECONDARY) {
+                    enemyPaintCount++;
+                } else if (mapInfo.getPaint() == PaintType.EMPTY) {
+                    emptyPaintCount++;
+                }
+            }
+        }
+
+        return new ScanResult(towerType,
+                convertTileCounts(enemyPaintCount),
+                convertTileCounts(emptyPaintCount));
     }
 }

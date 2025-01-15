@@ -10,8 +10,10 @@ public class Soldier extends Bunny {
 
     public Soldier(RobotController rc) throws GameActionException {
         super(rc);
+        Util.logBytecode("Soldier constructor");
         PatternUtils.soldier = this;
         PatternUtils.rc = rc;
+        Util.logBytecode("After soldier constructor");
     }
 
     public void run() throws GameActionException {
@@ -66,9 +68,8 @@ public class Soldier extends Bunny {
         boolean[][] pattern = rc.getTowerPattern(intendedType);
 
         // Spirals outward up to vision radius.
-        int[] spiral = spiralOutwardIndices;
-
-        for(int index : spiral) {
+        // 1500 bytecode.
+        for(int index : spiralOutwardIndices) {
             if (nearbyMapInfos[index] == null || !nearbyMapInfos[index].hasRuin() || rc.canSenseRobotAtLocation(nearbyMapInfos[index].getMapLocation())) {
                 continue;
             }
@@ -89,9 +90,11 @@ public class Soldier extends Bunny {
             return;
         }
 
+        // 2650 bytecode.
         int resourceCenterIndex = PatternUtils.getPotentialResourcePatternCenterIndex(nearbyMapInfos);
 
         if (resourceCenterIndex != -1) {
+            // 300 bytecode.
             pattern = rc.getResourcePattern();
             PatternUtils.workOnResourcePattern(shift_dx[resourceCenterIndex], shift_dy[resourceCenterIndex], pattern);
 
