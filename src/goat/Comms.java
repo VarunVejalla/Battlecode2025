@@ -141,7 +141,6 @@ public class Comms {
             }
         }
 
-//        Util.logArray("Neighboring sectors ", neighbors);
         return neighbors;
     }
 
@@ -267,12 +266,8 @@ public class Comms {
     }
 
     public void describeWorld() {
-        Util.log("\n -------------------------------- \n");
-        Util.log("My World: \n");
         for (int sectorIndex = 0; sectorIndex < sectorCount; sectorIndex++) {
             if (myWorld[sectorIndex] == 0) continue;
-            Util.log("Sector Center: " + getSectorCenter(sectorIndex));
-            Util.log(Util.getSectorDescription(myWorld[sectorIndex]) + "\n\n");
         }
     }
 }

@@ -17,7 +17,13 @@ public class RobotPlayer {
      **/
     @SuppressWarnings("unused")
     public static void run(RobotController rc) throws Exception {
-        if (rc.getID() == 12332) { Util.logBytecode("rob start"); }
+        if (rc.getRoundNum() > 50) {
+            rc.resign();
+        }
+
+        if (rc.getID() == 11435) { Util.logBytecode("rob start"); }
+
+        int spawnedRound = rc.getRoundNum();
 
         Robot robot = switch (rc.getType()) {
             case SOLDIER -> new Soldier(rc);
@@ -30,16 +36,15 @@ public class RobotPlayer {
             default -> new Tower(rc);
         };
 
-        if (rc.getID() == 12332) { Util.logBytecode("rob end"); }
+        if (rc.getID() == 11435) { Util.logBytecode("rob end"); }
 
         while (true) {
             int currentTurn = rc.getRoundNum();
 
             try {
                 robot.run();
-                if (rc.getRoundNum() != currentTurn) {
+                if (rc.getRoundNum() != currentTurn && currentTurn > spawnedRound+10) {
                     System.out.println("BYTECODE EXCEEDED");
-//                    rc.resign();
                 }
 
                 // End early for debugging.

@@ -54,17 +54,17 @@ public abstract class Bunny extends Robot {
 
     public void run() throws GameActionException {
         super.run();
-        if (rc.getRoundNum() > 10) {
-            rc.resign();
-        }
+//        if (rc.getRoundNum() > 10) {
+//            rc.resign();
+//        }
 
         // Prescan bytecode
-        if (rc.getID() == 12332) {  Util.logBytecode("Prescan"); }
+        if (rc.getID() == 11435) {  Util.logBytecode("Prescan"); }
 
         // Comms is run inside of scan surroundings (and nearest allied paint tower, which is called in surroundings)!
         scanSurroundings();
 
-        if (rc.getID() == 12332) { Util.logBytecode("Post-scan"); }
+        if (rc.getID() == 11435) { Util.logBytecode("Post-scan"); }
 
 
         // If waiting for a map, stay in place. Otherwise, move!
@@ -110,7 +110,10 @@ public abstract class Bunny extends Robot {
      * turn)
      */
     public void scanSurroundings() throws GameActionException {
+
+        if (rc.getID() == 11435) {  Util.logBytecode("starting fill in"); }
         nearbyMapInfos = Util.getFilledInMapInfo(rc.senseNearbyMapInfos());
+        if (rc.getID() == 11435) {  Util.logBytecode("finishing fill in"); }
         nearbyFriendlies = rc.senseNearbyRobots(-1, rc.getTeam());
         nearbyOpponents = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
 

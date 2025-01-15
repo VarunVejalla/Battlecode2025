@@ -6,28 +6,26 @@ public class Soldier extends Bunny {
 
     public Soldier(RobotController rc) throws GameActionException {
         super(rc);
-        if (rc.getID() == 12332) { Util.logBytecode("in middle of soldier constructor"); }
+        if (rc.getID() == 11435) { Util.logBytecode("in middle of soldier constructor"); }
 
         PatternUtils.soldier = this;
         PatternUtils.rc = rc;
-        if (rc.getID() == 12332) { Util.logBytecode("at end of soldier constructor"); }
+        if (rc.getID() == 11435) { Util.logBytecode("at end of soldier constructor"); }
     }
 
     public void run() throws GameActionException {
         super.run(); // Call the shared logic for all bunnies
 
         updateDestinationIfNeeded();
-        if (rc.getID() == 12332) { Util.logBytecode("Updated destination"); }
+        if (rc.getID() == 11435) { Util.logBytecode("Updated destination"); }
 
 
         // 1. If trying to replenish, go do that.
         // TODO: If nearestAlliedPaintTowerLoc == null, should we explore or smth?
         if(tryingToReplenish && nearestAlliedPaintTowerLoc != null){
-            Util.log("Trying to replenish paint");
             tryReplenish();
 
             if (myLoc.distanceSquaredTo(nearestAlliedPaintTowerLoc) > GameConstants.PAINT_TRANSFER_RADIUS_SQUARED) {
-                Util.log("Moving towards nearest paint tower");
                 nav.goTo(nearestAlliedPaintTowerLoc, GameConstants.PAINT_TRANSFER_RADIUS_SQUARED);
             }
         }
@@ -38,9 +36,9 @@ public class Soldier extends Bunny {
         }
         else {
             // 3. If not attacking, run pattern painting logic.
-            if (rc.getID() == 12332) { Util.logBytecode("gonna build pattern"); }
+            if (rc.getID() == 11435) { Util.logBytecode("gonna build pattern"); }
             buildPattern();
-            if (rc.getID() == 12332) { Util.logBytecode("built pattern"); }
+            if (rc.getID() == 11435) { Util.logBytecode("built pattern"); }
 
         }
 
@@ -72,19 +70,19 @@ public class Soldier extends Bunny {
         boolean[][] pattern = rc.getTowerPattern(intendedType);
 
         // Look at ruins and assign priority.
-        if (rc.getID() == 12332) { Util.logBytecode("before priority scan"); }
+        if (rc.getID() == 11435) { Util.logBytecode("before priority scan"); }
         // Spirals outward up to vision radius.
-        if (rc.getID() == 12332) { Util.logBytecode("before constants loading"); }
+        if (rc.getID() == 11435) { Util.logBytecode("before constants loading"); }
         int[] spiral = spiralOutwardIndices;
-        if (rc.getID() == 12332) { Util.logBytecode("after constants loading"); }
+        if (rc.getID() == 11435) { Util.logBytecode("after constants loading"); }
 
         for(int index : spiral) {
             if (!nearbyMapInfos[index].hasRuin() || rc.canSenseRobotAtLocation(nearbyMapInfos[index].getMapLocation())) {
                 continue;
             }
-            if (rc.getID() == 12332) { Util.logBytecode("before finding da priority"); }
+            if (rc.getID() == 11435) { Util.logBytecode("before finding da priority"); }
             PatternPriority priority = PatternUtils.findPriority(index, pattern);
-            if (rc.getID() == 12332) { Util.logBytecode("after finding da priority"); }
+            if (rc.getID() == 11435) { Util.logBytecode("after finding da priority"); }
             if (priority == PatternPriority.HIGH) {
                 highPriorityRuinIndex = index;
                 break;
@@ -92,31 +90,31 @@ public class Soldier extends Bunny {
                 mediumPriorityRuinIndex = index;
             }
         }
-        if (rc.getID() == 12332) { Util.logBytecode("after priority scan"); }
+        if (rc.getID() == 11435) { Util.logBytecode("after priority scan"); }
 
 
 
         if (highPriorityRuinIndex != -1) {
-            if (rc.getID() == 12332) { Util.logBytecode("in hpr"); }
+            if (rc.getID() == 11435) { Util.logBytecode("in hpr"); }
             PatternUtils.workOnRuin(highPriorityRuinIndex, pattern);
 
-            if (rc.getID() == 12332) { Util.logBytecode("worked hpr"); }
+            if (rc.getID() == 11435) { Util.logBytecode("worked hpr"); }
             if (rc.canCompleteTowerPattern(intendedType, nearbyMapInfos[highPriorityRuinIndex].getMapLocation())) {
                 rc.completeTowerPattern(intendedType, nearbyMapInfos[highPriorityRuinIndex].getMapLocation());
             }
-            if (rc.getID() == 12332) { Util.logBytecode("end hpr"); }
+            if (rc.getID() == 11435) { Util.logBytecode("end hpr"); }
             return;
         }
 
         int resourceCenterIndex = PatternUtils.getPotentialResourcePatternCenterIndex(nearbyMapInfos);
 
-        if (rc.getID() == 12332) { Util.logBytecode("after prpc"); }
+        if (rc.getID() == 11435) { Util.logBytecode("after prpc"); }
 
         if (resourceCenterIndex != -1) {
             pattern = rc.getResourcePattern();
             PatternUtils.workOnResourcePattern(shift_dx[resourceCenterIndex], shift_dy[resourceCenterIndex], pattern);
 
-            if (rc.getID() == 12332) { Util.logBytecode("after prpc work"); }
+            if (rc.getID() == 11435) { Util.logBytecode("after prpc work"); }
 
             if (rc.isMovementReady()) {
                 nav.goTo(nearbyMapInfos[resourceCenterIndex].getMapLocation(), 0);
@@ -182,7 +180,6 @@ public class Soldier extends Bunny {
                         // tileScore += 1000;
                         // Attack immediately to save bytecode.
                         rc.attack(tile.getMapLocation(), tile.getMark().isSecondary());
-                        Util.log("Square Attacked: " + tile.getMapLocation().toString());
                         return;
                     }
                 }
@@ -205,7 +202,6 @@ public class Soldier extends Bunny {
         // Paint the best tile that was found.
         if (bestPaintLoc != null && rc.isActionReady()) {
             rc.attack(bestPaintLoc, secondaryPaint);
-            Util.log("Square Attacked: " + bestPaintLoc.toString());
         }
     }
 
@@ -266,7 +262,6 @@ public class Soldier extends Bunny {
                 myLoc.distanceSquaredTo(nearestAlliedPaintTowerLoc) > GameConstants.PAINT_TRANSFER_RADIUS_SQUARED) {
 
             nav.goTo(nearestAlliedPaintTowerLoc, GameConstants.PAINT_TRANSFER_RADIUS_SQUARED);
-            Util.log("Trying to replenish paint");
             return;
         }
 
@@ -304,7 +299,6 @@ public class Soldier extends Bunny {
         }
 
         if (bestDirection != null) {
-            Util.log("Moving in direction: " + bestDirection.toString());
             nav.goTo(bestDirection, 0);
         } else {
 
@@ -312,7 +306,6 @@ public class Soldier extends Bunny {
 //            macroMove();
 
             // Move in a pre-determined global direction.
-            Util.log("Moving to destination " + destination.toString());
             nav.goTo(destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
         }
     }

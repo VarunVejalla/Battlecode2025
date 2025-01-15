@@ -45,7 +45,6 @@ public class Tower extends Robot {
 
         if (rc.canBuildRobot(UnitType.SOLDIER, nextLoc)) {
             rc.buildRobot(UnitType.SOLDIER, nextLoc);
-            System.out.println("BUILT A SOLDIER");
         }
     }
 
@@ -53,16 +52,12 @@ public class Tower extends Robot {
         Direction dir = directions[rng.nextInt(directions.length)];
         MapLocation nextLoc = rc.getLocation().add(dir);
         int robotType = rng.nextInt(2); // no splashers
-
         if (robotType == 0 && rc.canBuildRobot(UnitType.SOLDIER, nextLoc)) {
             rc.buildRobot(UnitType.SOLDIER, nextLoc);
-            System.out.println("BUILT A SOLDIER");
         } else if (robotType == 1 && rc.canBuildRobot(UnitType.MOPPER, nextLoc)) {
             rc.buildRobot(UnitType.MOPPER, nextLoc);
-            System.out.println("BUILT A MOPPER");
         } else if (robotType == 2 && rc.canBuildRobot(UnitType.SPLASHER, nextLoc)) {
             rc.buildRobot(UnitType.SPLASHER, nextLoc);
-            System.out.println("BUILT A SPLASHER");
         }
     }
 
