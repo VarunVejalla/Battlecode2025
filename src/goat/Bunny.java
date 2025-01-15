@@ -54,12 +54,22 @@ public abstract class Bunny extends Robot {
 
     public void run() throws GameActionException {
         super.run();
+        if (rc.getRoundNum() > 10) {
+            rc.resign();
+        }
+
+        // Prescan bytecode
+        if (rc.getID() == 12332) {  Util.logBytecode("Prescan"); }
+
         // Comms is run inside of scan surroundings (and nearest allied paint tower, which is called in surroundings)!
         scanSurroundings();
 
+        if (rc.getID() == 12332) { Util.logBytecode("Post-scan"); }
+
+
         // If waiting for a map, stay in place. Otherwise, move!
         if(comms.waitingForMap){ // don't move if we're waiting to receive a map from a tower
-            Util.log("Bunny @ " + rc.getLocation() + ". Pausing movement because I'm waiting for a map!");
+            // Util.log("Bunny @ " + rc.getLocation() + ". Pausing movement because I'm waiting for a map!");
         }
     }
 
@@ -148,7 +158,7 @@ public abstract class Bunny extends Robot {
             // TODO This is wasteful. We request a map multiple times even if ours is currently being serviced.
             // Always sendMessages if you're in range of a tower. The sendMessages method assesses what message to send.
 
-            Util.log("Bunny " + rc.getID() + " at " + rc.getLocation() + " found a tower nearby " + bot.getLocation());
+            // Util.log("Bunny " + rc.getID() + " at " + rc.getLocation() + " found a tower nearby " + bot.getLocation());
             comms.sendMessages(bot);
 
             boolean alreadyIn = false;
@@ -216,7 +226,7 @@ public abstract class Bunny extends Robot {
             }
 
             if (checkIfImDoneReplenishing()) {
-                Util.log("DONE REPLENISHING");
+                // Util.log("DONE REPLENISHING");
                 tryingToReplenish = false;
             }
         }

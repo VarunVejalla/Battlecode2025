@@ -24,7 +24,7 @@ public class TowerComms extends Comms {
         Message[] messages = rc.readMessages(rc.getRoundNum()-1); // Read all messages from last round.
 
         if(messages.length > 0) {
-            Util.log("Tower " + rc.getID() + " received " + messages.length + " sector messages");
+            // Util.log("Tower " + rc.getID() + " received " + messages.length + " sector messages");
         }
 
         boolean hasSentMap = false;
@@ -32,14 +32,14 @@ public class TowerComms extends Comms {
         for (Message message : messages) {
 
             if (message.getBytes() == MAP_UPDATE_REQUEST_CODE) {
-                Util.log("Received a map request: " + message);
+                // Util.log("Received a map request: " + message);
                 if(!hasSentMap){
                     sendMap1(message.getSenderID());
                     hasSentMap = true;
                 }
             }
             else if (message.getBytes() == MAP2_UPDATE_REQUEST_CODE) {
-                Util.log("Received a map 2 request: " + message);
+                // Util.log("Received a map 2 request: " + message);
                 if(!hasSentMap) {
                     sendMap2(message.getSenderID());
                     hasSentMap = true;
@@ -53,19 +53,19 @@ public class TowerComms extends Comms {
                 int sectorID = (message.getBytes() & 0xFFFF) >> 8;
                 int msg = message.getBytes() & 0xFF;
 
-                Util.log("Received a sector update from robot: " + message.getSenderID() + "\n");
-                Util.log("Contents: " + roundNum + ", " + sectorID + ", " + msg + "\n");
-                Util.log("Sector Center: " + getSectorCenter(sectorID));
-                Util.log("-------------------------------------");
-                Util.log(Util.getSectorDescription(sectorID));
+                // Util.log("Received a sector update from robot: " + message.getSenderID() + "\n");
+                // Util.log("Contents: " + roundNum + ", " + sectorID + ", " + msg + "\n");
+                // Util.log("Sector Center: " + getSectorCenter(sectorID));
+                // Util.log("-------------------------------------");
+                // Util.log(Util.getSectorDescription(sectorID));
 
                 // If the last time I saw this sector is older, update my world.
                 if (roundLastSeen[sectorID] < roundNum) {
                     myWorld[sectorID] = msg;
                     roundLastSeen[sectorID] = roundNum;
                 }
-                Util.logArray("Tower world", myWorld);
-                Util.logArray("Last Round Seen", roundLastSeen);
+                // Util.logArray("Tower world", myWorld);
+                // Util.logArray("Last Round Seen", roundLastSeen);
             }
 
         }
@@ -76,12 +76,12 @@ public class TowerComms extends Comms {
      */
     public void sendMap(int robotID, int startSector, int endSector) throws GameActionException {
         if (!rc.canSenseRobot(robotID)) {
-            Util.log("Tower couldn't find Robot " + robotID + " who requested a map!!");
+            // Util.log("Tower couldn't find Robot " + robotID + " who requested a map!!");
             return;
         }
 
         if(!rc.canSendMessage(rc.senseRobot(robotID).getLocation())) {
-            Util.log("Tower couldn't send Robot " + robotID + " their message!! (bad connection)");
+            // Util.log("Tower couldn't send Robot " + robotID + " their message!! (bad connection)");
             return;
         }
 
@@ -94,7 +94,7 @@ public class TowerComms extends Comms {
 
             if (shiftIndex == 32) {
                 rc.sendMessage(rc.senseRobot(robotID).getLocation(), message);
-                Util.log("Sent a map message to robot: " + robotID);
+                // Util.log("Sent a map message to robot: " + robotID);
                 shiftIndex = 0;
                 message = 0;
             }
@@ -103,7 +103,7 @@ public class TowerComms extends Comms {
         // Send any remaining message
         if (message != 0) {
             rc.sendMessage(rc.senseRobot(robotID).getLocation(), message);
-            Util.log("Sent a map message to robot: " + robotID);
+            // Util.log("Sent a map message to robot: " + robotID);
         }
     }
 

@@ -39,9 +39,9 @@ public class RobotPlayer {
                 }
 
                 // End early for debugging.
-                if (currentTurn > 150) {
-                 rc.resign();
-                }
+//                if (currentTurn > 150) {
+//                 rc.resign();
+//                }
             } catch (Exception e) {
                 e.printStackTrace();
             } finally {

@@ -25,7 +25,7 @@ public class Tower extends Robot {
         // Read incoming messages
         Message[] messages = rc.readMessages(-1);
         for (Message m : messages) {
-            Util.log("Tower received message: '#" + m.getSenderID() + " " + m.getBytes());
+            // Util.log("Tower received message: '#" + m.getSenderID() + " " + m.getBytes());
         }
         runAttack();
 
@@ -96,12 +96,12 @@ public class Tower extends Robot {
         // see if there's an enemy to attack
         MapLocation target = findBestAttackTarget();
         if (target != null && rc.isActionReady() && rc.canAttack(target)) {
-            Util.log("Tower running attack");
+            // Util.log("Tower running attack");
             rc.attack(target);
         }
         // run AoE attack if needed
         if (rc.isActionReady() && shouldRunAoEAttack()) {
-            Util.log("Tower running AoE attack");
+            // Util.log("Tower running AoE attack");
             rc.attack(null);
         }
     }

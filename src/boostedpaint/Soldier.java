@@ -44,9 +44,9 @@ public class Soldier extends Bunny {
     }
 
     public void run() throws GameActionException {
-        if (rc.getRoundNum() > 150) {
-            rc.resign();
-        }
+//        if (rc.getRoundNum() > 150) {
+//            rc.resign();
+//        }
 
         super.run(); // Call the shared logic for all bunnies
 

@@ -141,7 +141,7 @@ public class Comms {
             }
         }
 
-        Util.logArray("Neighboring sectors ", neighbors);
+//        Util.logArray("Neighboring sectors ", neighbors);
         return neighbors;
     }
 

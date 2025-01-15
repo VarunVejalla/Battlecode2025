@@ -13,8 +13,10 @@ public class Soldier extends Bunny {
 
     public void run() throws GameActionException {
         super.run(); // Call the shared logic for all bunnies
-        scanSurroundings();
+
         updateDestinationIfNeeded();
+        if (rc.getID() == 12332) { Util.logBytecode("Updated destination"); }
+
 
         // 1. If trying to replenish, go do that.
         // TODO: If nearestAlliedPaintTowerLoc == null, should we explore or smth?
@@ -27,13 +29,17 @@ public class Soldier extends Bunny {
                 nav.goTo(nearestAlliedPaintTowerLoc, GameConstants.PAINT_TRANSFER_RADIUS_SQUARED);
             }
         }
+
         else if(isAttacking()){
             // 2. TODO: Attacking logic.
             runAttackLogic();
         }
         else {
             // 3. If not attacking, run pattern painting logic.
+            if (rc.getID() == 12332) { Util.logBytecode("gonna build pattern"); }
             buildPattern();
+            if (rc.getID() == 12332) { Util.logBytecode("built pattern"); }
+
         }
 
         MarkingUtils.tryRuinPatternCompletion();
@@ -42,6 +48,8 @@ public class Soldier extends Bunny {
         // 6. End of Turn Logic
         // Perform any shared cleanup or post-turn logic
         sharedEndFunction();
+
+
     }
 
     // TODO implement this
@@ -61,11 +69,16 @@ public class Soldier extends Bunny {
         UnitType intendedType = PatternUtils.getPatternUnitType();
         boolean[][] pattern = rc.getTowerPattern(intendedType);
 
+        // Look at ruins and assign priority.
+        if (rc.getID() == 12332) { Util.logBytecode("before priority scan"); }
+        // Spirals outward up to vision radius.
         for(int index : Constants.spiralOutwardIndices) {
-            if (!nearbyMapInfos[index].hasRuin() || rc.senseRobotAtLocation(nearbyMapInfos[index].getMapLocation()) != null) {
+            if (!nearbyMapInfos[index].hasRuin() || rc.canSenseRobotAtLocation(nearbyMapInfos[index].getMapLocation())) {
                 continue;
             }
+            if (rc.getID() == 12332) { Util.logBytecode("before finding da priority"); }
             PatternPriority priority = PatternUtils.findPriority(index, pattern);
+            if (rc.getID() == 12332) { Util.logBytecode("after finding da priority"); }
             if (priority == PatternPriority.HIGH) {
                 highPriorityRuinIndex = index;
                 break;
@@ -73,6 +86,7 @@ public class Soldier extends Bunny {
                 mediumPriorityRuinIndex = index;
             }
         }
+        if (rc.getID() == 12332) { Util.logBytecode("after priority scan"); }
 
         if (highPriorityRuinIndex != -1) {
             PatternUtils.workOnRuin(highPriorityRuinIndex, pattern);
