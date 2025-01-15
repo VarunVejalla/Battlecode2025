@@ -100,7 +100,6 @@ public abstract class Bunny extends Robot {
      * turn)
      */
     public void scanSurroundings() throws GameActionException {
-
         nearbyMapInfos = Util.getFilledInMapInfo(rc.senseNearbyMapInfos());
         nearbyFriendlies = rc.senseNearbyRobots(-1, rc.getTeam());
         nearbyOpponents = rc.senseNearbyRobots(-1, rc.getTeam().opponent());

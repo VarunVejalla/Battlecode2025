@@ -88,6 +88,9 @@ public class MarkingUtils {
             return;
         }
         for (MapInfo tile : bunny.nearbyMapInfos) {
+            if(tile == null){
+                continue;
+            }
             if (tile.hasRuin() && bunny.myLoc.distanceSquaredTo(tile.getMapLocation()) <= 2) {
                 // We might want to check if we can complete the tower
                 MapLocation ruinLoc = tile.getMapLocation();
