@@ -6,19 +6,15 @@ public class Soldier extends Bunny {
 
     public Soldier(RobotController rc) throws GameActionException {
         super(rc);
-        if (rc.getID() == 11435) { Util.logBytecode("in middle of soldier constructor"); }
 
         PatternUtils.soldier = this;
         PatternUtils.rc = rc;
-        if (rc.getID() == 11435) { Util.logBytecode("at end of soldier constructor"); }
     }
 
     public void run() throws GameActionException {
         super.run(); // Call the shared logic for all bunnies
 
         updateDestinationIfNeeded();
-        if (rc.getID() == 11435) { Util.logBytecode("Updated destination"); }
-
 
         // 1. If trying to replenish, go do that.
         // TODO: If nearestAlliedPaintTowerLoc == null, should we explore or smth?
@@ -36,14 +32,15 @@ public class Soldier extends Bunny {
         }
         else {
             // 3. If not attacking, run pattern painting logic.
-            if (rc.getID() == 11435) { Util.logBytecode("gonna build pattern"); }
             buildPattern();
-            if (rc.getID() == 11435) { Util.logBytecode("built pattern"); }
-
         }
 
         MarkingUtils.tryRuinPatternCompletion();
         MarkingUtils.tryResourcePatternCompletion();
+
+        if(canMove()) {
+            moveLogic();
+        }
 
         // 6. End of Turn Logic
         // Perform any shared cleanup or post-turn logic
@@ -69,20 +66,14 @@ public class Soldier extends Bunny {
         UnitType intendedType = PatternUtils.getPatternUnitType();
         boolean[][] pattern = rc.getTowerPattern(intendedType);
 
-        // Look at ruins and assign priority.
-        if (rc.getID() == 11435) { Util.logBytecode("before priority scan"); }
         // Spirals outward up to vision radius.
-        if (rc.getID() == 11435) { Util.logBytecode("before constants loading"); }
         int[] spiral = spiralOutwardIndices;
-        if (rc.getID() == 11435) { Util.logBytecode("after constants loading"); }
 
         for(int index : spiral) {
             if (nearbyMapInfos[index] == null || !nearbyMapInfos[index].hasRuin() || rc.canSenseRobotAtLocation(nearbyMapInfos[index].getMapLocation())) {
                 continue;
             }
-            if (rc.getID() == 11435) { Util.logBytecode("before finding da priority"); }
             PatternPriority priority = PatternUtils.findPriority(index, pattern);
-            if (rc.getID() == 11435) { Util.logBytecode("after finding da priority"); }
             if (priority == PatternPriority.HIGH) {
                 highPriorityRuinIndex = index;
                 break;
@@ -90,15 +81,10 @@ public class Soldier extends Bunny {
                 mediumPriorityRuinIndex = index;
             }
         }
-        if (rc.getID() == 11435) { Util.logBytecode("after priority scan"); }
-
-
 
         if (highPriorityRuinIndex != -1) {
-            if (rc.getID() == 11435) { Util.logBytecode("in hpr"); }
             PatternUtils.workOnRuin(highPriorityRuinIndex, pattern);
 
-            if (rc.getID() == 11435) { Util.logBytecode("worked hpr"); }
             if (rc.canCompleteTowerPattern(intendedType, nearbyMapInfos[highPriorityRuinIndex].getMapLocation())) {
                 rc.completeTowerPattern(intendedType, nearbyMapInfos[highPriorityRuinIndex].getMapLocation());
             }
@@ -254,16 +240,9 @@ public class Soldier extends Bunny {
      * - Otherwise move randomly.
      */
     public void moveLogic() throws GameActionException {
+
+
         myLoc = rc.getLocation();
-
-        // If trying to replenish, go to nearest tower immediately.
-        if (tryingToReplenish &&
-                nearestAlliedPaintTowerLoc != null &&
-                myLoc.distanceSquaredTo(nearestAlliedPaintTowerLoc) > GameConstants.PAINT_TRANSFER_RADIUS_SQUARED) {
-
-            nav.goTo(nearestAlliedPaintTowerLoc, GameConstants.PAINT_TRANSFER_RADIUS_SQUARED);
-            return;
-        }
 
         MapLocation bestDirection = null;
         int bestScore = 0;
@@ -278,19 +257,11 @@ public class Soldier extends Bunny {
             // Strongly favor tiles with ally color on the boundary.
             if (isAllyBoundaryTile(tile)) {
                 tileScore += 1000;
-                // nav.goTo(tile.getMapLocation(), 0);
-                // Util.log("My next tile is a boundary!");
-                // return;
                 // // Favor staying on your color
                 if (tile.getPaint().isAlly()) {
                     tileScore += 5;
                 }
             }
-
-            // // If there's a mark and it's unpainted, favor that too.
-            // if (tile.getMark().isAlly() && tile.getPaint() == PaintType.EMPTY) {
-            // tileScore += 100;
-            // }
 
             if (tileScore > bestScore) {
                 bestScore = tileScore;

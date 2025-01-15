@@ -54,27 +54,12 @@ public abstract class Bunny extends Robot {
 
     public void run() throws GameActionException {
         super.run();
-//        if (rc.getRoundNum() > 10) {
-//            rc.resign();
-//        }
-
-        // Prescan bytecode
-        if (rc.getID() == 11435) {  Util.logBytecode("Prescan"); }
-
         // Comms is run inside of scan surroundings (and nearest allied paint tower, which is called in surroundings)!
         scanSurroundings();
-
-        if (rc.getID() == 11435) { Util.logBytecode("Post-scan"); }
-
-
-        // If waiting for a map, stay in place. Otherwise, move!
-        if(comms.waitingForMap){ // don't move if we're waiting to receive a map from a tower
-            // Util.log("Bunny @ " + rc.getLocation() + ". Pausing movement because I'm waiting for a map!");
-        }
     }
 
     public boolean canMove() {
-        return rc.isMovementReady() && !comms.waitingForMap;
+        return rc.isMovementReady(); //&& !comms.waitingForMap;
     }
 
     /**
@@ -111,21 +96,13 @@ public abstract class Bunny extends Robot {
      */
     public void scanSurroundings() throws GameActionException {
 
-        if (rc.getID() == 11435) {  Util.logBytecode("starting fill in"); }
         nearbyMapInfos = Util.getFilledInMapInfo(rc.senseNearbyMapInfos());
-        if (rc.getID() == 11435) {  Util.logBytecode("finishing fill in"); }
         nearbyFriendlies = rc.senseNearbyRobots(-1, rc.getTeam());
         nearbyOpponents = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
 
-
-        if (rc.getID() == 11435) {  Util.logBytecode("starting comms");}
-        // TODO: COMMS IS HERE
+        // COMMS IS HERE
         // Find sector that is fully enclosed and update bunny world.
         comms.updateSectorInVision(rc.getLocation());
-
-        if (rc.getID() == 11435) {  Util.logBytecode("update sector");}
-
-
 
         // If you requested a map, wait for the tower to send it.
         if(comms.waitingForMap) {
@@ -134,15 +111,9 @@ public abstract class Bunny extends Robot {
             comms.processMap2();
         }
 
-        if (rc.getID() == 11435) {  Util.logBytecode("finishing comms");}
-
         // Updates both nearest allied paint tower and nearest allied tower.
         updateKnownTowers();
         setNearestAlliedTowers();
-
-        if (rc.getID() == 11435) {  Util.logBytecode("finishing updatesfdsafd");}
-
-
     }
 
     public void updateKnownTowers() throws GameActionException {
@@ -227,7 +198,7 @@ public abstract class Bunny extends Robot {
      * transfer paint
      */
     public void tryReplenish() throws GameActionException {
-        if (nearestAlliedPaintTowerLoc == null) return;
+//        if (nearestAlliedPaintTowerLoc == null) return;
 
         if (rc.getLocation()
                 .distanceSquaredTo(nearestAlliedPaintTowerLoc) <= GameConstants.PAINT_TRANSFER_RADIUS_SQUARED) {
