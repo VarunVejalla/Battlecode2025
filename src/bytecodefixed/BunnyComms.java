@@ -1,4 +1,4 @@
-package goat;
+package bytecodefixed;
 
 import battlecode.common.*;
 
@@ -196,6 +196,7 @@ public class BunnyComms extends Comms {
      */
     public void  updateSectorInVision(MapLocation currectLocation) throws GameActionException {
         int sectorIndex = getFullyEnclosedSectorID(currectLocation);
+        Util.logBytecode("After getting sectorIndex");
 
         // Checking bunny world
         // Util.log("Bunny looking for a sector to update its world with");
@@ -203,9 +204,11 @@ public class BunnyComms extends Comms {
         if(sectorIndex != -1) {
             // This has been tested! Scan result works!
             ScanResult sr = scanSector(sectorIndex);
+            Util.logBytecode("After scanning sector");
 //            // Util.log(sr.toString());
 
             int encodedSector = encodeSector(sr);
+            Util.logBytecode("After encoding sector");
             // Util.log("Sector found.");
             // Util.log("Sector Index: " + sectorIndex);
             // Util.log("Sector Center: " + getSectorCenter(sectorIndex));
@@ -213,6 +216,7 @@ public class BunnyComms extends Comms {
             // If this encoding is different from the known encoding, add the message to the buffer.
             if(encodedSector != myWorld[sectorIndex]) {
                 updateBunnyBuffer(rc.getRoundNum(), sectorIndex, encodedSector);
+                Util.logBytecode("Updated BunnyBuffer");
 
                 // update comms.myWorld with this new information
                 myWorld[sectorIndex] = encodedSector;

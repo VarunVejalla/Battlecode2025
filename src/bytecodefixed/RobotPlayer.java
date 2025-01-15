@@ -1,4 +1,4 @@
-package goat;
+package bytecodefixed;
 
 import battlecode.common.Clock;
 import battlecode.common.RobotController;
