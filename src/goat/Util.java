@@ -53,13 +53,6 @@ public class Util {
             timeTakenFilling += endingShiftTime-Clock.getBytecodesLeft();
         }
 
-        if (rc.getID() == 11435) {
-            System.out.println(timeTakenShift);
-            System.out.println(timeTakenFilling);
-            Util.logBytecode("middle of filling in");
-        }
-
-
 //        for (int i = 0; i < 69; i++) {
 //            if ( filledInMapInfo[i] == null ) {
 //                filledInMapInfo[i] = new MapInfo(robot.myLoc.translate(Shifts.dx[i], Shifts.dy[i]), false, true, PaintType.EMPTY, PaintType.EMPTY, false);
@@ -199,7 +192,7 @@ public class Util {
     }
 
     public static void log(String str) {
-        if(Constants.MUTE){
+        if(Constants.MUTE || rc.getID() != 13775){
             return;
         }
         System.out.println(str);

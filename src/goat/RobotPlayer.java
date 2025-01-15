@@ -21,8 +21,6 @@ public class RobotPlayer {
 //            rc.resign();
 //        }
 
-        if (rc.getID() == 11435) { Util.logBytecode("rob start"); }
-
         int spawnedRound = rc.getRoundNum();
 
         Robot robot = switch (rc.getType()) {
@@ -36,15 +34,14 @@ public class RobotPlayer {
             default -> new Tower(rc);
         };
 
-        if (rc.getID() == 11435) { Util.logBytecode("rob end"); }
-
         while (true) {
             int currentTurn = rc.getRoundNum();
 
             try {
                 robot.run();
-                if (rc.getRoundNum() != currentTurn && currentTurn > spawnedRound+10) {
+                if (rc.getRoundNum() != currentTurn && rc.getID() == 13775) {
                     System.out.println("BYTECODE EXCEEDED");
+                    rc.resign();
                 }
 
                 // End early for debugging.

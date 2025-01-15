@@ -56,6 +56,11 @@ public abstract class Bunny extends Robot {
         super.run();
         // Comms is run inside of scan surroundings (and nearest allied paint tower, which is called in surroundings)!
         scanSurroundings();
+
+        // If waiting for a map, stay in place. Otherwise, move!
+        if(comms.waitingForMap){ // don't move if we're waiting to receive a map from a tower
+            Util.log("Bunny @ " + rc.getLocation() + ". Pausing movement because I'm waiting for a map!");
+        }
     }
 
     public boolean canMove() {

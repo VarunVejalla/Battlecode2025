@@ -4,23 +4,24 @@ import battlecode.common.*;
 
 public class Soldier extends Bunny {
 
+    public static final int[] spiralOutwardIndices = {34,25,33,35,43,24,26,42,44,16,32,36,52,15,17,23,27,41,45,51,53,14,18,50,54,8,31,37,60,7,9,22,28,40,46,59,61,6,10,13,19,49,55,58,62,2,30,38,66,1,3,21,29,39,47,65,67,5,11,57,63,0,4,12,20,48,56,64,68};
+    public static final int[] shift_dx = {-4,-4,-4,-4,-4,-3,-3,-3,-3,-3,-3,-3,-2,-2,-2,-2,-2,-2,-2,-2,-2,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,4,4,4,4,4};
+    public static final int[] shift_dy = {-2,-1,0,1,2,-3,-2,-1,0,1,2,3,-4,-3,-2,-1,0,1,2,3,4,-4,-3,-2,-1,0,1,2,3,4,-4,-3,-2,-1,0,1,2,3,4,-4,-3,-2,-1,0,1,2,3,4,-4,-3,-2,-1,0,1,2,3,4,-3,-2,-1,0,1,2,3,-2,-1,0,1,2};
+
     public Soldier(RobotController rc) throws GameActionException {
         super(rc);
-
         PatternUtils.soldier = this;
         PatternUtils.rc = rc;
     }
 
     public void run() throws GameActionException {
         super.run(); // Call the shared logic for all bunnies
-
         updateDestinationIfNeeded();
 
         // 1. If trying to replenish, go do that.
         // TODO: If nearestAlliedPaintTowerLoc == null, should we explore or smth?
         if(tryingToReplenish && nearestAlliedPaintTowerLoc != null){
             tryReplenish();
-
             if (myLoc.distanceSquaredTo(nearestAlliedPaintTowerLoc) > GameConstants.PAINT_TRANSFER_RADIUS_SQUARED) {
                 nav.goTo(nearestAlliedPaintTowerLoc, GameConstants.PAINT_TRANSFER_RADIUS_SQUARED);
             }
@@ -45,8 +46,6 @@ public class Soldier extends Bunny {
         // 6. End of Turn Logic
         // Perform any shared cleanup or post-turn logic
         sharedEndFunction();
-
-
     }
 
     // TODO implement this
@@ -84,23 +83,17 @@ public class Soldier extends Bunny {
 
         if (highPriorityRuinIndex != -1) {
             PatternUtils.workOnRuin(highPriorityRuinIndex, pattern);
-
             if (rc.canCompleteTowerPattern(intendedType, nearbyMapInfos[highPriorityRuinIndex].getMapLocation())) {
                 rc.completeTowerPattern(intendedType, nearbyMapInfos[highPriorityRuinIndex].getMapLocation());
             }
-            if (rc.getID() == 11435) { Util.logBytecode("end hpr"); }
             return;
         }
 
         int resourceCenterIndex = PatternUtils.getPotentialResourcePatternCenterIndex(nearbyMapInfos);
 
-        if (rc.getID() == 11435) { Util.logBytecode("after prpc"); }
-
         if (resourceCenterIndex != -1) {
             pattern = rc.getResourcePattern();
             PatternUtils.workOnResourcePattern(shift_dx[resourceCenterIndex], shift_dy[resourceCenterIndex], pattern);
-
-            if (rc.getID() == 11435) { Util.logBytecode("after prpc work"); }
 
             if (rc.isMovementReady()) {
                 nav.goTo(nearbyMapInfos[resourceCenterIndex].getMapLocation(), 0);
@@ -131,7 +124,6 @@ public class Soldier extends Bunny {
             return; // Not enough paint to do anything in this method
         }
 
-
         // loop over actionable enemies and try to attack them if they're a tower
         for (RobotInfo robot : rc.senseNearbyRobots(UnitType.SOLDIER.actionRadiusSquared, rc.getTeam().opponent())) {
             if (Util.isPaintTower(robot.getType())) {
@@ -141,7 +133,6 @@ public class Soldier extends Bunny {
                 }
             }
         }
-
 
         MapLocation bestPaintLoc = null;
         int bestScore = 0;
