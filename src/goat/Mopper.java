@@ -62,6 +62,9 @@ public class Mopper extends Bunny {
         MapLocation bestLocation = null;
 
         for (MapInfo tile : nearbyMapInfos) {
+            if (tile == null) {
+                continue;
+            }
             if (tile.getPaint().isEnemy()) {
 
                 int newDistance = Math.max(Math.abs(tile.getMapLocation().x - rc.getLocation().x),
