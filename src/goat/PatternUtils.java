@@ -29,7 +29,7 @@ public class PatternUtils {
         if (isPaintReady) {
             for (int i = 0; i < 29; i++) {
                 int index = ExcessConstants.spiralOutwardIndices[i];
-                if (soldier.nearbyMapInfos[index].hasRuin() || soldier.nearbyMapInfos[index].isWall()) {
+                if (soldier.nearbyMapInfos[index] == null || soldier.nearbyMapInfos[index].hasRuin() || soldier.nearbyMapInfos[index].isWall()) {
                     continue;
                 } else {
                     if (soldier.nearbyMapInfos[index].getPaint() == PaintType.EMPTY) {
@@ -70,7 +70,7 @@ public class PatternUtils {
                     continue;
                 }
 
-                if (soldier.nearbyMapInfos[attackIndex].isWall()) {
+                if (soldier.nearbyMapInfos[attackIndex] == null || soldier.nearbyMapInfos[attackIndex].isWall()) {
                     continue;
                 }
 
@@ -140,7 +140,7 @@ public class PatternUtils {
             byte[] ordering = orderFillingResource[13*dx + dy + 84];
             MapLocation attackSquare;
             for (short attackIndex : ordering) {
-                if (soldier.nearbyMapInfos[attackIndex].hasRuin() || soldier.nearbyMapInfos[attackIndex].isWall()) {
+                if (soldier.nearbyMapInfos[attackIndex] == null || soldier.nearbyMapInfos[attackIndex].hasRuin() || soldier.nearbyMapInfos[attackIndex].isWall()) {
                     continue;
                 }
                 PaintType currentPaint = soldier.nearbyMapInfos[attackIndex].getPaint();
@@ -226,7 +226,7 @@ public class PatternUtils {
         long unfinishedBitstring = 0;
 
         for(int i = 0; i < 69; i++) {
-            if (nearbyMapInfos[i].hasRuin() || nearbyMapInfos[i].isWall()) {
+            if (nearbyMapInfos[i] == null || nearbyMapInfos[i].hasRuin() || nearbyMapInfos[i].isWall()) {
                 // if it's a ruin, we might actually want a bit bigger radius around it, but whatever
                 validBitstring &= invalidSquareForResource[i];
             } else {

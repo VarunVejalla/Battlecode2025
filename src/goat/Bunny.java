@@ -117,9 +117,15 @@ public abstract class Bunny extends Robot {
         nearbyFriendlies = rc.senseNearbyRobots(-1, rc.getTeam());
         nearbyOpponents = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
 
+
+        if (rc.getID() == 11435) {  Util.logBytecode("starting comms");}
         // TODO: COMMS IS HERE
         // Find sector that is fully enclosed and update bunny world.
         comms.updateSectorInVision(rc.getLocation());
+
+        if (rc.getID() == 11435) {  Util.logBytecode("update sector");}
+
+
 
         // If you requested a map, wait for the tower to send it.
         if(comms.waitingForMap) {
@@ -128,9 +134,15 @@ public abstract class Bunny extends Robot {
             comms.processMap2();
         }
 
+        if (rc.getID() == 11435) {  Util.logBytecode("finishing comms");}
+
         // Updates both nearest allied paint tower and nearest allied tower.
         updateKnownTowers();
         setNearestAlliedTowers();
+
+        if (rc.getID() == 11435) {  Util.logBytecode("finishing updatesfdsafd");}
+
+
     }
 
     public void updateKnownTowers() throws GameActionException {

@@ -62,11 +62,11 @@ public class Util {
         }
 
 
-        for (int i = 0; i < 69; i++) {
-            if ( filledInMapInfo[i] == null ) {
-                filledInMapInfo[i] = new MapInfo(robot.myLoc.translate(Shifts.dx[i], Shifts.dy[i]), false, true, PaintType.EMPTY, PaintType.EMPTY, false);
-            }
-        }
+//        for (int i = 0; i < 69; i++) {
+//            if ( filledInMapInfo[i] == null ) {
+//                filledInMapInfo[i] = new MapInfo(robot.myLoc.translate(Shifts.dx[i], Shifts.dy[i]), false, true, PaintType.EMPTY, PaintType.EMPTY, false);
+//            }
+//        }
         return filledInMapInfo;
     }
 

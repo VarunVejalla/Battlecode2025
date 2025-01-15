@@ -77,7 +77,7 @@ public class Soldier extends Bunny {
         if (rc.getID() == 11435) { Util.logBytecode("after constants loading"); }
 
         for(int index : spiral) {
-            if (!nearbyMapInfos[index].hasRuin() || rc.canSenseRobotAtLocation(nearbyMapInfos[index].getMapLocation())) {
+            if (nearbyMapInfos[index] == null || !nearbyMapInfos[index].hasRuin() || rc.canSenseRobotAtLocation(nearbyMapInfos[index].getMapLocation())) {
                 continue;
             }
             if (rc.getID() == 11435) { Util.logBytecode("before finding da priority"); }
