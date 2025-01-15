@@ -7,8 +7,6 @@ public class Util {
     static RobotController rc;
     static Robot robot;
 
-    public static final byte[] deltaLookup = {-1,-1,0,1,2,3,4,-1,-1,-1,5,6,7,8,9,10,11,-1,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,-1,57,58,59,60,61,62,63,-1,-1,-1,64,65,66,67,68,-1,-1};
-
     public static int minMovesToReach(MapLocation a, MapLocation b) {
         int dx = a.x - b.x;
         int dy = a.y - b.y;
@@ -27,59 +25,124 @@ public class Util {
 
     public static MapInfo[] getFilledInMapInfo(MapInfo[] nearbyMapInfo) {
         // assuming that we are the center of the nearbyMapInfo, and we are still at the center
-
         if (nearbyMapInfo.length == 69) {
             return nearbyMapInfo;
         }
 
         MapInfo[] filledInMapInfo = new MapInfo[69];
         MapLocation location;
-        int deltaX, deltaY, intendedIndex;
-        int timeTakenShift = 0;
-        int timeTakenFilling = 0;
+        int intendedIndex;
         for (MapInfo mapInfo : nearbyMapInfo) {
             // get location of nearbyMapInfo[i]
             // figure out what index of filledInMapInfo it should go in
-            int gettingShiftTime = Clock.getBytecodesLeft();
             location = mapInfo.getMapLocation();
-            deltaX = location.x - robot.myLoc.x;
-            deltaY = location.y - robot.myLoc.y;
-            int endingShiftTime = Clock.getBytecodesLeft();
-            timeTakenShift += gettingShiftTime-endingShiftTime;
-
             // need reverse lookup given Shifts.dx and Shifts.dy
-            intendedIndex = getMapInfoIndex(deltaX, deltaY);
+            intendedIndex = getMapInfoIndex(location.x - robot.myLoc.x, location.y - robot.myLoc.y);
             filledInMapInfo[intendedIndex] = mapInfo;
-            timeTakenFilling += endingShiftTime-Clock.getBytecodesLeft();
         }
-
-//        for (int i = 0; i < 69; i++) {
-//            if ( filledInMapInfo[i] == null ) {
-//                filledInMapInfo[i] = new MapInfo(robot.myLoc.translate(Shifts.dx[i], Shifts.dy[i]), false, true, PaintType.EMPTY, PaintType.EMPTY, false);
-//            }
-//        }
         return filledInMapInfo;
     }
 
     public static int getMapInfoIndex(int deltaX, int deltaY) {
-        return deltaLookup[deltaX*9+deltaY+40];
-//        if (deltaX*deltaX + deltaY*deltaY > 20) {
-//            return -1;
-//        }
-//        if (deltaX < 3) {
-//            if (deltaX > -3) {
-//                return deltaY+9*deltaX+34;
-//            } else if (deltaX == -3) {
-//                return deltaY+8;
-//            } else {
-//                return deltaY+2;
-//            }
-//        } else if (deltaX == 3) {
-//            return deltaY+60;
-//        } else if (deltaX == 4) {
-//            return deltaY+66;
-//        }
-//        return -1;
+        switch(deltaX){
+            case -4:
+                switch(deltaY){
+                    case -2: return 0;
+                    case -1: return 1;
+                    case 0: return 2;
+                    case 1: return 3;
+                    case 2: return 4;
+                }
+            case -3:
+                switch(deltaY){
+                    case -3: return 5;
+                    case -2: return 6;
+                    case -1: return 7;
+                    case 0: return 8;
+                    case 1: return 9;
+                    case 2: return 10;
+                    case 3: return 11;
+                }
+            case -2:
+                switch(deltaY){
+                    case -4: return 12;
+                    case -3: return 13;
+                    case -2: return 14;
+                    case -1: return 15;
+                    case 0: return 16;
+                    case 1: return 17;
+                    case 2: return 18;
+                    case 3: return 19;
+                    case 4: return 20;
+                }
+            case -1:
+                switch(deltaY){
+                    case -4: return 21;
+                    case -3: return 22;
+                    case -2: return 23;
+                    case -1: return 24;
+                    case 0: return 25;
+                    case 1: return 26;
+                    case 2: return 27;
+                    case 3: return 28;
+                    case 4: return 29;
+                }
+            case 0:
+                switch(deltaY){
+                    case -4: return 30;
+                    case -3: return 31;
+                    case -2: return 32;
+                    case -1: return 33;
+                    case 0: return 34;
+                    case 1: return 35;
+                    case 2: return 36;
+                    case 3: return 37;
+                    case 4: return 38;
+                }
+            case 1:
+                switch(deltaY){
+                    case -4: return 39;
+                    case -3: return 40;
+                    case -2: return 41;
+                    case -1: return 42;
+                    case 0: return 43;
+                    case 1: return 44;
+                    case 2: return 45;
+                    case 3: return 46;
+                    case 4: return 47;
+                }
+            case 2:
+                switch(deltaY){
+                    case -4: return 48;
+                    case -3: return 49;
+                    case -2: return 50;
+                    case -1: return 51;
+                    case 0: return 52;
+                    case 1: return 53;
+                    case 2: return 54;
+                    case 3: return 55;
+                    case 4: return 56;
+                }
+            case 3:
+                switch(deltaY){
+                    case -3: return 57;
+                    case -2: return 58;
+                    case -1: return 59;
+                    case 0: return 60;
+                    case 1: return 61;
+                    case 2: return 62;
+                    case 3: return 63;
+                }
+            case 4:
+                switch(deltaY){
+                    case -2: return 64;
+                    case -1: return 65;
+                    case 0: return 66;
+                    case 1: return 67;
+                    case 2: return 68;
+                }
+        }
+        return -1;
     }
 
     public static void addToIndicatorString(String str) {
@@ -192,7 +255,7 @@ public class Util {
     }
 
     public static void log(String str) {
-        if(Constants.MUTE || rc.getID() != 13414){
+        if(Constants.MUTE){
             return;
         }
         System.out.println(str);

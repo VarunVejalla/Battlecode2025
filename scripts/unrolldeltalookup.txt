@@ -1,0 +1,98 @@
+switch(deltaX){
+case -4:
+	switch(deltaY){
+	case -2: return 0;
+	case -1: return 1;
+	case 0: return 2;
+	case 1: return 3;
+	case 2: return 4;
+}
+case -3:
+	switch(deltaY){
+	case -3: return 5;
+	case -2: return 6;
+	case -1: return 7;
+	case 0: return 8;
+	case 1: return 9;
+	case 2: return 10;
+	case 3: return 11;
+}
+case -2:
+	switch(deltaY){
+	case -4: return 12;
+	case -3: return 13;
+	case -2: return 14;
+	case -1: return 15;
+	case 0: return 16;
+	case 1: return 17;
+	case 2: return 18;
+	case 3: return 19;
+	case 4: return 20;
+}
+case -1:
+	switch(deltaY){
+	case -4: return 21;
+	case -3: return 22;
+	case -2: return 23;
+	case -1: return 24;
+	case 0: return 25;
+	case 1: return 26;
+	case 2: return 27;
+	case 3: return 28;
+	case 4: return 29;
+}
+case 0:
+	switch(deltaY){
+	case -4: return 30;
+	case -3: return 31;
+	case -2: return 32;
+	case -1: return 33;
+	case 0: return 34;
+	case 1: return 35;
+	case 2: return 36;
+	case 3: return 37;
+	case 4: return 38;
+}
+case 1:
+	switch(deltaY){
+	case -4: return 39;
+	case -3: return 40;
+	case -2: return 41;
+	case -1: return 42;
+	case 0: return 43;
+	case 1: return 44;
+	case 2: return 45;
+	case 3: return 46;
+	case 4: return 47;
+}
+case 2:
+	switch(deltaY){
+	case -4: return 48;
+	case -3: return 49;
+	case -2: return 50;
+	case -1: return 51;
+	case 0: return 52;
+	case 1: return 53;
+	case 2: return 54;
+	case 3: return 55;
+	case 4: return 56;
+}
+case 3:
+	switch(deltaY){
+	case -3: return 57;
+	case -2: return 58;
+	case -1: return 59;
+	case 0: return 60;
+	case 1: return 61;
+	case 2: return 62;
+	case 3: return 63;
+}
+case 4:
+	switch(deltaY){
+	case -2: return 64;
+	case -1: return 65;
+	case 0: return 66;
+	case 1: return 67;
+	case 2: return 68;
+}
+}
