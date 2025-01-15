@@ -28,16 +28,6 @@ public class Mopper extends Bunny {
             moveLogic();
         }
 
-        if (rc.isActionReady()) {
-            if (tryingToReplenish) {
-                tryReplenish();
-            } else {
-                doBestAction();
-            }
-        }
-
-        // 6. End of Turn Logic
-        // Perform any shared cleanup or post-turn logic
         sharedEndFunction();
     }
 

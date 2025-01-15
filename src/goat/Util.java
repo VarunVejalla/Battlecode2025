@@ -32,8 +32,6 @@ public class Util {
             return nearbyMapInfo;
         }
 
-
-
         MapInfo[] filledInMapInfo = new MapInfo[69];
         MapLocation location;
         int deltaX, deltaY, intendedIndex;

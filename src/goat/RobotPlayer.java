@@ -17,9 +17,9 @@ public class RobotPlayer {
      **/
     @SuppressWarnings("unused")
     public static void run(RobotController rc) throws Exception {
-        if (rc.getRoundNum() > 50) {
-            rc.resign();
-        }
+//        if (rc.getRoundNum() > 50) {
+//            rc.resign();
+//        }
 
         if (rc.getID() == 11435) { Util.logBytecode("rob start"); }
 

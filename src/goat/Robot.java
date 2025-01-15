@@ -41,18 +41,8 @@ public class Robot {
         oppTeam = rc.getTeam().opponent();
         this.mapWidth = rc.getMapWidth();
         this.mapHeight = rc.getMapHeight();
-
-        if (rc.getID() == 11435) { Util.logBytecode("before nav"); }
-
-        // Util.logBytecode("After computing all spawn centers");
-
         this.nav = new Navigation(rc, this);
-
-        if (rc.getID() == 11435) { Util.logBytecode("after nav"); }
-
         rng = new Random(42); // seed the random number generator with the id of the bot
-
-        if (rc.getID() == 11435) { Util.logBytecode("after rng"); }
     }
 
     public void run() throws GameActionException {
