@@ -15,11 +15,14 @@ public class Mopper extends Bunny {
         actionableTiles = rc.senseNearbyMapInfos(2);
 
         updateDestinationIfNeeded();
+        Util.log("YUHHH");
 
         if (rc.isActionReady()) {
             if (tryingToReplenish) {
+                Util.log("Tryna replenish");
                 tryReplenish();
             } else {
+                Util.log("Doing best action");
                 doBestAction();
             }
         }
@@ -52,9 +55,7 @@ public class Mopper extends Bunny {
         if (nearestAlliedPaintTowerLoc != null
                 && tryingToReplenish
                 && myLoc.distanceSquaredTo(nearestAlliedPaintTowerLoc) > GameConstants.PAINT_TRANSFER_RADIUS_SQUARED) {
-
             nav.goTo(nearestAlliedPaintTowerLoc, GameConstants.PAINT_TRANSFER_RADIUS_SQUARED);
-
             return;
         }
 

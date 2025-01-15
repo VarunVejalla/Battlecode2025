@@ -201,7 +201,7 @@ public abstract class Bunny extends Robot {
      * transfer paint
      */
     public void tryReplenish() throws GameActionException {
-//        if (nearestAlliedPaintTowerLoc == null) return;
+        if (nearestAlliedPaintTowerLoc == null) return;
 
         if (rc.getLocation()
                 .distanceSquaredTo(nearestAlliedPaintTowerLoc) <= GameConstants.PAINT_TRANSFER_RADIUS_SQUARED) {

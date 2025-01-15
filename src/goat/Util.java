@@ -255,7 +255,7 @@ public class Util {
     }
 
     public static void log(String str) {
-        if(Constants.MUTE){
+        if(Constants.MUTE || rc.getID() != 12836){
             return;
         }
         System.out.println(str);
