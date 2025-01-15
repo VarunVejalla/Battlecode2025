@@ -5,6 +5,7 @@ import battlecode.common.*;
 import java.util.Random;
 
 public class Robot {
+//    Constants constants = new Constants();
     RobotController rc;
     Navigation nav;
     MapLocation myLoc; // current loc of robot
@@ -14,6 +15,9 @@ public class Robot {
     String indicatorString = "";
     Team myTeam;
     Team oppTeam;
+    public static final int[] spiralOutwardIndices = {34,25,33,35,43,24,26,42,44,16,32,36,52,15,17,23,27,41,45,51,53,14,18,50,54,8,31,37,60,7,9,22,28,40,46,59,61,6,10,13,19,49,55,58,62,2,30,38,66,1,3,21,29,39,47,65,67,5,11,57,63,0,4,12,20,48,56,64,68};
+    public static final int[] shift_dx = {-4,-4,-4,-4,-4,-3,-3,-3,-3,-3,-3,-3,-2,-2,-2,-2,-2,-2,-2,-2,-2,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,4,4,4,4,4};
+    public static final int[] shift_dy = {-2,-1,0,1,2,-3,-2,-1,0,1,2,3,-4,-3,-2,-1,0,1,2,3,4,-4,-3,-2,-1,0,1,2,3,4,-4,-3,-2,-1,0,1,2,3,4,-4,-3,-2,-1,0,1,2,3,4,-4,-3,-2,-1,0,1,2,3,4,-3,-2,-1,0,1,2,3,-2,-1,0,1,2};
 
     /**
      * Array containing all the possible movement directions.
@@ -37,10 +41,18 @@ public class Robot {
         oppTeam = rc.getTeam().opponent();
         this.mapWidth = rc.getMapWidth();
         this.mapHeight = rc.getMapHeight();
+
+        if (rc.getID() == 12332) { Util.logBytecode("before nav"); }
+
         // Util.logBytecode("After computing all spawn centers");
 
         this.nav = new Navigation(rc, this);
+
+        if (rc.getID() == 12332) { Util.logBytecode("after nav"); }
+
         rng = new Random(42); // seed the random number generator with the id of the bot
+
+        if (rc.getID() == 12332) { Util.logBytecode("after rng"); }
     }
 
     public void run() throws GameActionException {

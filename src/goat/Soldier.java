@@ -2,13 +2,15 @@ package goat;
 
 import battlecode.common.*;
 
-
 public class Soldier extends Bunny {
 
     public Soldier(RobotController rc) throws GameActionException {
         super(rc);
+        if (rc.getID() == 12332) { Util.logBytecode("in middle of soldier constructor"); }
+
         PatternUtils.soldier = this;
         PatternUtils.rc = rc;
+        if (rc.getID() == 12332) { Util.logBytecode("at end of soldier constructor"); }
     }
 
     public void run() throws GameActionException {
@@ -73,7 +75,7 @@ public class Soldier extends Bunny {
         if (rc.getID() == 12332) { Util.logBytecode("before priority scan"); }
         // Spirals outward up to vision radius.
         if (rc.getID() == 12332) { Util.logBytecode("before constants loading"); }
-        int[] spiral = ExcessConstants.spiralOutwardIndices;
+        int[] spiral = spiralOutwardIndices;
         if (rc.getID() == 12332) { Util.logBytecode("after constants loading"); }
 
         for(int index : spiral) {
@@ -92,19 +94,29 @@ public class Soldier extends Bunny {
         }
         if (rc.getID() == 12332) { Util.logBytecode("after priority scan"); }
 
+
+
         if (highPriorityRuinIndex != -1) {
+            if (rc.getID() == 12332) { Util.logBytecode("in hpr"); }
             PatternUtils.workOnRuin(highPriorityRuinIndex, pattern);
+
+            if (rc.getID() == 12332) { Util.logBytecode("worked hpr"); }
             if (rc.canCompleteTowerPattern(intendedType, nearbyMapInfos[highPriorityRuinIndex].getMapLocation())) {
                 rc.completeTowerPattern(intendedType, nearbyMapInfos[highPriorityRuinIndex].getMapLocation());
             }
+            if (rc.getID() == 12332) { Util.logBytecode("end hpr"); }
             return;
         }
 
         int resourceCenterIndex = PatternUtils.getPotentialResourcePatternCenterIndex(nearbyMapInfos);
 
+        if (rc.getID() == 12332) { Util.logBytecode("after prpc"); }
+
         if (resourceCenterIndex != -1) {
             pattern = rc.getResourcePattern();
-            PatternUtils.workOnResourcePattern(Constants.shift_dx[resourceCenterIndex], Constants.shift_dy[resourceCenterIndex], pattern);
+            PatternUtils.workOnResourcePattern(shift_dx[resourceCenterIndex], shift_dy[resourceCenterIndex], pattern);
+
+            if (rc.getID() == 12332) { Util.logBytecode("after prpc work"); }
 
             if (rc.isMovementReady()) {
                 nav.goTo(nearbyMapInfos[resourceCenterIndex].getMapLocation(), 0);

@@ -17,6 +17,8 @@ public class RobotPlayer {
      **/
     @SuppressWarnings("unused")
     public static void run(RobotController rc) throws Exception {
+        if (rc.getID() == 12332) { Util.logBytecode("rob start"); }
+
         Robot robot = switch (rc.getType()) {
             case SOLDIER -> new Soldier(rc);
             case MOPPER -> new Mopper(rc);
@@ -27,6 +29,8 @@ public class RobotPlayer {
             case LEVEL_ONE_PAINT_TOWER, LEVEL_TWO_PAINT_TOWER, LEVEL_THREE_PAINT_TOWER -> new PaintTower(rc);
             default -> new Tower(rc);
         };
+
+        if (rc.getID() == 12332) { Util.logBytecode("rob end"); }
 
         while (true) {
             int currentTurn = rc.getRoundNum();
