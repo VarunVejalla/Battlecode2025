@@ -26,11 +26,25 @@ def get_indices_within_radius_squared(ordering, radius_squared):
     return L
 
 def isSecondary(delta):
-    if delta[0] == 0 and delta[1] == 0:
+    r2 = delta[0]*delta[0] + delta[1]*delta[1]
+    if r2 == 0:
+        return True
+    elif r2 <= 4:
         return False
-    return (delta[0]+delta[1])%2 == 0
+    else:
+        return True
 
-
+def conflicts(cx, cy, dx, dy):
+    # say we know that a resource pattern center is at (cx, cy)
+    existing = {(cx+shiftx, cy+shifty):isSecondary((shiftx, shifty)) for shiftx in range(-2, 3) for shifty in range(-2, 3)}
+    goal = {(dx+shiftx, dy+shifty):isSecondary((shiftx, shifty)) for shiftx in range(-2, 3) for shifty in range(-2, 3)}
+    
+    # if existing and goal conflict, we have a problem
+    
+    for key, value in existing.items():
+        if key in goal and goal[key] != value:
+            return True
+    return False
 
 def getStringLong(lookup):
     if type(lookup[0]) == int:
@@ -113,6 +127,15 @@ for dx, dy in canon:
         else:
             lookup += 2**i
     lookup_secondary.append(lookup)        
+
+lookup_confirmed_center = []
+for cx, cy in canon:
+    lookup = 0
+    for (i, index) in enumerate(relevant_indices):
+        location = canon[index]
+        if not conflicts(cx, cy, location[0], location[1]):
+            lookup += 2**i
+    lookup_confirmed_center.append(lookup)
 
 lookup_ruin_filling = []
 
