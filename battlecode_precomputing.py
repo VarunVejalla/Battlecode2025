@@ -35,6 +35,9 @@ def isSecondary(delta):
         return True
 
 def conflicts(cx, cy, dx, dy):
+    if cx == dx and cy == dy:
+        return True
+    
     # say we know that a resource pattern center is at (cx, cy)
     existing = {(cx+shiftx, cy+shifty):isSecondary((shiftx, shifty)) for shiftx in range(-2, 3) for shifty in range(-2, 3)}
     goal = {(dx+shiftx, dy+shifty):isSecondary((shiftx, shifty)) for shiftx in range(-2, 3) for shifty in range(-2, 3)}
