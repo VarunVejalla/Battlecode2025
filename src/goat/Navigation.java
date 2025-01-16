@@ -104,6 +104,7 @@ public class Navigation {
                 if (dist < closestDistToTarget) {
                     closestDistToTarget = dist;
                     closestDir = dir;
+                    Util.addToIndicatorString("CLSR " + dist);
                 }
 
                 // Check if wall-following is viable
@@ -112,14 +113,10 @@ public class Navigation {
                 }
             } else {
                 if (wallDir == null) {
-                    if (!rc.onTheMap(newLoc)) { // Hard check for if wall is outer boundary (don't count that as a
-                                                // wall).
-                        if (rc.canSenseLocation(newLoc) && rc.senseRobotAtLocation(newLoc) == null) { // Hard check for
-                                                                                                      // if wall is
-                                                                                                      // another robot
-                                                                                                      // (don't count
-                                                                                                      // that as a
-                                                                                                      // wall).
+                    // Hard check for if wall is outer boundary (don't count that as a wall).
+                    if (rc.onTheMap(newLoc)) {
+                        // Hard check for if wall is another robot (don't count that as a wall).
+                        if (rc.canSenseLocation(newLoc) && rc.senseRobotAtLocation(newLoc) == null) {
                             lastWallFollowed = newLoc;
                         }
                     }

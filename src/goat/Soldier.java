@@ -241,7 +241,7 @@ public class Soldier extends Bunny {
             PatternUtils.workOnResourcePattern(currResourceCenterLoc.x - myLoc.x, currResourceCenterLoc.y - myLoc.y, resourcePattern);
 
             if (rc.isMovementReady()) {
-                nav.goTo(currResourceCenterLoc, 0);
+                nav.goToFuzzy(currResourceCenterLoc, 0);
             }
             if (rc.canCompleteResourcePattern(currResourceCenterLoc)) {
                 rc.completeResourcePattern(currResourceCenterLoc);

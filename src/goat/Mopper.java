@@ -56,7 +56,7 @@ public class Mopper extends Bunny {
         if (nearestAlliedPaintTowerLoc != null
                 && tryingToReplenish
                 && myLoc.distanceSquaredTo(nearestAlliedPaintTowerLoc) > GameConstants.PAINT_TRANSFER_RADIUS_SQUARED) {
-            nav.goTo(nearestAlliedPaintTowerLoc, GameConstants.PAINT_TRANSFER_RADIUS_SQUARED);
+            nav.goToBug(nearestAlliedPaintTowerLoc, GameConstants.PAINT_TRANSFER_RADIUS_SQUARED);
             return;
         }
 
@@ -80,7 +80,7 @@ public class Mopper extends Bunny {
         }
 
         if (bestLocation != null) {
-            nav.goTo(bestLocation, UnitType.MOPPER.actionRadiusSquared);
+            nav.goToBug(bestLocation, UnitType.MOPPER.actionRadiusSquared);
         } else {
             // Move in the direction
             macroMove(3);
