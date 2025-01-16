@@ -73,7 +73,6 @@ public class Soldier extends Bunny {
 
     public void runAttackLogic(RobotInfo attackInfo) throws GameActionException {
         MapLocation attackTarget = attackInfo.getLocation();
-        Util.log("Running attack strat on target at " + attackTarget);
 
         // Once we have a target, run the strat.
         Direction backoutDir = rc.getLocation().directionTo(attackTarget).opposite();
@@ -82,13 +81,11 @@ public class Soldier extends Bunny {
 
         // 1. If you can attack him, attack him, then back out.
         if(rc.isActionReady() && rc.canAttack(attackTarget)){
-            Util.log("Running attack and back out");
             rc.attack(attackTarget);
             nav.goToFuzzy(backoutLoc, 0);
         }
         // 2. If your action is ready but you're too far away, move towards and then attack.
         else if(rc.isActionReady()){
-            Util.log("Running push");
             nav.goToFuzzy(attackTarget, 0);
             if(rc.canAttack(attackTarget)){
                 rc.attack(attackTarget);
@@ -96,7 +93,6 @@ public class Soldier extends Bunny {
         }
         // 3. If your action is not ready but you're within attack radius, back out.
         else if(!rc.isActionReady() && distToTarget <= attackInfo.getType().actionRadiusSquared){
-            Util.log("Pulling out");
             nav.goToFuzzy(backoutLoc, 0);
         }
     }

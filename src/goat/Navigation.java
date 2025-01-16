@@ -290,7 +290,7 @@ public class Navigation {
             }
         }
         if (bestDirection != null) {
-            rc.move(bestDirection);
+            Util.move(bestDirection);
             recentlyVisited[recentlyVisitedIdx] = rc.getLocation();
             recentlyVisitedIdx = (recentlyVisitedIdx + 1) % recentlyVisited.length;
             return true;

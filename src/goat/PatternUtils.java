@@ -6,8 +6,6 @@ enum PatternPriority {
     LOW, MEDIUM, HIGH
 }
 
-
-
 public class PatternUtils {
     static Soldier soldier;
     static RobotController rc;
@@ -31,12 +29,11 @@ public class PatternUtils {
                 int index = soldier.spiralOutwardIndices[i];
                 if (soldier.nearbyMapInfos[index] == null || soldier.nearbyMapInfos[index].hasRuin() || soldier.nearbyMapInfos[index].isWall()) {
                     continue;
-                } else {
-                    if (soldier.nearbyMapInfos[index].getPaint() == PaintType.EMPTY) {
-                        MapLocation location = soldier.nearbyMapInfos[index].getMapLocation();
-                        rc.attack(location, (location.x+location.y)%2 == 0);
-                        break;
-                    }
+                }
+                MapLocation location = soldier.nearbyMapInfos[index].getMapLocation();
+                if (rc.canAttack(location) && soldier.nearbyMapInfos[index].getPaint() == PaintType.EMPTY) {
+                    rc.attack(location, (location.x+location.y)%2 == 0);
+                    break;
                 }
             }
         }
@@ -98,25 +95,25 @@ public class PatternUtils {
                 Direction direction = soldier.myLoc.directionTo(soldier.nearbyMapInfos[index].getMapLocation());
 
                 if (rc.canMove(direction.rotateRight())) {
-                    rc.move(direction.rotateRight());
+                    Util.move(direction.rotateRight());
                 }
 
             } else if (r2 == 2) {
                 // diagonally adjacent to center
                 Direction direction = soldier.myLoc.directionTo(soldier.nearbyMapInfos[index].getMapLocation());
                 if (rc.canMove(direction.rotateRight())) {
-                    rc.move(direction.rotateRight());
+                    Util.move(direction.rotateRight());
                 } else if (rc.canMove(direction.rotateLeft())) {
-                    rc.move(direction.rotateLeft());
+                    Util.move(direction.rotateLeft());
                 }
             } else if (r2 == 4) {
                 Direction direction = soldier.myLoc.directionTo(soldier.nearbyMapInfos[index].getMapLocation());
                 if (rc.canMove(direction)) {
-                    rc.move(direction);
+                    Util.move(direction);
                 } else if (rc.canMove(direction.rotateRight())) {
-                    rc.move(direction.rotateRight());
+                    Util.move(direction.rotateRight());
                 } else if (rc.canMove(direction.rotateLeft())) {
-                    rc.move(direction.rotateLeft());
+                    Util.move(direction.rotateLeft());
                 }
             } else {
                 soldier.nav.goToFuzzy(soldier.nearbyMapInfos[index].getMapLocation(), 0);

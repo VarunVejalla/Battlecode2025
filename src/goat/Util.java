@@ -14,9 +14,7 @@ public class Util {
 
     public static boolean tryMove(Direction dir) throws GameActionException {
         if (rc.canMove(dir)) {
-            rc.move(dir);
-            robot.myLoc = rc.getLocation();
-            robot.myLocInfo = rc.senseMapInfo(robot.myLoc);
+            Util.move(dir);
             return true;
         }
         return false;
@@ -144,8 +142,64 @@ public class Util {
         return -1;
     }
 
+    public static void move(Direction dir) throws GameActionException{
+        rc.move(dir);
+        robot.myLoc = rc.getLocation();
+        robot.myLocInfo = rc.senseMapInfo(robot.myLoc);
+    }
+
+    public static int[] getNewVisionIndicesAfterMove(Direction direction){
+        int[] dx = null;
+        int[] dy = null;
+        switch(direction) {
+            case null:
+                return new int[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68};
+            case Direction.EAST:
+                dx = new int[]{2, 2, 3, 3, 4, 4, 4, 4, 4};
+                dy = new int[]{-4, 4, -3, 3, -2, -1, 0, 1, 2};
+                break;
+            case Direction.WEST:
+                dx = new int[]{-4, -4, -4, -4, -4, -3, -3, -2, -2};
+                dy = new int[]{-2, -1, 0, 1, 2, -3, 3, -4, 4};
+                break;
+            case Direction.NORTH:
+                dx = new int[]{-4, -3, -2, -1, 0, 1, 2, 3, 4};
+                dy = new int[]{2, 3, 4, 4, 4, 4, 4, 3, 2};
+                break;
+            case Direction.SOUTH:
+                dx = new int[]{-4, -3, -2, -1, 0, 1, 2, 3, 4};
+                dy = new int[]{-2, -3, -4, -4, -4, -4, -4, -3, -2};
+                break;
+            case Direction.NORTHEAST:
+                dx = new int[]{-2, -1, 0, 1, 2, 2, 3, 3, 4, 4, 4, 4, 4};
+                dy = new int[]{4, 4, 4, 4, 3, 4, 2, 3, -2, -1, 0, 1, 2};
+                break;
+            case Direction.NORTHWEST:
+                dx = new int[]{-4, -4, -4, -4, -4, -3, -3, -2, -2, -1, 0, 1, 2};
+                dy = new int[]{-2, -1, 0, 1, 2, 2, 3, 3, 4, 4, 4, 4, 4};
+                break;
+            case Direction.SOUTHEAST:
+                dx = new int[]{-2, -1, 0, 1, 2, 2, 3, 3, 4, 4, 4, 4, 4};
+                dy = new int[]{-4, -4, -4, -4, -4, -3, -3, -2, -2, -1, 0, 1, 2};
+                break;
+            case Direction.SOUTHWEST:
+                dx = new int[]{-4, -4, -4, -4, -4, -3, -3, -2, -2, -1, 0, 1, 2};
+                dy = new int[]{-2, -1, 0, 1, 2, -3, -2, -4, -3, -4, -4, -4, -4};
+                break;
+            case Direction.CENTER:
+                // No movement.
+                return new int[]{};
+        }
+        int[] indices = new int[dx.length];
+        for(int i = 0; i < indices.length; i++){
+            indices[i] = getMapInfoIndex(dx[i], dy[i]);
+        }
+        return indices;
+    }
+
     public static void addToIndicatorString(String str) {
         robot.indicatorString += str + ";";
+        rc.setIndicatorString(robot.indicatorString);
     }
 
     public static <T> int getItemIndexInArray(T item, T[] array) {
@@ -254,7 +308,7 @@ public class Util {
     }
 
     public static void log(String str) {
-        if(Constants.MUTE || (rc.getID() != 12849)){
+        if(Constants.MUTE || (rc.getID() != 13046)){
 //        if(Constants.MUTE){
             return;
         }

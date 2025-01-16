@@ -19,9 +19,6 @@ public class Tower extends Robot {
         scanSurroundings();
         runAttack();
 
-//        if(rc.getRoundNum() > 300) {
-//            rc.resign();
-//        }
         if (rc.getRoundNum() < Constants.SPAWN_OPENING_BOTS_ROUNDS) {
             openingBots();
         } else if (rc.getMoney() > Constants.SPAWN_BOTS_MIDGAME_COST_THRESHOLD) {
