@@ -10,7 +10,8 @@ public class Splasher extends Bunny {
 
     public void run() throws GameActionException {
         super.run(); // Call shared logic for all bunnies
-        updateDestinationIfNeeded();
+        // Updated in Bunny.
+//        updateDestinationIfNeeded();
 
         // 1. Replenish or Perform Splash Attack
         if (rc.isActionReady()) {
@@ -101,7 +102,11 @@ public class Splasher extends Bunny {
      */
     public int evaluateSector(int encodedSector) {
 //        throw new NotImplementedException();
-        return 0; // this doesn't actually get called yet
+        ScanResult sr = comms.decodeSector(encodedSector);
+        if(sr.enemyPaintLevel >= 2) {
+            return 1;
+        }
+        return 0;
     }
 
     /**
@@ -119,7 +124,9 @@ public class Splasher extends Bunny {
         }
 
         //Util.log("Splasher fallback to destination: " + destination);
-        nav.goTo(destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
+//        nav.goTo(destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
+
+        macroMove();
     }
 
     /**

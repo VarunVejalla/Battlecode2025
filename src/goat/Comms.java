@@ -80,14 +80,13 @@ public class Comms {
      * Decodes the sector data and returns an array of values:
      * [enemyPaintCount, emptyCount, ruinCondition, staleBit]
      */
-    public ScanResult decodeSector(int sectorIndex) {
-        int sectorValue = myWorld[sectorIndex];
+    public ScanResult decodeSector(int encodedSector) {
 
-        int ruinCondition = (sectorValue >> 1) & 0b111;
-        int emptyCount = (sectorValue >> 4) & 0b11;
-        int enemyPaintCount = (sectorValue >> 6) & 0b11;
+        int ruinCondition = (encodedSector >> 1) & 0b111;
+        int emptyCount = (encodedSector >> 4) & 0b11;
+        int enemyPaintCount = (encodedSector >> 6) & 0b11;
 
-        return new ScanResult(enemyPaintCount, emptyCount, ruinCondition);
+        return new ScanResult(ruinCondition, enemyPaintCount, emptyCount);
     }
 
     /**
@@ -120,17 +119,20 @@ public class Comms {
         int col = loc.x / 5;
         int row = loc.y / 5;
 
-        // Center sector index
-        int centerIndex = row * sectorCols + col;
-
         // Precompute bounds to avoid repeated checks
         int minRow = Math.max(0, row - 1);
-        int maxRow = Math.min(sectorRows - 1, row + 1);
+        int maxRow = Math.min(sectorCols - 1, row + 1);
         int minCol = Math.max(0, col - 1);
-        int maxCol = Math.min(sectorCols - 1, col + 1);
+        int maxCol = Math.min(sectorRows - 1, col + 1);
+
+        // Validate bounds
+        if (maxRow < minRow || maxCol < minCol) {
+            throw new IllegalStateException("Invalid sector bounds");
+        }
 
         // Calculate the number of valid neighbors
         int neighborCount = (maxRow - minRow + 1) * (maxCol - minCol + 1);
+
         int[] neighbors = new int[neighborCount];
         int index = 0;
 
@@ -143,6 +145,7 @@ public class Comms {
 
         return neighbors;
     }
+
 
 
     /**

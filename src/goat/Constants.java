@@ -8,6 +8,7 @@ public class Constants {
     public static final int MIN_DIST_TO_SATISFY_RANDOM_DESTINATION = 9;
     public static final int MIN_PAINT_NEEDED_FOR_SOLDIER_ATTACK = 5;
     public static final int SPAWN_OPENING_BOTS_ROUNDS = 50;
+    public static final int SPAWN_MIDGAME_BOTS_ROUNDS = 500;
     public static final int SPAWN_BOTS_MIDGAME_COST_THRESHOLD = 1500;
     public static final int TOWER_COST = 1000;
 }

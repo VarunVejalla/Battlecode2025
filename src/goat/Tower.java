@@ -16,10 +16,23 @@ public class Tower extends Robot {
         super.run();
         scanSurroundings();
 
+//        if(rc.getRoundNum() > 20) {
+//            rc.resign();
+//        }
+//        Direction dir = directions[rng.nextInt(directions.length)];
+//        MapLocation nextLoc = rc.getLocation().add(dir);
+//        if(rc.canBuildRobot(UnitType.SPLASHER, nextLoc)){
+//            rc.buildRobot(UnitType.SPLASHER, nextLoc);
+//        }
         if (rc.getRoundNum() < Constants.SPAWN_OPENING_BOTS_ROUNDS) {
             openingBots();
         } else if (rc.getMoney() > Constants.SPAWN_BOTS_MIDGAME_COST_THRESHOLD) {
-            midGameBots();
+            if(rc.getRoundNum() < Constants.SPAWN_MIDGAME_BOTS_ROUNDS) {
+                midGameBots();
+            }
+            else {
+                endGameBots();
+            }
         }
 
         // Read incoming messages
@@ -59,6 +72,25 @@ public class Tower extends Robot {
         } else if (robotType == 2 && rc.canBuildRobot(UnitType.SPLASHER, nextLoc)) {
             rc.buildRobot(UnitType.SPLASHER, nextLoc);
         }
+    }
+
+    public void endGameBots() throws GameActionException {
+        Direction dir = directions[rng.nextInt(directions.length)];
+        MapLocation nextLoc = rc.getLocation().add(dir);
+        // every 10 rounds, make a mopper
+        if(rc.getRoundNum() % 10 == 0 && rc.canBuildRobot(UnitType.MOPPER, nextLoc)) {
+            rc.buildRobot(UnitType.MOPPER, nextLoc);
+            return;
+        }
+
+        // rest of rounds, alternate between soldier and splasher
+        int robotType = 2*rng.nextInt(2); // yes splashers
+        if (robotType == 0 && rc.canBuildRobot(UnitType.SOLDIER, nextLoc)) {
+            rc.buildRobot(UnitType.SOLDIER, nextLoc);
+        } else if (robotType == 2 && rc.canBuildRobot(UnitType.SPLASHER, nextLoc)) {
+            rc.buildRobot(UnitType.SPLASHER, nextLoc);
+        }
+
     }
 
     public boolean shouldRunAoEAttack() throws GameActionException {
