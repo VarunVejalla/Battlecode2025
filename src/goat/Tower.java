@@ -16,13 +16,8 @@ public class Tower extends Robot {
         super.run();
         scanSurroundings();
 
-//        if(rc.getRoundNum() > 20) {
+//        if(rc.getRoundNum() > 300) {
 //            rc.resign();
-//        }
-//        Direction dir = directions[rng.nextInt(directions.length)];
-//        MapLocation nextLoc = rc.getLocation().add(dir);
-//        if(rc.canBuildRobot(UnitType.SPLASHER, nextLoc)){
-//            rc.buildRobot(UnitType.SPLASHER, nextLoc);
 //        }
         if (rc.getRoundNum() < Constants.SPAWN_OPENING_BOTS_ROUNDS) {
             openingBots();

@@ -28,18 +28,21 @@ public class TowerComms extends Comms {
         }
 
         boolean hasSentMap = false;
-
+//        System.out.println("Tower: " + tower.getID());
         for (Message message : messages) {
 
             if (message.getBytes() == MAP_UPDATE_REQUEST_CODE) {
+                System.out.println("Received a map 1 request: " + message);
                 // Util.log("Received a map request: " + message);
                 if(!hasSentMap){
                     sendMap1(message.getSenderID());
                     hasSentMap = true;
+                    System.out.println("sent map");
                 }
             }
             else if (message.getBytes() == MAP2_UPDATE_REQUEST_CODE) {
                 // Util.log("Received a map 2 request: " + message);
+                System.out.println("Received a map 2 request: " + message);
                 if(!hasSentMap) {
                     sendMap2(message.getSenderID());
                     hasSentMap = true;

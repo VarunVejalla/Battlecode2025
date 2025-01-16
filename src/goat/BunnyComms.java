@@ -11,7 +11,7 @@ public class BunnyComms extends Comms {
     public int lastMapUpdate = -(MAP_COOLDOWN + 1);
     public int lastMap2Update = -(MAP2_COOLDOWN + 1); // used for larger maps.
 
-    public final int BUFFER_COOLDOWN = 10;
+    public final int BUFFER_COOLDOWN = 50;
     public int lastBufferUpdate = -(BUFFER_COOLDOWN + 1);
 
     public final int NUM_ROUNDS_TO_WAIT_FOR_MAP_UPDATE = 4;

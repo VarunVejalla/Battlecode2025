@@ -55,12 +55,12 @@ public abstract class Bunny extends Robot {
 
         // If waiting for a map, stay in place. Otherwise, move!
         if(comms.waitingForMap){ // don't move if we're waiting to receive a map from a tower
-            Util.log("Bunny @ " + rc.getLocation() + ". Pausing movement because I'm waiting for a map!");
+            System.out.println("Bunny @ " + rc.getLocation() + ". Pausing movement because I'm waiting for a map!");
         }
     }
 
     public boolean canMove() {
-        return rc.isMovementReady() && !comms.waitingForMap;
+        return rc.isMovementReady(); // && !comms.waitingForMap && !comms.waitingForMap2;
     }
 
     /**
