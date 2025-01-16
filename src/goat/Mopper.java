@@ -38,8 +38,11 @@ public class Mopper extends Bunny {
      * Returns a score evaluating how favorable it would be for this robot to move to this sector.
      */
     public int evaluateSector(int encodedSector) {
-//        throw new NotImplementedException();
-        return 0; // this should not be called yet
+        ScanResult sr = comms.decodeSector(encodedSector);
+        if(sr.enemyPaintLevel >= 1) {
+            return 1;
+        }
+        return 0;
     }
 
     /**
@@ -82,7 +85,7 @@ public class Mopper extends Bunny {
             nav.goTo(bestLocation, UnitType.MOPPER.actionRadiusSquared);
         } else {
             // Move in the direction
-            nav.goTo(destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
+            macroMove(3);
         }
     }
 

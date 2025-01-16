@@ -42,7 +42,7 @@ public class TowerComms extends Comms {
             }
             else if (message.getBytes() == MAP2_UPDATE_REQUEST_CODE) {
                 // Util.log("Received a map 2 request: " + message);
-                System.out.println("Received a map 2 request: " + message);
+//                System.out.println("Received a map 2 request: " + message);
                 if(!hasSentMap) {
                     sendMap2(message.getSenderID());
                     hasSentMap = true;

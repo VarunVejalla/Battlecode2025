@@ -66,7 +66,7 @@ public abstract class Bunny extends Robot {
      * Evalute the sectors that are neighboring your current sector and move towards the best one.
      */
     // TODO: There are bugs in this method. This needs to be checked and not used yet.
-    public void macroMove() throws GameActionException {
+    public void macroMove(int dist_to_best_sector) throws GameActionException {
         int bestScore = 0;
         int bestSector = -1;
         int[] neighborSectorIndexes = comms.getSectorAndNeighbors(myLoc);
@@ -82,7 +82,7 @@ public abstract class Bunny extends Robot {
 
         if(bestSector != -1) {
             // Go to the center of that sector.
-            nav.goTo(comms.getSectorCenter(bestSector), 0);
+            nav.goTo(comms.getSectorCenter(bestSector), dist_to_best_sector);
         } else {
             nav.goTo(destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
         }
