@@ -37,16 +37,11 @@ public class Soldier extends Bunny {
 
     public void run() throws GameActionException {
         super.run(); // Call the shared logic for all bunnies
-        updateDestinationIfNeeded();
 
         // 1. If trying to replenish, go do that.
         // TODO: If nearestAlliedPaintTowerLoc == null, should we explore or smth?
-        if(tryingToReplenish && nearestAlliedPaintTowerLoc != null){
-            tryReplenish();
-            // TODO: Don't stay adjacent to other robots.
-            if (myLoc.distanceSquaredTo(nearestAlliedPaintTowerLoc) > GameConstants.PAINT_TRANSFER_RADIUS_SQUARED) {
-                nav.goToBug(nearestAlliedPaintTowerLoc, GameConstants.PAINT_TRANSFER_RADIUS_SQUARED);
-            }
+        if(tryingToReplenish){
+            replenishLogic();
         }
         else {
             RobotInfo attackInfo = getAttackTarget();
@@ -87,7 +82,6 @@ public class Soldier extends Bunny {
 
     public void runAttackLogic(RobotInfo attackInfo) throws GameActionException {
         MapLocation attackTarget = attackInfo.getLocation();
-        Util.log("Running attack strat on target at " + attackTarget);
 
         // Once we have a target, run the strat.
         Direction backoutDir = rc.getLocation().directionTo(attackTarget).opposite();
@@ -96,13 +90,11 @@ public class Soldier extends Bunny {
 
         // 1. If you can attack him, attack him, then back out.
         if(rc.isActionReady() && rc.canAttack(attackTarget)){
-            Util.log("Running attack and back out");
             rc.attack(attackTarget);
             nav.goToFuzzy(backoutLoc, 0);
         }
         // 2. If your action is ready but you're too far away, move towards and then attack.
         else if(rc.isActionReady()){
-            Util.log("Running push");
             nav.goToFuzzy(attackTarget, 0);
             if(rc.canAttack(attackTarget)){
                 rc.attack(attackTarget);
@@ -110,7 +102,6 @@ public class Soldier extends Bunny {
         }
         // 3. If your action is not ready but you're within attack radius, back out.
         else if(!rc.isActionReady() && distToTarget <= attackInfo.getType().actionRadiusSquared){
-            Util.log("Pulling out");
             nav.goToFuzzy(backoutLoc, 0);
         }
     }
@@ -277,7 +268,7 @@ public class Soldier extends Bunny {
             }
 
             if (rc.isMovementReady()) {
-                nav.goTo(currResourceCenterLoc, 0);
+                nav.goToFuzzy(currResourceCenterLoc, 0);
             }
             if (rc.canCompleteResourcePattern(currResourceCenterLoc)) {
                 rc.completeResourcePattern(currResourceCenterLoc);
