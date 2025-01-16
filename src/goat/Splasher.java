@@ -59,7 +59,7 @@ public class Splasher extends Bunny {
             if (tile.getPaint().isEnemy()) {
                 score += 100;
                 // Favor clusters of enemy tiles
-                score += 10 * adjacencyToEnemyPaint(tile.getMapLocation());
+                score += 10 * adjacencyToEnemy(tile.getMapLocation());
             }
 
 
@@ -82,19 +82,27 @@ public class Splasher extends Bunny {
     /**
      * Calculate adjacency to enemy-painted tiles.
      */
-    public int adjacencyToEnemyPaint(MapLocation loc) throws GameActionException {
+    public int adjacencyToEnemy(MapLocation loc) throws GameActionException {
         Direction[] directions = Direction.allDirections();
-        int adjacentEnemyTiles = 0;
+        int adjacencyToEnemyScore = 0;
         for (Direction dir : directions) {
             MapLocation adjacent = loc.add(dir);
             if (rc.canSenseLocation(adjacent)) {
                 MapInfo adjacentTile = rc.senseMapInfo(adjacent);
                 if (adjacentTile.getPaint().isEnemy()) {
-                    adjacentEnemyTiles++;
+                    adjacencyToEnemyScore++;
                 }
             }
+            // If you sense an enemy tower, hit that.
+            if(rc.canSenseRobotAtLocation(adjacent)) {
+                RobotInfo rob = rc.senseRobotAtLocation(adjacent);
+                if(rob.getType().isTowerType() && rob.getTeam() != rc.getTeam()) {
+                    adjacencyToEnemyScore+= 1000;
+                }
+            }
+
         }
-        return adjacentEnemyTiles;
+        return adjacencyToEnemyScore;
     }
 
     /**
@@ -129,20 +137,4 @@ public class Splasher extends Bunny {
         macroMove();
     }
 
-    /**
-     * Evaluate the desirability of a tile for movement.
-     */
-    private int evaluateMoveTile(MapInfo tile) throws GameActionException {
-        int score = 0;
-
-        // Favor tiles adjacent to enemy paint
-        if (tile.getPaint().isAlly()) {
-            score += 100;
-        }
-
-        // Penalize distance from the current location
-        score -= myLoc.distanceSquaredTo(tile.getMapLocation());
-
-        return score;
-    }
 }

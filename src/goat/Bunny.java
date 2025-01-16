@@ -60,7 +60,7 @@ public abstract class Bunny extends Robot {
     }
 
     public boolean canMove() {
-        return rc.isMovementReady(); // && !comms.waitingForMap && !comms.waitingForMap2;
+        return rc.isMovementReady() && !comms.waitingForMap && !comms.waitingForMap2;
     }
 
     /**
