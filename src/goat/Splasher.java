@@ -10,6 +10,7 @@ public class Splasher extends Bunny {
 
     public void run() throws GameActionException {
         super.run(); // Call shared logic for all bunnies
+        updateDestinationIfNeeded();
 
         // 1. Replenish or Perform Splash Attack
         if (rc.isActionReady()) {
@@ -46,7 +47,7 @@ public class Splasher extends Bunny {
         MapLocation myLoc = rc.getLocation();
 
         MapLocation bestTarget = null;
-        int bestScore = Integer.MIN_VALUE;
+        int bestScore = 0;
 
         for (MapInfo tile : actionableTiles) {
             if (!rc.canAttack(tile.getMapLocation())) continue;
@@ -56,13 +57,14 @@ public class Splasher extends Bunny {
             // Prioritize tiles with enemy paint or robots
             if (tile.getPaint().isEnemy()) {
                 score += 100;
+                // Favor clusters of enemy tiles
+                score += 10 * adjacencyToEnemyPaint(tile.getMapLocation());
             }
 
-            // Favor clusters of enemy tiles
-            score += 10 * adjacencyToEnemyPaint(tile.getMapLocation());
+
 
             // Penalize distance
-            score -= myLoc.distanceSquaredTo(tile.getMapLocation());
+//            score -= myLoc.distanceSquaredTo(tile.getMapLocation());
 
             if (score > bestScore) {
                 bestScore = score;
@@ -116,30 +118,8 @@ public class Splasher extends Bunny {
             return;
         }
 
-        MapLocation bestLocation = null;
-        int bestScore = Integer.MIN_VALUE;
-
-        for (Direction dir : Direction.allDirections()) {
-            if (!rc.canMove(dir)) continue;
-
-            MapLocation targetLoc = myLoc.add(dir);
-            MapInfo tile = rc.senseMapInfo(targetLoc);
-
-            int score = evaluateMoveTile(tile);
-
-            if (score > bestScore) {
-                bestScore = score;
-                bestLocation = targetLoc;
-            }
-        }
-
-        if (bestLocation != null) {
-            //Util.log("Splasher moving to: " + bestLocation);
-            nav.goTo(bestLocation, 0);
-        } else {
-            //Util.log("Splasher fallback to destination: " + destination);
-            nav.goTo(destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
-        }
+        //Util.log("Splasher fallback to destination: " + destination);
+        nav.goTo(destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
     }
 
     /**
