@@ -8,6 +8,12 @@ public class Soldier extends Bunny {
     public static final int[] shift_dx = {-4,-4,-4,-4,-4,-3,-3,-3,-3,-3,-3,-3,-2,-2,-2,-2,-2,-2,-2,-2,-2,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,4,4,4,4,4};
     public static final int[] shift_dy = {-2,-1,0,1,2,-3,-2,-1,0,1,2,3,-4,-3,-2,-1,0,1,2,3,4,-4,-3,-2,-1,0,1,2,3,4,-4,-3,-2,-1,0,1,2,3,4,-4,-3,-2,-1,0,1,2,3,4,-4,-3,-2,-1,0,1,2,3,4,-3,-2,-1,0,1,2,3,-2,-1,0,1,2};
 
+    MapLocation currRuinLoc = null;
+    UnitType currRuinType = null;
+    boolean currRuinMarked = false;
+    boolean currRuinMyResponsibility = false;
+    int[] roundPaintedRuinsBySector = new int[144];
+
     public Soldier(RobotController rc) throws GameActionException {
         super(rc);
         PatternUtils.soldier = this;
@@ -24,7 +30,7 @@ public class Soldier extends Bunny {
             tryReplenish();
             // TODO: Don't stay adjacent to other robots.
             if (myLoc.distanceSquaredTo(nearestAlliedPaintTowerLoc) > GameConstants.PAINT_TRANSFER_RADIUS_SQUARED) {
-                nav.goTo(nearestAlliedPaintTowerLoc, GameConstants.PAINT_TRANSFER_RADIUS_SQUARED);
+                nav.goToBug(nearestAlliedPaintTowerLoc, GameConstants.PAINT_TRANSFER_RADIUS_SQUARED);
             }
         }
         else {
@@ -95,11 +101,105 @@ public class Soldier extends Bunny {
     }
 
     public void buildPattern() throws GameActionException {
-        int highPriorityRuinIndex = -1;
-        int mediumPriorityRuinIndex = -1;
+        // If we're already building a ruin, check if it's been completed.
+        Util.log("Beginning of method: " + currRuinLoc + ", " + currRuinType);
+        if(currRuinLoc != null){
+            if(rc.canSenseLocation(currRuinLoc) && rc.senseRobotAtLocation(currRuinLoc) != null){
+                currRuinLoc = null;
+                currRuinType = null;
+                currRuinMarked = false;
+                currRuinMyResponsibility = false;
+            } else if(currRuinType != null && PatternUtils.checkRuinCompleted(currRuinLoc, currRuinType) && !currRuinMyResponsibility) {
+                // If i'm not the closest guy to the ruin, and the ruin is completed, dip.
+                boolean amClosest = true;
+                int myDist = rc.getLocation().distanceSquaredTo(currRuinLoc);
+                for(RobotInfo info : nearbyFriendlies){
+                    if(info.getLocation().distanceSquaredTo(currRuinLoc) < myDist){
+                        Util.log("I'm the not closest! Robot that's closer: " + info.getID() + ", " + info.getLocation());
+                        amClosest = false;
+                        break;
+                    }
+                     else if(info.getLocation().distanceSquaredTo(currRuinLoc) == myDist && rc.getID() > info.getID()){
+                        // Tiebreaker is robot id. Lower id stays.
+                        Util.log("I'm the not closest! Tiebreaker with robot: " + info.getID());
+                        amClosest = false;
+                        break;
+                    }
+                }
+                if(amClosest) {
+                    Util.log("I'm the closest! Staying behind.");
+                    currRuinMyResponsibility = true;
+                }
+                else {
+                    roundPaintedRuinsBySector[comms.getSectorIndex(currRuinLoc)] = rc.getRoundNum();
+                    Direction oppDir = rc.getLocation().directionTo(currRuinLoc);
+                    currRuinLoc = null;
+                    currRuinType = null;
+                    currRuinMarked = false;
+                    currRuinMyResponsibility = false;
+                    // Move away from the center.
+                    nav.goToFuzzy(rc.getLocation().add(oppDir).add(oppDir).add(oppDir), 0);
+                }
+            }
+        }
 
-        UnitType intendedType = PatternUtils.getPatternUnitType();
-        boolean[][] pattern = rc.getTowerPattern(intendedType);
+        // If we're not already building a ruin, find a new one.
+        if(currRuinLoc == null){
+            checkForNewPattern();
+        }
+
+        // If we're already building a ruin, go with that.
+        if(currRuinLoc != null){
+            int deltaX = currRuinLoc.x - rc.getLocation().x;
+            int deltaY = currRuinLoc.y - rc.getLocation().y;
+            int index = Util.getMapInfoIndex(deltaX, deltaY);
+            // Too far away, move towards pattern
+            if(index == -1){
+                Util.log("Moving towards: " + currRuinLoc + ", " + currRuinType);
+                nav.goToFuzzy(currRuinLoc, 0);
+                return;
+            }
+
+            // If you haven't marked it yet, redetermine it each iteration.
+            if(currRuinType != null && !currRuinMarked){
+                currRuinType = null;
+            }
+
+            if(currRuinType == null){
+                if(!PatternUtils.closeEnoughToDetermineRuinType(currRuinLoc)){
+                    Util.log("Moving towards 2: " + currRuinLoc + ", " + currRuinType);
+                    nav.goToFuzzy(currRuinLoc, 0);
+                    return;
+                }
+                currRuinType = PatternUtils.getRuinUnitType(currRuinLoc);
+            }
+
+            if(!currRuinMarked){
+                boolean marked = PatternUtils.markRuinUnitType(currRuinLoc, currRuinType);
+                currRuinMarked = marked;
+                // Get closer to mark.
+                if(!currRuinMarked){
+                    nav.goToFuzzy(currRuinLoc, 0);
+                    return;
+                }
+            }
+
+            boolean[][] pattern = rc.getTowerPattern(currRuinType);
+            PatternUtils.workOnRuin(index, pattern);
+            if (rc.canCompleteTowerPattern(currRuinType, nearbyMapInfos[index].getMapLocation())) {
+                rc.completeTowerPattern(currRuinType, nearbyMapInfos[index].getMapLocation());
+            }
+            return;
+        }
+
+        Util.log("Running default: " + currRuinLoc + ", " + currRuinType);
+
+        PatternUtils.runDefaultBehavior();
+    }
+
+    public void checkForNewPattern() throws GameActionException {
+//        int highPriorityRuinIndex = -1;
+//        int mediumPriorityRuinIndex = -1;
 
         // Spirals outward up to vision radius.
         // 1500 bytecode.
@@ -107,47 +207,64 @@ public class Soldier extends Bunny {
             if (nearbyMapInfos[index] == null || !nearbyMapInfos[index].hasRuin() || rc.canSenseRobotAtLocation(nearbyMapInfos[index].getMapLocation())) {
                 continue;
             }
-            PatternPriority priority = PatternUtils.findPriority(index, pattern);
-            if (priority == PatternPriority.HIGH) {
-                highPriorityRuinIndex = index;
-                break;
-            } else if (mediumPriorityRuinIndex == -1 && priority == PatternPriority.MEDIUM) {
-                mediumPriorityRuinIndex = index;
+
+            MapLocation ruinLoc = nearbyMapInfos[index].getMapLocation();
+            int sectorIdx = comms.getSectorIndex(ruinLoc);
+            if(roundPaintedRuinsBySector[sectorIdx] != 0 && roundPaintedRuinsBySector[sectorIdx] + Constants.ROUNDS_TO_IGNORE_PAINTED_RUINS > rc.getRoundNum()){
+                continue;
             }
+
+            currRuinLoc = ruinLoc;
         }
 
-        if (highPriorityRuinIndex != -1) {
-            PatternUtils.workOnRuin(highPriorityRuinIndex, pattern);
-            if (rc.canCompleteTowerPattern(intendedType, nearbyMapInfos[highPriorityRuinIndex].getMapLocation())) {
-                rc.completeTowerPattern(intendedType, nearbyMapInfos[highPriorityRuinIndex].getMapLocation());
-            }
-            return;
-        }
+//            highPriorityRuinIndex = index;
+//            PatternPriority priority = PatternUtils.findPriority(index, pattern);
+//            if (priority == PatternPriority.HIGH) {
+//                highPriorityRuinIndex = index;
+//                break;
+//            } else if (mediumPriorityRuinIndex == -1 && priority == PatternPriority.MEDIUM) {
+//                mediumPriorityRuinIndex = index;
+//            }
 
-        // 2650 bytecode.
-        int resourceCenterIndex = PatternUtils.getPotentialResourcePatternCenterIndex(nearbyMapInfos);
-
-        if (resourceCenterIndex != -1) {
-            // 300 bytecode.
-            pattern = rc.getResourcePattern();
-            PatternUtils.workOnResourcePattern(shift_dx[resourceCenterIndex], shift_dy[resourceCenterIndex], pattern);
-
-            if (rc.isMovementReady()) {
-                nav.goTo(nearbyMapInfos[resourceCenterIndex].getMapLocation(), 0);
-            }
-            if (rc.canCompleteResourcePattern(nearbyMapInfos[resourceCenterIndex].getMapLocation())) {
-                rc.completeResourcePattern(nearbyMapInfos[resourceCenterIndex].getMapLocation());
-            }
-            return;
-        }
-        if (mediumPriorityRuinIndex != -1) {
-            PatternUtils.workOnRuin(mediumPriorityRuinIndex, pattern);
-            if (rc.canCompleteTowerPattern(intendedType, nearbyMapInfos[mediumPriorityRuinIndex].getMapLocation())) {
-                rc.completeTowerPattern(intendedType, nearbyMapInfos[mediumPriorityRuinIndex].getMapLocation());
-            }
-            return;
-        }
-        PatternUtils.runDefaultBehavior();
+//        if (highPriorityRuinIndex != -1) {
+//            UnitType intendedType = PatternUtils.getPatternUnitType(nearbyMapInfos[highPriorityRuinIndex].getMapLocation());
+//            Util.log("Intended type: " + intendedType);
+//            boolean[][] pattern = rc.getTowerPattern(intendedType);
+//            PatternUtils.workOnRuin(highPriorityRuinIndex, pattern);
+//            if (rc.canCompleteTowerPattern(intendedType, nearbyMapInfos[highPriorityRuinIndex].getMapLocation())) {
+//                rc.completeTowerPattern(intendedType, nearbyMapInfos[highPriorityRuinIndex].getMapLocation());
+//            }
+//            return;
+//        }
+//
+//        // 2650 bytecode.
+//        int resourceCenterIndex = PatternUtils.getPotentialResourcePatternCenterIndex(nearbyMapInfos);
+//
+//        if (resourceCenterIndex != -1) {
+//            // 300 bytecode.
+//            boolean[][] pattern = rc.getResourcePattern();
+//            PatternUtils.workOnResourcePattern(shift_dx[resourceCenterIndex], shift_dy[resourceCenterIndex], pattern);
+//
+//            if (rc.isMovementReady()) {
+//                nav.goTo(nearbyMapInfos[resourceCenterIndex].getMapLocation(), 0);
+//            }
+//            if (rc.canCompleteResourcePattern(nearbyMapInfos[resourceCenterIndex].getMapLocation())) {
+//                rc.completeResourcePattern(nearbyMapInfos[resourceCenterIndex].getMapLocation());
+//            }
+//            return;
+//        }
+//
+//        if (mediumPriorityRuinIndex != -1) {
+//            UnitType intendedType = PatternUtils.getPatternUnitType(nearbyMapInfos[mediumPriorityRuinIndex].getMapLocation());
+//            Util.log("Intended type: " + intendedType);
+//            boolean[][] pattern = rc.getTowerPattern(intendedType);
+//            PatternUtils.workOnRuin(mediumPriorityRuinIndex, pattern);
+//            if (rc.canCompleteTowerPattern(intendedType, nearbyMapInfos[mediumPriorityRuinIndex].getMapLocation())) {
+//                rc.completeTowerPattern(intendedType, nearbyMapInfos[mediumPriorityRuinIndex].getMapLocation());
+//            }
+//            return;
+//        }
+        return;
     }
 
     /**

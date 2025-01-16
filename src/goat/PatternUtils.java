@@ -117,7 +117,7 @@ public class PatternUtils {
                     rc.move(direction.rotateLeft());
                 }
             } else {
-                soldier.nav.goTo(soldier.nearbyMapInfos[index].getMapLocation(), 0);
+                soldier.nav.goToFuzzy(soldier.nearbyMapInfos[index].getMapLocation(), 0);
             }
         }
     }
@@ -199,13 +199,90 @@ public class PatternUtils {
         }
     }
 
-    public static UnitType getPatternUnitType() {
+    public static boolean closeEnoughToDetermineRuinType(MapLocation ruinLoc) throws GameActionException {
+        for(int x = ruinLoc.x - 1; x <= ruinLoc.x + 1; x++) {
+            for(int y = ruinLoc.y - 1; y <= ruinLoc.y + 1; y++) {
+                MapLocation loc = new MapLocation(x, y);
+                if(!rc.canSenseLocation(loc)){
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    public static UnitType getRuinUnitType(MapLocation ruinLoc) throws GameActionException {
+        // Check for any existing markings on what tower type to build.
+        for(int x = ruinLoc.x - 1; x <= ruinLoc.x + 1; x++) {
+            for(int y = ruinLoc.y - 1; y <= ruinLoc.y + 1; y++) {
+                MapLocation loc = new MapLocation(x, y);
+                MapInfo info = rc.senseMapInfo(loc);
+                if(info.getMark() == PaintType.ALLY_PRIMARY){
+                    soldier.currRuinMarked = true;
+                    return UnitType.LEVEL_ONE_PAINT_TOWER;
+                }
+                else if(info.getMark() == PaintType.ALLY_SECONDARY){
+                    soldier.currRuinMarked = true;
+                    return UnitType.LEVEL_ONE_MONEY_TOWER;
+                }
+            }
+        }
+
+        // If we got here, then no type has been assigned to this guy yet, so make one rn.
+        UnitType buildingType = decideRuinUnitType();
+        // Mark it so that other people are aware of that.
+        soldier.currRuinMarked = markRuinUnitType(ruinLoc, buildingType);
+        return buildingType;
+    }
+
+    public static boolean markRuinUnitType(MapLocation ruinLoc, UnitType buildingType) throws GameActionException {
+        for(int x = ruinLoc.x - 1; x <= ruinLoc.x + 1; x++) {
+            for(int y = ruinLoc.y - 1; y <= ruinLoc.y + 1; y++) {
+                MapLocation loc = new MapLocation(x, y);
+                if(rc.canMark(loc)){
+                    if(buildingType == UnitType.LEVEL_ONE_PAINT_TOWER){
+                        rc.mark(loc, false);
+                        return true;
+                    } else {
+                        rc.mark(loc, true);
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    public static UnitType decideRuinUnitType() {
         if(soldier.nearestAlliedTowerType == TowerType.PaintTower) {
             return UnitType.LEVEL_ONE_MONEY_TOWER;
         }
         else {
             return UnitType.LEVEL_ONE_PAINT_TOWER;
         }
+    }
+
+    public static boolean checkRuinCompleted(MapLocation ruinLoc, UnitType ruinType) throws GameActionException {
+        boolean[][] pattern = rc.getTowerPattern(ruinType);
+        for(int x = ruinLoc.x - 2; x <= ruinLoc.x + 2; x++) {
+            for(int y = ruinLoc.y - 2; y <= ruinLoc.y + 2; y++) {
+                if(x == ruinLoc.x && y == ruinLoc.y) {
+                    continue;
+                }
+                MapLocation loc = new MapLocation(x, y);
+                if(!rc.canSenseLocation(loc)){
+                    return false;
+                }
+                boolean shouldBeSecondary = pattern[x - ruinLoc.x + 2][y - ruinLoc.y + 2];
+                if(shouldBeSecondary && rc.senseMapInfo(loc).getPaint() != PaintType.ALLY_SECONDARY){
+                    return false;
+                }
+                if(!shouldBeSecondary && rc.senseMapInfo(loc).getPaint() != PaintType.ALLY_PRIMARY){
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     // TODO: Script to unroll created, but varun's gonna change some code so wait until that's done.
