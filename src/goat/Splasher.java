@@ -10,30 +10,17 @@ public class Splasher extends Bunny {
 
     public void run() throws GameActionException {
         super.run(); // Call shared logic for all bunnies
-        // Updated in Bunny.
-//        updateDestinationIfNeeded();
 
         // 1. Replenish or Perform Splash Attack
-        if (rc.isActionReady()) {
-            if (tryingToReplenish) {
-                tryReplenish();
-            } else {
-                splashAttack();
+        if (tryingToReplenish) {
+            replenishLogic();
+        } else {
+            splashAttack();
+            // 2. Movement Logic
+            if (canMove()) {
+                moveLogic();
             }
-        }
-
-        // 2. Movement Logic
-        if (canMove()) {
-            moveLogic();
-        }
-
-        // 3. Recheck for Splash Attack or Replenish
-        if (rc.isActionReady()) {
-            if (tryingToReplenish) {
-                tryReplenish();
-            } else {
-                splashAttack();
-            }
+            splashAttack();
         }
 
         // 4. End of Turn Logic

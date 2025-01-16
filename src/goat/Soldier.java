@@ -23,16 +23,11 @@ public class Soldier extends Bunny {
 
     public void run() throws GameActionException {
         super.run(); // Call the shared logic for all bunnies
-        updateDestinationIfNeeded();
 
         // 1. If trying to replenish, go do that.
         // TODO: If nearestAlliedPaintTowerLoc == null, should we explore or smth?
-        if(tryingToReplenish && nearestAlliedPaintTowerLoc != null){
-            tryReplenish();
-            // TODO: Don't stay adjacent to other robots.
-            if (myLoc.distanceSquaredTo(nearestAlliedPaintTowerLoc) > GameConstants.PAINT_TRANSFER_RADIUS_SQUARED) {
-                nav.goToBug(nearestAlliedPaintTowerLoc, GameConstants.PAINT_TRANSFER_RADIUS_SQUARED);
-            }
+        if(tryingToReplenish){
+            replenishLogic();
         }
         else {
             RobotInfo attackInfo = getAttackTarget();

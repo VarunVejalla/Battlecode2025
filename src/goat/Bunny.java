@@ -27,6 +27,7 @@ public abstract class Bunny extends Robot {
     MapLocation[] knownRuinsBySector = new MapLocation[144];
     MapLocation[] knownAlliedTowerLocs = new MapLocation[10];
     TowerType[] knownAlliedTowerTypes = new TowerType[10];
+    MapLocation nearestAlliedTowerLoc;
     TowerType nearestAlliedTowerType;
     MapLocation nearestAlliedPaintTowerLoc;
     MapLocation destination; // long-term destination
@@ -249,6 +250,7 @@ public abstract class Bunny extends Robot {
         int maxPaintDist = Integer.MAX_VALUE;
         nearestAlliedPaintTowerLoc = null;
         nearestAlliedTowerType = null;
+        nearestAlliedTowerLoc = null;
         MapLocation myLocation = rc.getLocation();
         for(int i = 0; i < knownAlliedTowerLocs.length; i++){
             if(knownAlliedTowerLocs[i] == null){
@@ -257,11 +259,31 @@ public abstract class Bunny extends Robot {
             int dist = myLocation.distanceSquaredTo(knownAlliedTowerLocs[i]);
             if(dist < maxDist){
                 maxDist = dist;
+                nearestAlliedTowerLoc = knownAlliedTowerLocs[i];
                 nearestAlliedTowerType = knownAlliedTowerTypes[i];
             }
             if(knownAlliedTowerTypes[i] == TowerType.PaintTower && dist < maxPaintDist){
                 nearestAlliedPaintTowerLoc = knownAlliedTowerLocs[i];
                 maxPaintDist = dist;
+            }
+        }
+    }
+
+    public void replenishLogic() throws GameActionException {
+        MapLocation homebase = nearestAlliedPaintTowerLoc;
+        // TODO: Make this smarter. Wander around friendly territory till you find someone to replenish you.
+        if(homebase == null){
+            homebase = nearestAlliedTowerLoc;
+        }
+        if(homebase == null) return;
+
+        if(rc.getLocation().distanceSquaredTo(homebase) > 9) {
+            nav.goToBug(homebase, 0);
+        } else {
+            tryReplenish();
+            nav.goToFuzzy(homebase, 0);
+            if(rc.isActionReady()){
+                tryReplenish();
             }
         }
     }
