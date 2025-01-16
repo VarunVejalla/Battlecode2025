@@ -15,14 +15,12 @@ public class Mopper extends Bunny {
         actionableTiles = rc.senseNearbyMapInfos(2);
 
         updateDestinationIfNeeded();
-        Util.log("YUHHH");
 
         if (rc.isActionReady()) {
             if (tryingToReplenish) {
-                Util.log("Tryna replenish");
                 tryReplenish();
             } else {
-                Util.log("Doing best action");
+                Util.addToIndicatorString("DBA");
                 doBestAction();
             }
         }

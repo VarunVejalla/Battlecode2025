@@ -152,53 +152,6 @@ public class PatternUtils {
         }
     }
 
-    public static PatternPriority findPriority(int index, boolean[][] pattern) {
-        // guaranteed that this is a ruin
-        boolean hasEmpty = false;
-        boolean hasEnemy = false;
-        boolean hasConflictingPaint = false;
-
-        int dx = shift_dx[index];
-        int dy = shift_dy[index];
-
-        byte[] indexOrder;
-        if (dx < -6 || dx > 6 || dy < -6 || dy > 6) {
-            indexOrder = new byte[]{};
-        }
-        else {
-            indexOrder = ExcessConstants.gridLookupIndicesPatternCall(13*dx + dy + 84);
-        }
-
-        for (int neighboringIndex : indexOrder) {
-            if (neighboringIndex == index) {
-                continue;
-            }
-            PaintType paintType = soldier.nearbyMapInfos[neighboringIndex].getPaint();
-            if (paintType == PaintType.EMPTY) {
-                return PatternPriority.HIGH;
-            } else if (paintType.isEnemy()) {
-                hasEnemy = true;
-            } else {
-                int lookupX = shift_dx[neighboringIndex] - shift_dx[index] + 2;
-                int lookupY = shift_dy[neighboringIndex] - shift_dy[index] + 2;
-                if (paintType.isSecondary() != pattern[lookupX][lookupY]) {
-                    hasConflictingPaint = true;
-                }
-            }
-        }
-
-        //by end of this loop, we see no empty
-
-        if (hasEnemy) {
-            // has enemy and no empty
-            return PatternPriority.LOW;
-        } else if (hasConflictingPaint) {
-            return PatternPriority.HIGH;
-        } else {
-            return PatternPriority.MEDIUM;
-        }
-    }
-
     public static boolean closeEnoughToDetermineRuinType(MapLocation ruinLoc) throws GameActionException {
         for(int x = ruinLoc.x - 1; x <= ruinLoc.x + 1; x++) {
             for(int y = ruinLoc.y - 1; y <= ruinLoc.y + 1; y++) {
@@ -264,16 +217,20 @@ public class PatternUtils {
 
     public static boolean checkRuinCompleted(MapLocation ruinLoc, UnitType ruinType) throws GameActionException {
         boolean[][] pattern = rc.getTowerPattern(ruinType);
-        for(int x = ruinLoc.x - 2; x <= ruinLoc.x + 2; x++) {
-            for(int y = ruinLoc.y - 2; y <= ruinLoc.y + 2; y++) {
-                if(x == ruinLoc.x && y == ruinLoc.y) {
+        return checkPatternCompleted(ruinLoc, pattern);
+    }
+
+    public static boolean checkPatternCompleted(MapLocation centerLoc, boolean[][] pattern) throws GameActionException {
+        for(int x = centerLoc.x - 2; x <= centerLoc.x + 2; x++) {
+            for(int y = centerLoc.y - 2; y <= centerLoc.y + 2; y++) {
+                if(x == centerLoc.x && y == centerLoc.y) {
                     continue;
                 }
                 MapLocation loc = new MapLocation(x, y);
                 if(!rc.canSenseLocation(loc)){
                     return false;
                 }
-                boolean shouldBeSecondary = pattern[x - ruinLoc.x + 2][y - ruinLoc.y + 2];
+                boolean shouldBeSecondary = pattern[x - centerLoc.x + 2][y - centerLoc.y + 2];
                 if(shouldBeSecondary && rc.senseMapInfo(loc).getPaint() != PaintType.ALLY_SECONDARY){
                     return false;
                 }
@@ -283,6 +240,21 @@ public class PatternUtils {
             }
         }
         return true;
+    }
+
+    public static boolean checkEnemyPaintInConsctructionArea(MapLocation centerLoc) throws GameActionException {
+        for(int x = centerLoc.x - 2; x <= centerLoc.x + 2; x++) {
+            for(int y = centerLoc.y - 2; y <= centerLoc.y + 2; y++) {
+                MapLocation loc = new MapLocation(x, y);
+                if(!rc.canSenseLocation(loc)){
+                    continue;
+                }
+                if(rc.senseMapInfo(loc).getPaint().isEnemy()){
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     // TODO: Script to unroll created, but varun's gonna change some code so wait until that's done.

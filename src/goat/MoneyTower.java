@@ -10,5 +10,6 @@ public class MoneyTower extends Tower {
 
     public void run() throws GameActionException {
         super.run();
+        Util.log("MONEY TOWER");
     }
 }

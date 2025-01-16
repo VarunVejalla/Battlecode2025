@@ -8,6 +8,7 @@ public class Soldier extends Bunny {
     public static final int[] shift_dx = {-4,-4,-4,-4,-4,-3,-3,-3,-3,-3,-3,-3,-2,-2,-2,-2,-2,-2,-2,-2,-2,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,4,4,4,4,4};
     public static final int[] shift_dy = {-2,-1,0,1,2,-3,-2,-1,0,1,2,3,-4,-3,-2,-1,0,1,2,3,4,-4,-3,-2,-1,0,1,2,3,4,-4,-3,-2,-1,0,1,2,3,4,-4,-3,-2,-1,0,1,2,3,4,-4,-3,-2,-1,0,1,2,3,4,-3,-2,-1,0,1,2,3,-2,-1,0,1,2};
 
+    MapLocation currResourceCenterLoc = null;
     MapLocation currRuinLoc = null;
     UnitType currRuinType = null;
     boolean currRuinMarked = false;
@@ -103,8 +104,35 @@ public class Soldier extends Bunny {
     public void buildPattern() throws GameActionException {
         // If we're already building a ruin, check if it's been completed.
         Util.log("Beginning of method: " + currRuinLoc + ", " + currRuinType);
+        Util.addToIndicatorString("R " + currRuinLoc);
+        Util.addToIndicatorString("RC " + currResourceCenterLoc);
+        boolean[][] resourcePattern = rc.getResourcePattern();
+
+        // Find the best potential resource pattern center index.
+        int resourceCenterIndex = PatternUtils.getPotentialResourcePatternCenterIndex(nearbyMapInfos);
+
+        // Check if resource center complete or not completable.
+        if(currResourceCenterLoc != null){
+            // Check if there's a better resource center to build at.
+            if (resourceCenterIndex != -1) {
+                currResourceCenterLoc = nearbyMapInfos[resourceCenterIndex].getMapLocation();
+                Util.addToIndicatorString("NRC " + currResourceCenterLoc);
+            } else if(rc.canSenseLocation(currResourceCenterLoc)) {
+                // If the resource center loc is done or invalid, skip it.
+                currResourceCenterLoc = null;
+            }
+        }
+
+        if(currResourceCenterLoc != null){
+            if(PatternUtils.checkPatternCompleted(currResourceCenterLoc, resourcePattern) || PatternUtils.checkEnemyPaintInConsctructionArea(currResourceCenterLoc)){
+                currResourceCenterLoc = null;
+            }
+        }
+
+        // Check if ruin completed or is unable to be completed.
         if(currRuinLoc != null){
-            if(rc.canSenseLocation(currRuinLoc) && rc.senseRobotAtLocation(currRuinLoc) != null){
+            if((rc.canSenseLocation(currRuinLoc) && rc.senseRobotAtLocation(currRuinLoc) != null) || PatternUtils.checkEnemyPaintInConsctructionArea(currRuinLoc)){
+                roundPaintedRuinsBySector[comms.getSectorIndex(currRuinLoc)] = rc.getRoundNum();
                 currRuinLoc = null;
                 currRuinType = null;
                 currRuinMarked = false;
@@ -119,7 +147,7 @@ public class Soldier extends Bunny {
                         amClosest = false;
                         break;
                     }
-                     else if(info.getLocation().distanceSquaredTo(currRuinLoc) == myDist && rc.getID() > info.getID()){
+                    else if(info.getLocation().distanceSquaredTo(currRuinLoc) == myDist && rc.getID() > info.getID()){
                         // Tiebreaker is robot id. Lower id stays.
                         Util.log("I'm the not closest! Tiebreaker with robot: " + info.getID());
                         amClosest = false;
@@ -143,9 +171,20 @@ public class Soldier extends Bunny {
             }
         }
 
-        // If we're not already building a ruin, find a new one.
-        if(currRuinLoc == null){
-            checkForNewPattern();
+        // If not building ruin, or resource pattern, figure out what to do next.
+        if(currRuinLoc == null && currResourceCenterLoc == null){
+            // Find a ruin to build.
+            checkForNewRuinToBuild();
+            if(currRuinLoc != null) Util.addToIndicatorString("NR " + currRuinLoc);
+
+            // If none found, find a resource pattern to build.
+            if(currRuinLoc == null) {
+                // 2650 bytecode.
+                if (resourceCenterIndex != -1) {
+                    currResourceCenterLoc = nearbyMapInfos[resourceCenterIndex].getMapLocation();
+                    if(currRuinLoc != null) Util.addToIndicatorString("NRC " + currResourceCenterLoc);
+                }
+            }
         }
 
         // If we're already building a ruin, go with that.
@@ -192,15 +231,30 @@ public class Soldier extends Bunny {
             return;
         }
 
-        Util.log("Running default: " + currRuinLoc + ", " + currRuinType);
+        // If working on a resource center, continue doing so.
+        else if(currResourceCenterLoc != null){
+            if(!rc.canSenseLocation(currResourceCenterLoc)){
+                nav.goToBug(currResourceCenterLoc, 0);
+                return;
+            }
+            MapLocation myLoc = rc.getLocation();
+            PatternUtils.workOnResourcePattern(currResourceCenterLoc.x - myLoc.x, currResourceCenterLoc.y - myLoc.y, resourcePattern);
+
+            if (rc.isMovementReady()) {
+                nav.goTo(currResourceCenterLoc, 0);
+            }
+            if (rc.canCompleteResourcePattern(currResourceCenterLoc)) {
+                rc.completeResourcePattern(currResourceCenterLoc);
+            }
+            return;
+        }
+
+        Util.log("Running default!");
 
         PatternUtils.runDefaultBehavior();
     }
 
-    public void checkForNewPattern() throws GameActionException {
-//        int highPriorityRuinIndex = -1;
-//        int mediumPriorityRuinIndex = -1;
-
+    public void checkForNewRuinToBuild() throws GameActionException {
         // Spirals outward up to vision radius.
         // 1500 bytecode.
         for(int index : spiralOutwardIndices) {
@@ -216,55 +270,6 @@ public class Soldier extends Bunny {
 
             currRuinLoc = ruinLoc;
         }
-
-//            highPriorityRuinIndex = index;
-//            PatternPriority priority = PatternUtils.findPriority(index, pattern);
-//            if (priority == PatternPriority.HIGH) {
-//                highPriorityRuinIndex = index;
-//                break;
-//            } else if (mediumPriorityRuinIndex == -1 && priority == PatternPriority.MEDIUM) {
-//                mediumPriorityRuinIndex = index;
-//            }
-
-//        if (highPriorityRuinIndex != -1) {
-//            UnitType intendedType = PatternUtils.getPatternUnitType(nearbyMapInfos[highPriorityRuinIndex].getMapLocation());
-//            Util.log("Intended type: " + intendedType);
-//            boolean[][] pattern = rc.getTowerPattern(intendedType);
-//            PatternUtils.workOnRuin(highPriorityRuinIndex, pattern);
-//            if (rc.canCompleteTowerPattern(intendedType, nearbyMapInfos[highPriorityRuinIndex].getMapLocation())) {
-//                rc.completeTowerPattern(intendedType, nearbyMapInfos[highPriorityRuinIndex].getMapLocation());
-//            }
-//            return;
-//        }
-//
-//        // 2650 bytecode.
-//        int resourceCenterIndex = PatternUtils.getPotentialResourcePatternCenterIndex(nearbyMapInfos);
-//
-//        if (resourceCenterIndex != -1) {
-//            // 300 bytecode.
-//            boolean[][] pattern = rc.getResourcePattern();
-//            PatternUtils.workOnResourcePattern(shift_dx[resourceCenterIndex], shift_dy[resourceCenterIndex], pattern);
-//
-//            if (rc.isMovementReady()) {
-//                nav.goTo(nearbyMapInfos[resourceCenterIndex].getMapLocation(), 0);
-//            }
-//            if (rc.canCompleteResourcePattern(nearbyMapInfos[resourceCenterIndex].getMapLocation())) {
-//                rc.completeResourcePattern(nearbyMapInfos[resourceCenterIndex].getMapLocation());
-//            }
-//            return;
-//        }
-//
-//        if (mediumPriorityRuinIndex != -1) {
-//            UnitType intendedType = PatternUtils.getPatternUnitType(nearbyMapInfos[mediumPriorityRuinIndex].getMapLocation());
-//            Util.log("Intended type: " + intendedType);
-//            boolean[][] pattern = rc.getTowerPattern(intendedType);
-//            PatternUtils.workOnRuin(mediumPriorityRuinIndex, pattern);
-//            if (rc.canCompleteTowerPattern(intendedType, nearbyMapInfos[mediumPriorityRuinIndex].getMapLocation())) {
-//                rc.completeTowerPattern(intendedType, nearbyMapInfos[mediumPriorityRuinIndex].getMapLocation());
-//            }
-//            return;
-//        }
-        return;
     }
 
     /**
