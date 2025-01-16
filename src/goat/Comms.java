@@ -108,7 +108,7 @@ public class Comms {
     public int getSectorIndex(MapLocation loc) {
         int col = loc.x / 5;
         int row = loc.y / 5;
-        return row * sectorCols + col;
+        return row * sectorRows + col;
     }
 
     /**
@@ -139,7 +139,7 @@ public class Comms {
         // Iterate only over valid rows and columns
         for (int r = minRow; r <= maxRow; r++) {
             for (int c = minCol; c <= maxCol; c++) {
-                neighbors[index++] = r * sectorCols + c;
+                neighbors[index++] = r * sectorRows + c;
             }
         }
 
@@ -155,7 +155,7 @@ public class Comms {
     public int getFullyEnclosedSectorID(MapLocation center) {
         // There is only one sector that could be fully enclosed. It must contain the center.
         int sectorIndex = getSectorIndex(center);
-
+        assert sectorIndex < sectorCount;
         // If center is within radius squared 4 of the sector center, the sector is fully visible, even if the sector is cutoff!
         if (center.isWithinDistanceSquared(getSectorCenter(sectorIndex), 4)) {
             return sectorIndex;

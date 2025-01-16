@@ -32,7 +32,6 @@ public class TowerComms extends Comms {
         for (Message message : messages) {
 
             if (message.getBytes() == MAP_UPDATE_REQUEST_CODE) {
-                Util.addToIndicatorString("Received a map request: " + message);
                 // Util.log("Received a map request: " + message);
                 if(!hasSentMap){
                     sendMap1(message.getSenderID());

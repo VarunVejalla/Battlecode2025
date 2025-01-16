@@ -109,7 +109,6 @@ public class Splasher extends Bunny {
      * Returns a score evaluating how favorable it would be for this robot to move to this sector.
      */
     public int evaluateSector(int encodedSector) {
-//        throw new NotImplementedException();
         ScanResult sr = comms.decodeSector(encodedSector);
         if(sr.enemyPaintLevel >= 2) {
             return 1;
@@ -131,10 +130,7 @@ public class Splasher extends Bunny {
             return;
         }
 
-        //Util.log("Splasher fallback to destination: " + destination);
-//        nav.goTo(destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
-
-        macroMove();
+        macroMove(0);
     }
 
 }
