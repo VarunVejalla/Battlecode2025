@@ -152,6 +152,39 @@ public class PatternUtils {
         }
     }
 
+    public static void workOnDefiniteResourcePattern(int dx, int dy, boolean[][] paintPattern) throws GameActionException {
+        boolean isPaintReady = rc.isActionReady() && rc.getPaint() >= UnitType.SOLDIER.attackCost;
+
+        if (isPaintReady) {
+            byte[] ordering = ExcessConstants.orderFillingRuinCall(13*dx + dy + 84);
+            MapLocation attackSquare;
+            for (short attackIndex : ordering) {
+                if (soldier.nearbyMapInfos[attackIndex] == null || soldier.nearbyMapInfos[attackIndex].hasRuin() || soldier.nearbyMapInfos[attackIndex].isWall()) {
+                    continue;
+                }
+                PaintType currentPaint = soldier.nearbyMapInfos[attackIndex].getPaint();
+                int offsetX = shift_dx[attackIndex] - dx;
+                int offsetY = shift_dy[attackIndex] - dy;
+                if (offsetX < -2 || offsetX > 2 || offsetY < -2 || offsetY > 2) {
+                    continue;
+                }
+
+                if (currentPaint == PaintType.EMPTY || (currentPaint.isAlly() && currentPaint.isSecondary() != paintPattern[offsetX + 2][offsetY + 2])) {
+                    attackSquare = soldier.nearbyMapInfos[attackIndex].getMapLocation();
+                    // this check is needed for when we're near the edges
+                    if (0 <= attackSquare.x && 0 <= attackSquare.y && attackSquare.x < rc.getMapWidth() && attackSquare.y < rc.getMapHeight()) {
+                        if (offsetX * offsetX + offsetY * offsetY <= 8) {
+                            rc.attack(soldier.nearbyMapInfos[attackIndex].getMapLocation(), paintPattern[offsetX + 2][offsetY + 2]);
+                        } else {
+                            rc.attack(soldier.nearbyMapInfos[attackIndex].getMapLocation(), (offsetX + dx + offsetY + dy) % 2 == 0);
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
     public static boolean closeEnoughToDetermineRuinType(MapLocation ruinLoc) throws GameActionException {
         for(int x = ruinLoc.x - 1; x <= ruinLoc.x + 1; x++) {
             for(int y = ruinLoc.y - 1; y <= ruinLoc.y + 1; y++) {
@@ -170,13 +203,13 @@ public class PatternUtils {
             for(int y = ruinLoc.y - 1; y <= ruinLoc.y + 1; y++) {
                 MapLocation loc = new MapLocation(x, y);
                 MapInfo info = rc.senseMapInfo(loc);
-                if(info.getMark() == PaintType.ALLY_PRIMARY){
+                if(info.getMark().isAlly()) {
                     soldier.currRuinMarked = true;
-                    return UnitType.LEVEL_ONE_PAINT_TOWER;
-                }
-                else if(info.getMark() == PaintType.ALLY_SECONDARY){
-                    soldier.currRuinMarked = true;
-                    return UnitType.LEVEL_ONE_MONEY_TOWER;
+                    if ((x+y)%2 == 0) {
+                        return UnitType.LEVEL_ONE_PAINT_TOWER;
+                    } else {
+                        return UnitType.LEVEL_ONE_MONEY_TOWER;
+                    }
                 }
             }
         }
@@ -189,17 +222,19 @@ public class PatternUtils {
     }
 
     public static boolean markRuinUnitType(MapLocation ruinLoc, UnitType buildingType) throws GameActionException {
+        boolean intendedMod = false;
+        if(buildingType == UnitType.LEVEL_ONE_PAINT_TOWER) {
+            intendedMod = true;
+        }
         for(int x = ruinLoc.x - 1; x <= ruinLoc.x + 1; x++) {
             for(int y = ruinLoc.y - 1; y <= ruinLoc.y + 1; y++) {
+                if (((x+y)%2 == 0) != intendedMod) {
+                    continue;
+                }
                 MapLocation loc = new MapLocation(x, y);
-                if(rc.canMark(loc)){
-                    if(buildingType == UnitType.LEVEL_ONE_PAINT_TOWER){
-                        rc.mark(loc, false);
-                        return true;
-                    } else {
-                        rc.mark(loc, true);
-                        return true;
-                    }
+                if(rc.canMark(loc)) {
+                    rc.mark(loc, true);
+                    return true;
                 }
             }
         }

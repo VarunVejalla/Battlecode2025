@@ -2,9 +2,19 @@ package goat;
 
 import battlecode.common.*;
 
+enum ResourceValidity {
+    INVALID, POSSIBLE, DEFINITE
+}
+
 public class Soldier extends Bunny {
 
     public static final int[] spiralOutwardIndices = {34,25,33,35,43,24,26,42,44,16,32,36,52,15,17,23,27,41,45,51,53,14,18,50,54,8,31,37,60,7,9,22,28,40,46,59,61,6,10,13,19,49,55,58,62,2,30,38,66,1,3,21,29,39,47,65,67,5,11,57,63,0,4,12,20,48,56,64,68};
+    public static final int[] centerSquare = {34,25,33,35,43,24,26,42,44,16,32,36,52,15,17,23,27,41,45,51,53,14,18,50,54};
+    public static final int[] topRightIndices = {66,67,68,37,38,46,47,55,56,60,61,62,63};
+    public static final int[] topLeftIndices = {2,3,4,37,38,8,9,10,11,19,20,28,29};
+    public static final int[] bottomRightIndices = {64,65,66,39,40,48,49,57,58,59,60,30,31};
+    public static final int[] bottomLeftIndices = {0,1,2,5,6,7,8,12,13,21,22,30,31};
+
     public static final int[] shift_dx = {-4,-4,-4,-4,-4,-3,-3,-3,-3,-3,-3,-3,-2,-2,-2,-2,-2,-2,-2,-2,-2,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,4,4,4,4,4};
     public static final int[] shift_dy = {-2,-1,0,1,2,-3,-2,-1,0,1,2,3,-4,-3,-2,-1,0,1,2,3,4,-4,-3,-2,-1,0,1,2,3,4,-4,-3,-2,-1,0,1,2,3,4,-4,-3,-2,-1,0,1,2,3,4,-4,-3,-2,-1,0,1,2,3,4,-3,-2,-1,0,1,2,3,-2,-1,0,1,2};
 
@@ -14,6 +24,10 @@ public class Soldier extends Bunny {
     boolean currRuinMarked = false;
     boolean currRuinMyResponsibility = false;
     int[] roundPaintedRuinsBySector = new int[144];
+
+
+    MapInfo[] patternHistory = new MapInfo[25];
+
 
     public Soldier(RobotController rc) throws GameActionException {
         super(rc);
@@ -107,9 +121,26 @@ public class Soldier extends Bunny {
         Util.addToIndicatorString("R " + currRuinLoc);
         Util.addToIndicatorString("RC " + currResourceCenterLoc);
         boolean[][] resourcePattern = rc.getResourcePattern();
+        int resourceCenterIndex = -1;
+        ResourceValidity resourceValidity = ResourceValidity.POSSIBLE;
 
-        // Find the best potential resource pattern center index.
-        int resourceCenterIndex = PatternUtils.getPotentialResourcePatternCenterIndex(nearbyMapInfos);
+
+        // COMMENT BACK IN THIS PART TO SEE BEHAVIOR FROM MARKING PATTERNS WHEN WE CAN
+
+//        if (getResourceCenterValidity() == ResourceValidity.DEFINITE) {
+//            rc.mark(myLoc, false);
+//        }
+//        for (int index : spiralOutwardIndices) {
+//            if (nearbyMapInfos[index] != null && !nearbyMapInfos[index].isResourcePatternCenter() && nearbyMapInfos[index].getMark() == PaintType.ALLY_PRIMARY) {
+//                resourceCenterIndex = index;
+//                resourceValidity = ResourceValidity.DEFINITE;
+//                break;
+//            }
+//        }
+
+        if (resourceCenterIndex == -1) {
+            resourceCenterIndex = PatternUtils.getPotentialResourcePatternCenterIndex(nearbyMapInfos);
+        }
 
         // Check if resource center complete or not completable.
         if(currResourceCenterLoc != null){
@@ -238,7 +269,12 @@ public class Soldier extends Bunny {
                 return;
             }
             MapLocation myLoc = rc.getLocation();
-            PatternUtils.workOnResourcePattern(currResourceCenterLoc.x - myLoc.x, currResourceCenterLoc.y - myLoc.y, resourcePattern);
+
+            if (resourceValidity == ResourceValidity.POSSIBLE) {
+                PatternUtils.workOnResourcePattern(currResourceCenterLoc.x - myLoc.x, currResourceCenterLoc.y - myLoc.y, resourcePattern);
+            } else {
+                PatternUtils.workOnDefiniteResourcePattern(currResourceCenterLoc.x - myLoc.x, currResourceCenterLoc.y - myLoc.y, resourcePattern);
+            }
 
             if (rc.isMovementReady()) {
                 nav.goTo(currResourceCenterLoc, 0);
@@ -252,6 +288,143 @@ public class Soldier extends Bunny {
         Util.log("Running default!");
 
         PatternUtils.runDefaultBehavior();
+    }
+
+    public ResourceValidity getResourceCenterValidity() {
+        // this checks to see whether the current location could be valid for a resource pattern
+        if (myLoc.x <= 1 || myLoc.y <= 1 || myLoc.x >= rc.getMapWidth()-2 || myLoc.y >= rc.getMapHeight()-2) {
+            return ResourceValidity.INVALID;
+        }
+
+        MapInfo lookingAt;
+        for (int index : centerSquare) {
+            lookingAt = nearbyMapInfos[index];
+            if (lookingAt == null || lookingAt.isWall() || lookingAt.hasRuin() || lookingAt.isResourcePatternCenter() || (lookingAt.getMark() == PaintType.ALLY_PRIMARY && index != 34) || lookingAt.getPaint().isEnemy()) {
+                return ResourceValidity.INVALID;
+            }
+        }
+        boolean cornerUnknown = true;
+
+        for (int index : topRightIndices) {
+            lookingAt = nearbyMapInfos[index];
+            if (lookingAt == null) {
+                cornerUnknown = false;
+                continue;
+            }
+            if (lookingAt.hasRuin() && !rc.canSenseRobotAtLocation(lookingAt.getMapLocation())) {
+                return ResourceValidity.INVALID;
+            } else if (index != 38 && index != 66 && (lookingAt.isResourcePatternCenter() || lookingAt.getMark() == PaintType.ALLY_PRIMARY)) {
+                return ResourceValidity.INVALID;
+            } else if (cornerUnknown && lookingAt.hasRuin() && rc.canSenseRobotAtLocation(lookingAt.getMapLocation())) {
+                cornerUnknown = false;
+            } else if (cornerUnknown && lookingAt.isWall()) {
+                cornerUnknown = false;
+            }
+        }
+
+        boolean previousCornersGood = !cornerUnknown;
+
+        cornerUnknown = true;
+        for (int index : topLeftIndices) {
+            lookingAt = nearbyMapInfos[index];
+            if (lookingAt == null) {
+                cornerUnknown = false;
+                continue;
+            }
+            if (lookingAt.hasRuin() && !rc.canSenseRobotAtLocation(lookingAt.getMapLocation())) {
+                return ResourceValidity.INVALID;
+            } else if (index != 38 && index != 2 && (lookingAt.isResourcePatternCenter() || lookingAt.getMark() == PaintType.ALLY_PRIMARY)) {
+                return ResourceValidity.INVALID;
+            } else if (previousCornersGood && cornerUnknown && lookingAt.hasRuin() && rc.canSenseRobotAtLocation(lookingAt.getMapLocation())) {
+                cornerUnknown = false;
+            } else if (previousCornersGood && cornerUnknown && lookingAt.isWall()) {
+                cornerUnknown = false;
+            }
+        }
+
+        previousCornersGood = previousCornersGood && !cornerUnknown;
+        cornerUnknown = true;
+        for (int index : bottomLeftIndices) {
+            lookingAt = nearbyMapInfos[index];
+            if (lookingAt == null) {
+                cornerUnknown = false;
+                continue;
+            }
+            if (lookingAt.hasRuin() && !rc.canSenseRobotAtLocation(lookingAt.getMapLocation())) {
+                return ResourceValidity.INVALID;
+            } else if (index != 30 && index != 2 && (lookingAt.isResourcePatternCenter() || lookingAt.getMark() == PaintType.ALLY_PRIMARY)) {
+                return ResourceValidity.INVALID;
+            } else if (previousCornersGood && cornerUnknown && lookingAt.hasRuin() && rc.canSenseRobotAtLocation(lookingAt.getMapLocation())) {
+                cornerUnknown = false;
+            } else if (previousCornersGood && cornerUnknown && lookingAt.isWall()) {
+                cornerUnknown = false;
+            }
+        }
+
+        previousCornersGood = previousCornersGood && !cornerUnknown;
+        cornerUnknown = true;
+        for (int index : bottomRightIndices) {
+            lookingAt = nearbyMapInfos[index];
+            if (lookingAt == null) {
+                cornerUnknown = false;
+                continue;
+            }
+            if (lookingAt.hasRuin() && !rc.canSenseRobotAtLocation(lookingAt.getMapLocation())) {
+                return ResourceValidity.INVALID;
+            } else if (index != 30 && index != 66 && (lookingAt.isResourcePatternCenter() || lookingAt.getMark() == PaintType.ALLY_PRIMARY)) {
+                return ResourceValidity.INVALID;
+            } else if (previousCornersGood && cornerUnknown && lookingAt.hasRuin() && rc.canSenseRobotAtLocation(lookingAt.getMapLocation())) {
+                cornerUnknown = false;
+            } else if (previousCornersGood && cornerUnknown && lookingAt.isWall()) {
+                cornerUnknown = false;
+            }
+        }
+
+
+
+        previousCornersGood = previousCornersGood && !cornerUnknown;
+
+        if (previousCornersGood) {
+            return ResourceValidity.DEFINITE;
+        } else {
+            return ResourceValidity.POSSIBLE;
+        }
+    }
+//
+    public MapLocation updateResourcePatternHistory() throws GameActionException {
+        if (currResourceCenterLoc == null) {
+            return null;
+        } else {
+            // look through all squares
+            int deltaSquareX;
+            int deltaSquareY;
+            MapInfo square;
+            MapInfo squareInHistory;
+            for(int dx = -2; dx <= 2; dx++) {
+                for(int dy = -2; dy <= 2; dy++) {
+                    deltaSquareX = currResourceCenterLoc.x+dx-myLoc.x;
+                    deltaSquareY = currResourceCenterLoc.y+dy-myLoc.y;
+                    if (deltaSquareX*deltaSquareX+deltaSquareY*deltaSquareY <= 20) {
+                        square = nearbyMapInfos[Util.getMapInfoIndex(deltaSquareX, deltaSquareY)];
+                        if (square != null) {
+                            // if it used to be allied, and it's still allied now, and it conflicts, just return this location
+                            squareInHistory = patternHistory[dx*5+dy+12];
+                            if (squareInHistory != null &&
+                                    squareInHistory.getPaint().isAlly() &&
+                                    square.getPaint().isAlly() && square.getPaint() != squareInHistory.getPaint() &&
+                                    square.getPaint().isSecondary() != rc.getResourcePattern()[dx+2][dy+2]) {
+
+                                return square.getMapLocation();
+                            }
+                        }
+//                        resourcePatternHistory[(dx+2)*5 + (dy+2)]
+                        patternHistory[dx*5+dy+12] = square;
+                    }
+                }
+            }
+            return null;
+
+        }
     }
 
     public void checkForNewRuinToBuild() throws GameActionException {

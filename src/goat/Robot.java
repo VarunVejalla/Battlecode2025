@@ -15,6 +15,10 @@ public class Robot {
     String indicatorString = "";
     Team myTeam;
     Team oppTeam;
+    int previousNumTotalChips;
+    int previousNumTotalTowers;
+    int currentNumTotalChips;
+    int currentNumTotalTowers;
 
     /**
      * Array containing all the possible movement directions.
@@ -43,6 +47,8 @@ public class Robot {
     }
 
     public void run() throws GameActionException {
+        currentNumTotalChips = rc.getChips();
+        currentNumTotalTowers = rc.getNumberTowers();
         indicatorString = "";
         myLoc = rc.getLocation();
     }
@@ -52,5 +58,7 @@ public class Robot {
         // of their turn
         myLoc = rc.getLocation();
         rc.setIndicatorString(indicatorString);
+        previousNumTotalChips = rc.getChips();
+        previousNumTotalTowers = rc.getNumberTowers();
     }
 }
