@@ -32,12 +32,12 @@ public class TowerComms extends Comms {
         for (Message message : messages) {
 
             if (message.getBytes() == MAP_UPDATE_REQUEST_CODE) {
-                System.out.println("Received a map 1 request: " + message);
+                Util.addToIndicatorString("Received a map request: " + message);
                 // Util.log("Received a map request: " + message);
                 if(!hasSentMap){
                     sendMap1(message.getSenderID());
                     hasSentMap = true;
-                    System.out.println("sent map");
+                    Util.addToIndicatorString("sent map");
                 }
             }
             else if (message.getBytes() == MAP2_UPDATE_REQUEST_CODE) {

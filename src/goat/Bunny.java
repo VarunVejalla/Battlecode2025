@@ -60,6 +60,9 @@ public abstract class Bunny extends Robot {
     }
 
     public boolean canMove() {
+        if(comms.waitingForMap || comms.waitingForMap2) {
+           Util.addToIndicatorString("Waiting for a map");
+        }
         return rc.isMovementReady() && !comms.waitingForMap && !comms.waitingForMap2;
     }
 
@@ -205,10 +208,6 @@ public abstract class Bunny extends Robot {
 
             MapLocation currAlliedTowerLocation = bot.getLocation();
 
-            // TODO This is wasteful. We request a map multiple times even if ours is currently being serviced.
-            // Always sendMessages if you're in range of a tower. The sendMessages method assesses what message to send.
-
-            // Util.log("Bunny " + rc.getID() + " at " + rc.getLocation() + " found a tower nearby " + bot.getLocation());
             comms.sendMessages(bot);
 
             boolean alreadyIn = false;
