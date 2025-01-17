@@ -1,4 +1,4 @@
-package goat;
+package benchmark2;
 
 import battlecode.common.*;
 
