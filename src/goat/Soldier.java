@@ -109,202 +109,202 @@ public class Soldier extends Bunny {
 
     public void buildPattern() throws GameActionException {
         // If we're already building a ruin, check if it's been completed.
-        Util.log("Beginning of method: " + currRuinLoc + ", " + currRuinType);
-        Util.addToIndicatorString("R " + currRuinLoc);
-        Util.addToIndicatorString("RC " + currResourceCenterLoc);
-        boolean[][] resourcePattern = rc.getResourcePattern();
-        int resourceCenterIndex = -1;
-        ResourceValidity resourceValidity = ResourceValidity.POSSIBLE;
-
-
-        // COMMENT BACK IN THIS PART TO SEE BEHAVIOR FROM MARKING PATTERNS WHEN WE CAN
-
-//        if (getResourceCenterValidity() == ResourceValidity.DEFINITE) {
-//            rc.mark(myLoc, false);
+//        Util.log("Beginning of method: " + currRuinLoc + ", " + currRuinType);
+//        Util.addToIndicatorString("R " + currRuinLoc);
+//        Util.addToIndicatorString("RC " + currResourceCenterLoc);
+//        boolean[][] resourcePattern = rc.getResourcePattern();
+//        int resourceCenterIndex = -1;
+//        ResourceValidity resourceValidity = ResourceValidity.POSSIBLE;
+//
+//
+//        // COMMENT BACK IN THIS PART TO SEE BEHAVIOR FROM MARKING PATTERNS WHEN WE CAN
+//
+////        if (getResourceCenterValidity() == ResourceValidity.DEFINITE) {
+////            rc.mark(myLoc, false);
+////        }
+////        for (int index : spiralOutwardIndices) {
+////            if (nearbyMapInfos[index] != null && !nearbyMapInfos[index].isResourcePatternCenter() && nearbyMapInfos[index].getMark() == PaintType.ALLY_PRIMARY) {
+////                resourceCenterIndex = index;
+////                resourceValidity = ResourceValidity.DEFINITE;
+////                break;
+////            }
+////        }
+//
+//        if (resourceCenterIndex == -1) {
+//            resourceCenterIndex = PatternUtils.getPotentialResourcePatternCenterIndex(nearbyMapInfos);
 //        }
-//        for (int index : spiralOutwardIndices) {
-//            if (nearbyMapInfos[index] != null && !nearbyMapInfos[index].isResourcePatternCenter() && nearbyMapInfos[index].getMark() == PaintType.ALLY_PRIMARY) {
-//                resourceCenterIndex = index;
-//                resourceValidity = ResourceValidity.DEFINITE;
-//                break;
+//
+//        // Check if resource center complete or not completable.
+//        if(currResourceCenterLoc != null){
+//            // Check if there's a better resource center to build at.
+//            if (resourceCenterIndex != -1) {
+//                currResourceCenterLoc = nearbyMapInfos[resourceCenterIndex].getMapLocation();
+//                Util.addToIndicatorString("NRC " + currResourceCenterLoc);
+//            } else if(rc.canSenseLocation(currResourceCenterLoc)) {
+//                // If the resource center loc is done or invalid, skip it.
+//                currResourceCenterLoc = null;
 //            }
 //        }
-
-        if (resourceCenterIndex == -1) {
-            resourceCenterIndex = PatternUtils.getPotentialResourcePatternCenterIndex(nearbyMapInfos);
-        }
-
-        // Check if resource center complete or not completable.
-        if(currResourceCenterLoc != null){
-            // Check if there's a better resource center to build at.
-            if (resourceCenterIndex != -1) {
-                currResourceCenterLoc = nearbyMapInfos[resourceCenterIndex].getMapLocation();
-                Util.addToIndicatorString("NRC " + currResourceCenterLoc);
-            } else if(rc.canSenseLocation(currResourceCenterLoc)) {
-                // If the resource center loc is done or invalid, skip it.
-                currResourceCenterLoc = null;
-            }
-        }
-
-        if(currResourceCenterLoc != null){
-            if((rc.canSenseLocation(currResourceCenterLoc) && rc.senseMapInfo(currResourceCenterLoc).isResourcePatternCenter()) || PatternUtils.checkEnemyPaintInConsctructionArea(currResourceCenterLoc)){
-                currResourceCenterLoc = null;
-            } else if (PatternUtils.checkPatternCompleted(currResourceCenterLoc, resourcePattern) && !currResourceMyResponsibility) {
-                boolean amClosest = true;
-                int myDist = rc.getLocation().distanceSquaredTo(currResourceCenterLoc);
-                for(RobotInfo info : nearbyFriendlies){
-                    if(info.getLocation().distanceSquaredTo(currResourceCenterLoc) < myDist){
-                        Util.log("I'm the not closest! Robot that's closer: " + info.getID() + ", " + info.getLocation());
-                        amClosest = false;
-                        break;
-                    }
-                    else if(info.getLocation().distanceSquaredTo(currResourceCenterLoc) == myDist && rc.getID() > info.getID()){
-                        // Tiebreaker is robot id. Lower id stays.
-                        Util.log("I'm the not closest! Tiebreaker with robot: " + info.getID());
-                        amClosest = false;
-                        break;
-                    }
-                }
-                if(amClosest) {
-                    Util.log("I'm the closest! Staying behind.");
-                    currResourceMyResponsibility = true;
-                }
-                else {
-                    Direction oppDir = rc.getLocation().directionTo(currResourceCenterLoc);
-                    currRuinLoc = null;
-                    currRuinType = null;
-                    currRuinMarked = false;
-                    currRuinMyResponsibility = false;
-                    // Move away from the center.
-                    nav.goToFuzzy(rc.getLocation().add(oppDir).add(oppDir).add(oppDir), 0);
-                }
-            }
-        }
-
-        // Check if ruin completed or is unable to be completed.
-        if(currRuinLoc != null){
-            if((rc.canSenseLocation(currRuinLoc) && rc.senseRobotAtLocation(currRuinLoc) != null) || PatternUtils.checkEnemyPaintInConsctructionArea(currRuinLoc)){
-                roundPaintedRuinsBySector[comms.getSectorIndex(currRuinLoc)] = rc.getRoundNum();
-                currRuinLoc = null;
-                currRuinType = null;
-                currRuinMarked = false;
-                currRuinMyResponsibility = false;
-            } else if(currRuinType != null && PatternUtils.checkRuinCompleted(currRuinLoc, currRuinType) && !currRuinMyResponsibility) {
-                // If i'm not the closest guy to the ruin, and the ruin is completed, dip.
-                boolean amClosest = true;
-                int myDist = rc.getLocation().distanceSquaredTo(currRuinLoc);
-                for(RobotInfo info : nearbyFriendlies){
-                    if(info.getLocation().distanceSquaredTo(currRuinLoc) < myDist){
-                        Util.log("I'm the not closest! Robot that's closer: " + info.getID() + ", " + info.getLocation());
-                        amClosest = false;
-                        break;
-                    }
-                    else if(info.getLocation().distanceSquaredTo(currRuinLoc) == myDist && rc.getID() > info.getID()){
-                        // Tiebreaker is robot id. Lower id stays.
-                        Util.log("I'm the not closest! Tiebreaker with robot: " + info.getID());
-                        amClosest = false;
-                        break;
-                    }
-                }
-                if(amClosest) {
-                    Util.log("I'm the closest! Staying behind.");
-                    currRuinMyResponsibility = true;
-                }
-                else {
-                    roundPaintedRuinsBySector[comms.getSectorIndex(currRuinLoc)] = rc.getRoundNum();
-                    Direction oppDir = rc.getLocation().directionTo(currRuinLoc);
-                    currRuinLoc = null;
-                    currRuinType = null;
-                    currRuinMarked = false;
-                    currRuinMyResponsibility = false;
-                    // Move away from the center.
-                    nav.goToFuzzy(rc.getLocation().add(oppDir).add(oppDir).add(oppDir), 0);
-                }
-            }
-        }
-
-        // If not building ruin, or resource pattern, figure out what to do next.
-        if(currRuinLoc == null && currResourceCenterLoc == null){
-            // Find a ruin to build.
-            checkForNewRuinToBuild();
-            if(currRuinLoc != null) Util.addToIndicatorString("NR " + currRuinLoc);
-
-            // If none found, find a resource pattern to build.
-            if(currRuinLoc == null) {
-                // 2650 bytecode.
-                if (resourceCenterIndex != -1) {
-                    currResourceCenterLoc = nearbyMapInfos[resourceCenterIndex].getMapLocation();
-                    if(currRuinLoc != null) Util.addToIndicatorString("NRC " + currResourceCenterLoc);
-                }
-            }
-        }
-
-        // If we're already building a ruin, go with that.
-        if(currRuinLoc != null){
-            int deltaX = currRuinLoc.x - rc.getLocation().x;
-            int deltaY = currRuinLoc.y - rc.getLocation().y;
-            int index = Util.getMapInfoIndex(deltaX, deltaY);
-            // Too far away, move towards pattern
-            if(index == -1){
-                Util.log("Moving towards: " + currRuinLoc + ", " + currRuinType);
-                nav.goToFuzzy(currRuinLoc, 0);
-                return;
-            }
-
-            // If you haven't marked it yet, redetermine it each iteration.
-            if(currRuinType != null && !currRuinMarked){
-                currRuinType = null;
-            }
-
-            if(currRuinType == null){
-                if(!PatternUtils.closeEnoughToDetermineRuinType(currRuinLoc)){
-                    Util.log("Moving towards 2: " + currRuinLoc + ", " + currRuinType);
-                    nav.goToFuzzy(currRuinLoc, 0);
-                    return;
-                }
-                currRuinType = PatternUtils.getRuinUnitType(currRuinLoc);
-            }
-
-            if(!currRuinMarked){
-                boolean marked = PatternUtils.markRuinUnitType(currRuinLoc, currRuinType);
-                currRuinMarked = marked;
-                // Get closer to mark.
-                if(!currRuinMarked){
-                    nav.goToFuzzy(currRuinLoc, 0);
-                    return;
-                }
-            }
-
-            boolean[][] pattern = rc.getTowerPattern(currRuinType);
-            PatternUtils.workOnRuin(index, pattern);
-            if (rc.canCompleteTowerPattern(currRuinType, nearbyMapInfos[index].getMapLocation())) {
-                rc.completeTowerPattern(currRuinType, nearbyMapInfos[index].getMapLocation());
-            }
-            return;
-        }
-
-        // If working on a resource center, continue doing so.
-        else if(currResourceCenterLoc != null){
-            if(!rc.canSenseLocation(currResourceCenterLoc)){
-                nav.goToBug(currResourceCenterLoc, 0);
-                return;
-            }
-            MapLocation myLoc = rc.getLocation();
-
-            if (resourceValidity == ResourceValidity.POSSIBLE) {
-                PatternUtils.workOnResourcePattern(currResourceCenterLoc.x - myLoc.x, currResourceCenterLoc.y - myLoc.y, resourcePattern);
-            } else {
-                PatternUtils.workOnDefiniteResourcePattern(currResourceCenterLoc.x - myLoc.x, currResourceCenterLoc.y - myLoc.y, resourcePattern);
-            }
-
-            if (rc.isMovementReady()) {
-                nav.goToFuzzy(currResourceCenterLoc, 0);
-            }
-            if (rc.canCompleteResourcePattern(currResourceCenterLoc)) {
-                rc.completeResourcePattern(currResourceCenterLoc);
-            }
-            return;
-        }
+//
+//        if(currResourceCenterLoc != null){
+//            if((rc.canSenseLocation(currResourceCenterLoc) && rc.senseMapInfo(currResourceCenterLoc).isResourcePatternCenter()) || PatternUtils.checkEnemyPaintInConsctructionArea(currResourceCenterLoc)){
+//                currResourceCenterLoc = null;
+//            } else if (PatternUtils.checkPatternCompleted(currResourceCenterLoc, resourcePattern) && !currResourceMyResponsibility) {
+//                boolean amClosest = true;
+//                int myDist = rc.getLocation().distanceSquaredTo(currResourceCenterLoc);
+//                for(RobotInfo info : nearbyFriendlies){
+//                    if(info.getLocation().distanceSquaredTo(currResourceCenterLoc) < myDist){
+//                        Util.log("I'm the not closest! Robot that's closer: " + info.getID() + ", " + info.getLocation());
+//                        amClosest = false;
+//                        break;
+//                    }
+//                    else if(info.getLocation().distanceSquaredTo(currResourceCenterLoc) == myDist && rc.getID() > info.getID()){
+//                        // Tiebreaker is robot id. Lower id stays.
+//                        Util.log("I'm the not closest! Tiebreaker with robot: " + info.getID());
+//                        amClosest = false;
+//                        break;
+//                    }
+//                }
+//                if(amClosest) {
+//                    Util.log("I'm the closest! Staying behind.");
+//                    currResourceMyResponsibility = true;
+//                }
+//                else {
+//                    Direction oppDir = rc.getLocation().directionTo(currResourceCenterLoc);
+//                    currRuinLoc = null;
+//                    currRuinType = null;
+//                    currRuinMarked = false;
+//                    currRuinMyResponsibility = false;
+//                    // Move away from the center.
+//                    nav.goToFuzzy(rc.getLocation().add(oppDir).add(oppDir).add(oppDir), 0);
+//                }
+//            }
+//        }
+//
+//        // Check if ruin completed or is unable to be completed.
+//        if(currRuinLoc != null){
+//            if((rc.canSenseLocation(currRuinLoc) && rc.senseRobotAtLocation(currRuinLoc) != null) || PatternUtils.checkEnemyPaintInConsctructionArea(currRuinLoc)){
+//                roundPaintedRuinsBySector[comms.getSectorIndex(currRuinLoc)] = rc.getRoundNum();
+//                currRuinLoc = null;
+//                currRuinType = null;
+//                currRuinMarked = false;
+//                currRuinMyResponsibility = false;
+//            } else if(currRuinType != null && PatternUtils.checkRuinCompleted(currRuinLoc, currRuinType) && !currRuinMyResponsibility) {
+//                // If i'm not the closest guy to the ruin, and the ruin is completed, dip.
+//                boolean amClosest = true;
+//                int myDist = rc.getLocation().distanceSquaredTo(currRuinLoc);
+//                for(RobotInfo info : nearbyFriendlies){
+//                    if(info.getLocation().distanceSquaredTo(currRuinLoc) < myDist){
+//                        Util.log("I'm the not closest! Robot that's closer: " + info.getID() + ", " + info.getLocation());
+//                        amClosest = false;
+//                        break;
+//                    }
+//                    else if(info.getLocation().distanceSquaredTo(currRuinLoc) == myDist && rc.getID() > info.getID()){
+//                        // Tiebreaker is robot id. Lower id stays.
+//                        Util.log("I'm the not closest! Tiebreaker with robot: " + info.getID());
+//                        amClosest = false;
+//                        break;
+//                    }
+//                }
+//                if(amClosest) {
+//                    Util.log("I'm the closest! Staying behind.");
+//                    currRuinMyResponsibility = true;
+//                }
+//                else {
+//                    roundPaintedRuinsBySector[comms.getSectorIndex(currRuinLoc)] = rc.getRoundNum();
+//                    Direction oppDir = rc.getLocation().directionTo(currRuinLoc);
+//                    currRuinLoc = null;
+//                    currRuinType = null;
+//                    currRuinMarked = false;
+//                    currRuinMyResponsibility = false;
+//                    // Move away from the center.
+//                    nav.goToFuzzy(rc.getLocation().add(oppDir).add(oppDir).add(oppDir), 0);
+//                }
+//            }
+//        }
+//
+//        // If not building ruin, or resource pattern, figure out what to do next.
+//        if(currRuinLoc == null && currResourceCenterLoc == null){
+//            // Find a ruin to build.
+//            checkForNewRuinToBuild();
+//            if(currRuinLoc != null) Util.addToIndicatorString("NR " + currRuinLoc);
+//
+//            // If none found, find a resource pattern to build.
+//            if(currRuinLoc == null) {
+//                // 2650 bytecode.
+//                if (resourceCenterIndex != -1) {
+//                    currResourceCenterLoc = nearbyMapInfos[resourceCenterIndex].getMapLocation();
+//                    if(currRuinLoc != null) Util.addToIndicatorString("NRC " + currResourceCenterLoc);
+//                }
+//            }
+//        }
+//
+//        // If we're already building a ruin, go with that.
+//        if(currRuinLoc != null){
+//            int deltaX = currRuinLoc.x - rc.getLocation().x;
+//            int deltaY = currRuinLoc.y - rc.getLocation().y;
+//            int index = Util.getMapInfoIndex(deltaX, deltaY);
+//            // Too far away, move towards pattern
+//            if(index == -1){
+//                Util.log("Moving towards: " + currRuinLoc + ", " + currRuinType);
+//                nav.goToFuzzy(currRuinLoc, 0);
+//                return;
+//            }
+//
+//            // If you haven't marked it yet, redetermine it each iteration.
+//            if(currRuinType != null && !currRuinMarked){
+//                currRuinType = null;
+//            }
+//
+//            if(currRuinType == null){
+//                if(!PatternUtils.closeEnoughToDetermineRuinType(currRuinLoc)){
+//                    Util.log("Moving towards 2: " + currRuinLoc + ", " + currRuinType);
+//                    nav.goToFuzzy(currRuinLoc, 0);
+//                    return;
+//                }
+//                currRuinType = PatternUtils.getRuinUnitType(currRuinLoc);
+//            }
+//
+//            if(!currRuinMarked){
+//                boolean marked = PatternUtils.markRuinUnitType(currRuinLoc, currRuinType);
+//                currRuinMarked = marked;
+//                // Get closer to mark.
+//                if(!currRuinMarked){
+//                    nav.goToFuzzy(currRuinLoc, 0);
+//                    return;
+//                }
+//            }
+//
+//            boolean[][] pattern = rc.getTowerPattern(currRuinType);
+//            PatternUtils.workOnRuin(index, pattern);
+//            if (rc.canCompleteTowerPattern(currRuinType, nearbyMapInfos[index].getMapLocation())) {
+//                rc.completeTowerPattern(currRuinType, nearbyMapInfos[index].getMapLocation());
+//            }
+//            return;
+//        }
+//
+//        // If working on a resource center, continue doing so.
+//        else if(currResourceCenterLoc != null){
+//            if(!rc.canSenseLocation(currResourceCenterLoc)){
+//                nav.goToBug(currResourceCenterLoc, 0);
+//                return;
+//            }
+//            MapLocation myLoc = rc.getLocation();
+//
+//            if (resourceValidity == ResourceValidity.POSSIBLE) {
+//                PatternUtils.workOnResourcePattern(currResourceCenterLoc.x - myLoc.x, currResourceCenterLoc.y - myLoc.y, resourcePattern);
+//            } else {
+//                PatternUtils.workOnDefiniteResourcePattern(currResourceCenterLoc.x - myLoc.x, currResourceCenterLoc.y - myLoc.y, resourcePattern);
+//            }
+//
+//            if (rc.isMovementReady()) {
+//                nav.goToFuzzy(currResourceCenterLoc, 0);
+//            }
+//            if (rc.canCompleteResourcePattern(currResourceCenterLoc)) {
+//                rc.completeResourcePattern(currResourceCenterLoc);
+//            }
+//            return;
+//        }
 
         Util.log("Running default!");
 
