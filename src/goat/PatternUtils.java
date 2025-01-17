@@ -290,9 +290,9 @@ public class PatternUtils {
     }
 
     public static UnitType decideRuinUnitType(MapLocation ruinLoc) {
-        if(ruinLoc.distanceSquaredTo(soldier.center) < 100) {
-            return UnitType.LEVEL_ONE_DEFENSE_TOWER;
-        }
+//        if(ruinLoc.distanceSquaredTo(soldier.center) < 100) {
+//            return UnitType.LEVEL_ONE_DEFENSE_TOWER;
+//        }
         if(soldier.nearestAlliedTowerType == TowerType.PaintTower) {
             return UnitType.LEVEL_ONE_MONEY_TOWER;
         }
