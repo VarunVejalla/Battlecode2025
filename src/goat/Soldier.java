@@ -23,6 +23,7 @@ public class Soldier extends Bunny {
     UnitType currRuinType = null;
     boolean currRuinMarked = false;
     boolean currRuinMyResponsibility = false;
+    boolean currResourceMyResponsibility = false;
     int[] roundPaintedRuinsBySector = new int[144];
 
 
@@ -146,8 +147,37 @@ public class Soldier extends Bunny {
         }
 
         if(currResourceCenterLoc != null){
-            if(PatternUtils.checkPatternCompleted(currResourceCenterLoc, resourcePattern) || PatternUtils.checkEnemyPaintInConsctructionArea(currResourceCenterLoc)){
+            if((rc.canSenseLocation(currResourceCenterLoc) && rc.senseMapInfo(currResourceCenterLoc).isResourcePatternCenter()) || PatternUtils.checkEnemyPaintInConsctructionArea(currResourceCenterLoc)){
                 currResourceCenterLoc = null;
+            } else if (PatternUtils.checkPatternCompleted(currResourceCenterLoc, resourcePattern) && !currResourceMyResponsibility) {
+                boolean amClosest = true;
+                int myDist = rc.getLocation().distanceSquaredTo(currResourceCenterLoc);
+                for(RobotInfo info : nearbyFriendlies){
+                    if(info.getLocation().distanceSquaredTo(currResourceCenterLoc) < myDist){
+                        Util.log("I'm the not closest! Robot that's closer: " + info.getID() + ", " + info.getLocation());
+                        amClosest = false;
+                        break;
+                    }
+                    else if(info.getLocation().distanceSquaredTo(currResourceCenterLoc) == myDist && rc.getID() > info.getID()){
+                        // Tiebreaker is robot id. Lower id stays.
+                        Util.log("I'm the not closest! Tiebreaker with robot: " + info.getID());
+                        amClosest = false;
+                        break;
+                    }
+                }
+                if(amClosest) {
+                    Util.log("I'm the closest! Staying behind.");
+                    currResourceMyResponsibility = true;
+                }
+                else {
+                    Direction oppDir = rc.getLocation().directionTo(currResourceCenterLoc);
+                    currRuinLoc = null;
+                    currRuinType = null;
+                    currRuinMarked = false;
+                    currRuinMyResponsibility = false;
+                    // Move away from the center.
+                    nav.goToFuzzy(rc.getLocation().add(oppDir).add(oppDir).add(oppDir), 0);
+                }
             }
         }
 
