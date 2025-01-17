@@ -126,7 +126,7 @@ public class PatternUtils {
                     int offsetY = shift_dy[attackIndex] - dy;
 
                     if (offsetX*offsetX + offsetY*offsetY <= 8 && paintPattern[offsetX+2][offsetY+2] != currentPaint.isSecondary()) {
-                        rc.attack(soldier.nearbyMapInfos[attackIndex].getMapLocation(), getDefaultColor(offsetX+dx, offsetY+dy));
+                        rc.attack(soldier.nearbyMapInfos[attackIndex].getMapLocation(), paintPattern[offsetX+2][offsetY+2]);
                         break;
                     }
                 }
