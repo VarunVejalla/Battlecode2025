@@ -19,11 +19,11 @@ public class Soldier extends Bunny {
     public static final int[] shift_dy = {-2,-1,0,1,2,-3,-2,-1,0,1,2,3,-4,-3,-2,-1,0,1,2,3,4,-4,-3,-2,-1,0,1,2,3,4,-4,-3,-2,-1,0,1,2,3,4,-4,-3,-2,-1,0,1,2,3,4,-4,-3,-2,-1,0,1,2,3,4,-3,-2,-1,0,1,2,3,-2,-1,0,1,2};
 
     MapLocation currResourceCenterLoc = null;
+    boolean currResourceMyResponsibility = false;
     MapLocation currRuinLoc = null;
     UnitType currRuinType = null;
     boolean currRuinMarked = false;
     boolean currRuinMyResponsibility = false;
-    boolean currResourceMyResponsibility = false;
     int[] roundPaintedRuinsBySector = new int[144];
 
 
@@ -92,19 +92,44 @@ public class Soldier extends Bunny {
         // 1. If you can attack him, attack him, then back out.
         if(rc.isActionReady() && rc.canAttack(attackTarget)){
             rc.attack(attackTarget);
-            nav.goToFuzzy(backoutLoc, 0);
+            nav.goToFuzzy(backoutLoc, 0, false, false);
         }
         // 2. If your action is ready but you're too far away, move towards and then attack.
         else if(rc.isActionReady()){
-            nav.goToFuzzy(attackTarget, 0);
+            nav.goToFuzzy(attackTarget, 0, true, false);
             if(rc.canAttack(attackTarget)){
                 rc.attack(attackTarget);
             }
         }
         // 3. If your action is not ready but you're within attack radius, back out.
         else if(!rc.isActionReady() && distToTarget <= attackInfo.getType().actionRadiusSquared){
-            nav.goToFuzzy(backoutLoc, 0);
+            nav.goToFuzzy(backoutLoc, 0, false, false);
         }
+    }
+
+    public boolean determineResponsibility(MapLocation centerLoc) throws GameActionException {
+        // If we're not responsible, we wanna be able to move away. If we can't move yet, assume we're responsible?
+        if(!rc.isMovementReady()){
+            return true;
+        }
+        // If i'm not the closest guy to the ruin, and the ruin is completed, dip.
+        int myDist = rc.getLocation().distanceSquaredTo(centerLoc);
+        for(RobotInfo info : nearbyFriendlies){
+            // Ignore friendlies that are replenishing.
+            if(info.getPaintAmount() <= Constants.PAINT_THRESHOLD_TO_REPLENISH){
+                continue;
+            }
+            if(info.getLocation().distanceSquaredTo(centerLoc) < myDist){
+                Util.log("I'm the not closest! Robot that's closer: " + info.getID() + ", " + info.getLocation());
+                return false;
+            }
+            else if(info.getLocation().distanceSquaredTo(centerLoc) == myDist && rc.getID() > info.getID()){
+                // Tiebreaker is robot id. Lower id stays.
+                Util.log("I'm the not closest! Tiebreaker with robot: " + info.getID());
+                return false;
+            }
+        }
+        return true;
     }
 
     public void buildPattern() throws GameActionException {
@@ -112,6 +137,12 @@ public class Soldier extends Bunny {
         Util.log("Beginning of method: " + currRuinLoc + ", " + currRuinType);
         Util.addToIndicatorString("R " + currRuinLoc);
         Util.addToIndicatorString("RC " + currResourceCenterLoc);
+        if(currRuinMyResponsibility){
+            Util.addToIndicatorString("RP");
+        }
+        if(currResourceMyResponsibility){
+            Util.addToIndicatorString("CP");
+        }
         boolean[][] resourcePattern = rc.getResourcePattern();
         int resourceCenterIndex = -1;
         ResourceValidity resourceValidity = ResourceValidity.POSSIBLE;
@@ -134,49 +165,41 @@ public class Soldier extends Bunny {
             resourceCenterIndex = PatternUtils.getPotentialResourcePatternCenterIndex(nearbyMapInfos);
         }
 
-        // Check if resource center complete or not completable.
-        if(currResourceCenterLoc != null){
-            // Check if there's a better resource center to build at.
-            if (resourceCenterIndex != -1) {
-                currResourceCenterLoc = nearbyMapInfos[resourceCenterIndex].getMapLocation();
-                Util.addToIndicatorString("NRC " + currResourceCenterLoc);
-            } else if(rc.canSenseLocation(currResourceCenterLoc)) {
-                // If the resource center loc is done or invalid, skip it.
-                currResourceCenterLoc = null;
-            }
-        }
-
         if(currResourceCenterLoc != null){
             if((rc.canSenseLocation(currResourceCenterLoc) && rc.senseMapInfo(currResourceCenterLoc).isResourcePatternCenter()) || PatternUtils.checkEnemyPaintInConsctructionArea(currResourceCenterLoc)){
                 currResourceCenterLoc = null;
-            } else if (PatternUtils.checkPatternCompleted(currResourceCenterLoc, resourcePattern) && !currResourceMyResponsibility) {
-                boolean amClosest = true;
-                int myDist = rc.getLocation().distanceSquaredTo(currResourceCenterLoc);
-                for(RobotInfo info : nearbyFriendlies){
-                    if(info.getLocation().distanceSquaredTo(currResourceCenterLoc) < myDist){
-                        Util.log("I'm the not closest! Robot that's closer: " + info.getID() + ", " + info.getLocation());
-                        amClosest = false;
-                        break;
-                    }
-                    else if(info.getLocation().distanceSquaredTo(currResourceCenterLoc) == myDist && rc.getID() > info.getID()){
-                        // Tiebreaker is robot id. Lower id stays.
-                        Util.log("I'm the not closest! Tiebreaker with robot: " + info.getID());
-                        amClosest = false;
-                        break;
+                currResourceMyResponsibility = false;
+            } else {
+                PatternCompleted patternCompleted = PatternUtils.checkPatternCompleted(currResourceCenterLoc, resourcePattern);
+                if(patternCompleted == PatternCompleted.WRONG){
+                    // If patterns wrong, someone's fucking w/ it, so just dip.
+                    // TODO: Figure out if we should repaint in this scenario.
+                    currResourceCenterLoc = null;
+                    currResourceMyResponsibility = false;
+                }
+                else if(patternCompleted == PatternCompleted.COMPLETE) {
+                    // If patterns completed, assign responsibility.
+                    currResourceMyResponsibility = determineResponsibility(currResourceCenterLoc);
+                    if (!currResourceMyResponsibility) {
+                        Direction oppDir = rc.getLocation().directionTo(currResourceCenterLoc);
+                        currResourceCenterLoc = null;
+                        currResourceMyResponsibility = false;
+                        // Move away from the center.
+                        nav.goToFuzzy(rc.getLocation().add(oppDir).add(oppDir).add(oppDir), 0, true, false);
+                        return;
+                    } else {
+                        nav.goToFuzzy(currResourceCenterLoc, 0, false, true);
+                        return;
                     }
                 }
-                if(amClosest) {
-                    Util.log("I'm the closest! Staying behind.");
-                    currResourceMyResponsibility = true;
+                // Check if there's a better resource center to build at.
+                else if(patternCompleted == PatternCompleted.INCOMPLETE && resourceCenterIndex != -1){
+                    currResourceCenterLoc = nearbyMapInfos[resourceCenterIndex].getMapLocation();
+                    Util.addToIndicatorString("NRC " + currResourceCenterLoc);
                 }
-                else {
-                    Direction oppDir = rc.getLocation().directionTo(currResourceCenterLoc);
-                    currRuinLoc = null;
-                    currRuinType = null;
-                    currRuinMarked = false;
-                    currRuinMyResponsibility = false;
-                    // Move away from the center.
-                    nav.goToFuzzy(rc.getLocation().add(oppDir).add(oppDir).add(oppDir), 0);
+                else if(!currResourceMyResponsibility && patternCompleted == PatternCompleted.UNKNOWN && resourceCenterIndex != -1){
+                    currResourceCenterLoc = nearbyMapInfos[resourceCenterIndex].getMapLocation();
+                    Util.addToIndicatorString("NRC " + currResourceCenterLoc);
                 }
             }
         }
@@ -189,36 +212,21 @@ public class Soldier extends Bunny {
                 currRuinType = null;
                 currRuinMarked = false;
                 currRuinMyResponsibility = false;
-            } else if(currRuinType != null && PatternUtils.checkRuinCompleted(currRuinLoc, currRuinType) && !currRuinMyResponsibility) {
+            } else if(currRuinType != null && PatternUtils.checkRuinCompleted(currRuinLoc, currRuinType) == PatternCompleted.COMPLETE) {
                 // If i'm not the closest guy to the ruin, and the ruin is completed, dip.
-                boolean amClosest = true;
-                int myDist = rc.getLocation().distanceSquaredTo(currRuinLoc);
-                for(RobotInfo info : nearbyFriendlies){
-                    if(info.getLocation().distanceSquaredTo(currRuinLoc) < myDist){
-                        Util.log("I'm the not closest! Robot that's closer: " + info.getID() + ", " + info.getLocation());
-                        amClosest = false;
-                        break;
-                    }
-                    else if(info.getLocation().distanceSquaredTo(currRuinLoc) == myDist && rc.getID() > info.getID()){
-                        // Tiebreaker is robot id. Lower id stays.
-                        Util.log("I'm the not closest! Tiebreaker with robot: " + info.getID());
-                        amClosest = false;
-                        break;
-                    }
-                }
-                if(amClosest) {
-                    Util.log("I'm the closest! Staying behind.");
-                    currRuinMyResponsibility = true;
-                }
-                else {
-                    roundPaintedRuinsBySector[comms.getSectorIndex(currRuinLoc)] = rc.getRoundNum();
+                currRuinMyResponsibility = determineResponsibility(currRuinLoc);
+                if(!currRuinMyResponsibility){
                     Direction oppDir = rc.getLocation().directionTo(currRuinLoc);
                     currRuinLoc = null;
                     currRuinType = null;
                     currRuinMarked = false;
                     currRuinMyResponsibility = false;
                     // Move away from the center.
-                    nav.goToFuzzy(rc.getLocation().add(oppDir).add(oppDir).add(oppDir), 0);
+                    nav.goToFuzzy(rc.getLocation().add(oppDir).add(oppDir).add(oppDir), 0, true, false);
+                    return;
+                } else {
+                    nav.goToFuzzy(currRuinLoc, 0, false, true);
+                    return;
                 }
             }
         }
@@ -234,7 +242,7 @@ public class Soldier extends Bunny {
                 // 2650 bytecode.
                 if (resourceCenterIndex != -1) {
                     currResourceCenterLoc = nearbyMapInfos[resourceCenterIndex].getMapLocation();
-                    if(currRuinLoc != null) Util.addToIndicatorString("NRC " + currResourceCenterLoc);
+                    Util.addToIndicatorString("NRC " + currResourceCenterLoc);
                 }
             }
         }
@@ -246,8 +254,9 @@ public class Soldier extends Bunny {
             int index = Util.getMapInfoIndex(deltaX, deltaY);
             // Too far away, move towards pattern
             if(index == -1){
+                Util.addToIndicatorString("MT1");
                 Util.log("Moving towards: " + currRuinLoc + ", " + currRuinType);
-                nav.goToFuzzy(currRuinLoc, 0);
+                nav.goToFuzzy(currRuinLoc, 0, false, false);
                 return;
             }
 
@@ -258,8 +267,9 @@ public class Soldier extends Bunny {
 
             if(currRuinType == null){
                 if(!PatternUtils.closeEnoughToDetermineRuinType(currRuinLoc)){
+                    Util.addToIndicatorString("MT2");
                     Util.log("Moving towards 2: " + currRuinLoc + ", " + currRuinType);
-                    nav.goToFuzzy(currRuinLoc, 0);
+                    nav.goToFuzzy(currRuinLoc, 0, true, false);
                     return;
                 }
                 currRuinType = PatternUtils.getRuinUnitType(currRuinLoc);
@@ -270,13 +280,22 @@ public class Soldier extends Bunny {
                 currRuinMarked = marked;
                 // Get closer to mark.
                 if(!currRuinMarked){
-                    nav.goToFuzzy(currRuinLoc, 0);
+                    Util.addToIndicatorString("MRK");
+                    nav.goToFuzzy(currRuinLoc, 0, false, false);
                     return;
                 }
             }
 
             boolean[][] pattern = rc.getTowerPattern(currRuinType);
-            PatternUtils.workOnRuin(index, pattern);
+            if(PatternUtils.checkRuinCompleted(currRuinLoc, currRuinType) == PatternCompleted.COMPLETE){
+                Util.addToIndicatorString("RPY");
+                nav.goToFuzzy(currRuinLoc, 0, false, true);
+            }
+            else {
+                PatternUtils.workOnRuin(index, pattern);
+                Util.addToIndicatorString("WRN");
+            }
+
             if (rc.canCompleteTowerPattern(currRuinType, nearbyMapInfos[index].getMapLocation())) {
                 rc.completeTowerPattern(currRuinType, nearbyMapInfos[index].getMapLocation());
             }
@@ -298,7 +317,7 @@ public class Soldier extends Bunny {
             }
 
             if (rc.isMovementReady()) {
-                nav.goToFuzzy(currResourceCenterLoc, 0);
+                nav.goToFuzzy(currResourceCenterLoc, 0, false, false);
             }
             if (rc.canCompleteResourcePattern(currResourceCenterLoc)) {
                 rc.completeResourcePattern(currResourceCenterLoc);
@@ -313,7 +332,7 @@ public class Soldier extends Bunny {
 
     public ResourceValidity getResourceCenterValidity() {
         // this checks to see whether the current location could be valid for a resource pattern
-        if (myLoc.x <= 1 || myLoc.y <= 1 || myLoc.x >= rc.getMapWidth()-2 || myLoc.y >= rc.getMapHeight()-2) {
+        if (myLoc.x <= 1 || myLoc.y <= 1 || myLoc.x >= mapWidth-2 || myLoc.y >= mapHeight-2) {
             return ResourceValidity.INVALID;
         }
 

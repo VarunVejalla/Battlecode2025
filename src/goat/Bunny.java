@@ -284,7 +284,7 @@ public abstract class Bunny extends Robot {
             nav.goToBug(homebase, 0);
         } else {
             tryReplenish();
-            nav.goToFuzzy(homebase, 0);
+            nav.goToFuzzy(homebase, 0, false, true);
             if(rc.isActionReady()){
                 tryReplenish();
             }

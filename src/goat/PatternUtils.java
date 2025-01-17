@@ -6,6 +6,10 @@ enum PatternPriority {
     LOW, MEDIUM, HIGH
 }
 
+enum PatternCompleted {
+    WRONG, COMPLETE, INCOMPLETE, UNKNOWN
+}
+
 public class PatternUtils {
     static Soldier soldier;
     static RobotController rc;
@@ -69,20 +73,20 @@ public class PatternUtils {
     public static void runDefaultBehavior() throws GameActionException {
         Util.addToIndicatorString("DFL;");
         // move destination to be on the line connecting what it currently is to right outside any overlap with vision radius
-        boolean isPaintReady = rc.isActionReady() && rc.getPaint() >= UnitType.SOLDIER.attackCost;
-        if (isPaintReady) {
-            for (int i = 0; i < 29; i++) {
-                int index = soldier.spiralOutwardIndices[i];
-                if (soldier.nearbyMapInfos[index] == null || soldier.nearbyMapInfos[index].hasRuin() || soldier.nearbyMapInfos[index].isWall()) {
-                    continue;
-                }
-                MapLocation location = soldier.nearbyMapInfos[index].getMapLocation();
-                if (rc.canAttack(location) && soldier.nearbyMapInfos[index].getPaint() == PaintType.EMPTY) {
-                    rc.attack(location, getDefaultColor(location));
-                    break;
-                }
-            }
-        }
+//        boolean isPaintReady = rc.isActionReady() && rc.getPaint() >= UnitType.SOLDIER.attackCost;
+//        if (isPaintReady) {
+//            for (int i = 0; i < 29; i++) {
+//                int index = soldier.spiralOutwardIndices[i];
+//                if (soldier.nearbyMapInfos[index] == null || soldier.nearbyMapInfos[index].hasRuin() || soldier.nearbyMapInfos[index].isWall()) {
+//                    continue;
+//                }
+//                MapLocation location = soldier.nearbyMapInfos[index].getMapLocation();
+//                if (rc.canAttack(location) && soldier.nearbyMapInfos[index].getPaint() == PaintType.EMPTY) {
+//                    rc.attack(location, getDefaultColor(location));
+//                    break;
+//                }
+//            }
+//        }
 
         if (rc.isMovementReady()) {
             Util.addToIndicatorString("DEST " + soldier.destination  + ";");
@@ -301,12 +305,13 @@ public class PatternUtils {
         }
     }
 
-    public static boolean checkRuinCompleted(MapLocation ruinLoc, UnitType ruinType) throws GameActionException {
+    public static PatternCompleted checkRuinCompleted(MapLocation ruinLoc, UnitType ruinType) throws GameActionException {
         boolean[][] pattern = rc.getTowerPattern(ruinType);
         return checkPatternCompleted(ruinLoc, pattern);
     }
 
-    public static boolean checkPatternCompleted(MapLocation centerLoc, boolean[][] pattern) throws GameActionException {
+    public static PatternCompleted checkPatternCompleted(MapLocation centerLoc, boolean[][] pattern) throws GameActionException {
+        boolean unknown = false;
         for(int x = centerLoc.x - 2; x <= centerLoc.x + 2; x++) {
             for(int y = centerLoc.y - 2; y <= centerLoc.y + 2; y++) {
                 if(x == centerLoc.x && y == centerLoc.y) {
@@ -314,18 +319,29 @@ public class PatternUtils {
                 }
                 MapLocation loc = new MapLocation(x, y);
                 if(!rc.canSenseLocation(loc)){
-                    return false;
+                    unknown = true;
+                    continue;
                 }
                 boolean shouldBeSecondary = pattern[x - centerLoc.x + 2][y - centerLoc.y + 2];
-                if(shouldBeSecondary && rc.senseMapInfo(loc).getPaint() != PaintType.ALLY_SECONDARY){
-                    return false;
+                PaintType paint = rc.senseMapInfo(loc).getPaint();
+                if(shouldBeSecondary && paint != PaintType.ALLY_SECONDARY){
+                    if(paint == PaintType.EMPTY){
+                        return PatternCompleted.INCOMPLETE;
+                    }
+                    return PatternCompleted.WRONG;
                 }
-                if(!shouldBeSecondary && rc.senseMapInfo(loc).getPaint() != PaintType.ALLY_PRIMARY){
-                    return false;
+                if(!shouldBeSecondary && paint != PaintType.ALLY_PRIMARY){
+                    if(paint == PaintType.EMPTY){
+                        return PatternCompleted.INCOMPLETE;
+                    }
+                    return PatternCompleted.WRONG;
                 }
             }
         }
-        return true;
+        if(unknown) {
+            return PatternCompleted.UNKNOWN;
+        }
+        return PatternCompleted.COMPLETE;
     }
 
     public static boolean checkEnemyPaintInConsctructionArea(MapLocation centerLoc) throws GameActionException {

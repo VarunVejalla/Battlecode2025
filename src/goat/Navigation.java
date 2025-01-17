@@ -41,16 +41,16 @@ public class Navigation {
             resetBugNav();
         }
         prevTarget = target;
-        return goTo(target, minDistToSatisfy, false);
+        return goTo(target, minDistToSatisfy, false, false);
     }
 
     public boolean goToFuzzy(MapLocation target, int minDistToSatisfy) throws GameActionException {
-        return goToFuzzy(target, minDistToSatisfy, false);
+        return goToFuzzy(target, minDistToSatisfy, true, false);
     }
 
-    public boolean goToFuzzy(MapLocation target, int minDistToSatisfy, boolean allow_center) throws GameActionException {
+    public boolean goToFuzzy(MapLocation target, int minDistToSatisfy, boolean ignore_heuristic, boolean allow_center) throws GameActionException {
         mode = NavigationMode.FUZZYNAV;
-        return goTo(target, minDistToSatisfy, allow_center);
+        return goTo(target, minDistToSatisfy, ignore_heuristic, allow_center);
     }
 
     public void resetBugNav() {
@@ -131,14 +131,55 @@ public class Navigation {
         }
 
         if (closestDir != null) {
-    //            Direction bestDir = closestDir;
-    //            int bestHeuristic = heuristic(closestDir);
-            return closestDir;
+            Direction bestDir = closestDir;
+            float bestHeuristic = calcHeuristic(closestDir, target);
+            float leftHeuristic = calcHeuristic(closestDir.rotateLeft(), target);
+            float rightHeuristic = calcHeuristic(closestDir.rotateRight(), target);
+            if(leftHeuristic < bestHeuristic){
+                bestDir = closestDir.rotateLeft();
+                bestHeuristic = leftHeuristic;
+            }
+            if(rightHeuristic < bestHeuristic){
+                bestDir = closestDir.rotateRight();
+                bestHeuristic = rightHeuristic;
+            }
+            return bestDir;
         }
         return wallDir;
     }
 
-    public Direction fuzzyNav(MapLocation target, boolean center_allowed) throws GameActionException {
+    public float calcHeuristic(Direction dir, MapLocation target) throws GameActionException {
+        MapLocation newLoc = rc.getLocation().add(dir);
+        if(!rc.canSenseLocation(newLoc)){
+            return Integer.MAX_VALUE;
+        }
+        int numMoves = Util.minMovesToReach(newLoc, target);
+        float distanceSquared = (float)newLoc.distanceSquaredTo(target);
+        float distance = (float)Math.sqrt(distanceSquared);
+        MapInfo info = rc.senseMapInfo(newLoc);
+        float paintHeuristic = 0.0F;
+        if(info.getPaint().isAlly()){
+            paintHeuristic = -0.1F;
+        } else if(info.getPaint().isEnemy()){
+            paintHeuristic = 0.1F;
+        }
+
+        float allyHeuristic = 0.0F;
+        RobotInfo[] adjAllies = rc.senseNearbyRobots(newLoc, 2, robot.myTeam);
+        for(RobotInfo ally : adjAllies){
+            if(!Util.isTower(ally.getType())){
+                allyHeuristic += 0.2F;
+            }
+        }
+
+        Util.addToIndicatorString("D" + distance + "," + paintHeuristic + "," + allyHeuristic + ";");
+        Util.log("D" + dir + "," + distance + "," + paintHeuristic + "," + allyHeuristic + ";");
+
+        float heuristic = numMoves + distance + paintHeuristic + allyHeuristic;
+        return heuristic;
+    }
+
+    public Direction fuzzyNav(MapLocation target, boolean ignore_heuristic, boolean allow_center) throws GameActionException {
         Util.addToIndicatorString("FZ" + target);
         Direction toTarget = robot.myLoc.directionTo(target);
         Direction[] moveOptions = {
@@ -146,10 +187,9 @@ public class Navigation {
                 toTarget.rotateLeft(),
                 toTarget.rotateRight(),
                 toTarget.rotateLeft().rotateLeft(),
-                toTarget.rotateRight().rotateRight(),
-                Direction.CENTER
+                toTarget.rotateRight().rotateRight()
         };
-        if(!center_allowed) {
+        if(allow_center) {
             moveOptions = new Direction[]{
                     toTarget,
                     toTarget.rotateLeft(),
@@ -162,7 +202,8 @@ public class Navigation {
 
         Direction bestDir = null;
         int leastNumMoves = Integer.MAX_VALUE;
-        int leastHeuristic = Integer.MAX_VALUE;
+        int leastDistanceSqured = Integer.MAX_VALUE;
+        float leastHeuristic = Float.MAX_VALUE;
 
         for (int i = moveOptions.length; i-- > 0;) {
             Direction dir = moveOptions[i];
@@ -176,43 +217,28 @@ public class Navigation {
                 continue;
             }
 
-            int numMoves = Util.minMovesToReach(newLoc, target);
-            int distanceSquared = newLoc.distanceSquaredTo(target);
-            int distance = (int)Math.sqrt(distanceSquared);
-            MapInfo info = rc.senseMapInfo(newLoc);
-            int paintHeuristic = 0;
-            if(info.getPaint().isAlly()){
-                paintHeuristic = -5;
-            } else if(info.getPaint().isEnemy()){
-                paintHeuristic = 5;
-            }
-
-            int numAllies = 0;
-            RobotInfo[] adjAllies = rc.senseNearbyRobots(newLoc, 2, robot.myTeam);
-            for(RobotInfo ally : adjAllies){
-                if(!Util.isTower(ally.getType())){
-                    numAllies++;
+            if(ignore_heuristic){
+                int numMoves = Util.minMovesToReach(newLoc, target);
+                int distanceSquared = newLoc.distanceSquaredTo(target);
+                if (numMoves < leastNumMoves ||
+                    (numMoves == leastNumMoves && distanceSquared < leastDistanceSqured)) {
+                    leastDistanceSqured = distanceSquared;
+                    leastNumMoves = numMoves;
+                    bestDir = dir;
                 }
             }
-            int allyHeuristic = numAllies * 5;
-
-            Util.addToIndicatorString("D" + distance + "," + paintHeuristic + "," + allyHeuristic + ";");
-            Util.log("D" + dir + "," + distance + "," + paintHeuristic + "," + allyHeuristic + ";");
-
-            int heuristic = numMoves + distance + paintHeuristic + allyHeuristic;
-
-            if (numMoves < leastNumMoves ||
-                    (numMoves == leastNumMoves && heuristic < leastHeuristic)) {
-//            if(heuristic < leastHeuristic){
-                leastNumMoves = numMoves;
-                leastHeuristic = heuristic;
-                bestDir = dir;
+            else {
+                float heuristic = calcHeuristic(dir, target);
+                if(heuristic < leastHeuristic){
+                    leastHeuristic = heuristic;
+                    bestDir = dir;
+                }
             }
         }
         return bestDir;
     }
 
-    public boolean goTo(MapLocation target, int minDistToSatisfy, boolean center_allowed) throws GameActionException {
+    private boolean goTo(MapLocation target, int minDistToSatisfy, boolean ignore_heuristic, boolean allow_center) throws GameActionException {
         // thy journey hath been completed
         if (robot.myLoc.distanceSquaredTo(target) <= minDistToSatisfy) {
             return true;
@@ -226,7 +252,7 @@ public class Navigation {
             Direction toGo = null;
             switch (mode) {
                 case FUZZYNAV:
-                    toGo = fuzzyNav(target, center_allowed);
+                    toGo = fuzzyNav(target, ignore_heuristic, allow_center);
                     break;
                 case BUGNAV:
                     toGo = bugNav(target);
