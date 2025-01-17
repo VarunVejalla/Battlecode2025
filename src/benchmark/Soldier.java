@@ -20,14 +20,14 @@ public class Soldier extends Bunny {
 
         // 1. If trying to replenish, go do that.
         // TODO: If nearestAlliedPaintTowerLoc == null, should we explore or smth?
-        if(tryingToReplenish && nearestAlliedPaintTowerLoc != null){
-            tryReplenish();
-            // TODO: Don't stay adjacent to other robots.
-            if (myLoc.distanceSquaredTo(nearestAlliedPaintTowerLoc) > GameConstants.PAINT_TRANSFER_RADIUS_SQUARED) {
-                nav.goTo(nearestAlliedPaintTowerLoc, GameConstants.PAINT_TRANSFER_RADIUS_SQUARED);
-            }
-        }
-        else {
+//        if(tryingToReplenish && nearestAlliedPaintTowerLoc != null){
+//            tryReplenish();
+//            // TODO: Don't stay adjacent to other robots.
+//            if (myLoc.distanceSquaredTo(nearestAlliedPaintTowerLoc) > GameConstants.PAINT_TRANSFER_RADIUS_SQUARED) {
+//                nav.goTo(nearestAlliedPaintTowerLoc, GameConstants.PAINT_TRANSFER_RADIUS_SQUARED);
+//            }
+//        }
+//        else {
             RobotInfo attackInfo = getAttackTarget();
             if(attackInfo != null) {
                 runAttackLogic(attackInfo);
@@ -36,7 +36,7 @@ public class Soldier extends Bunny {
                 // 3. If not attacking, run pattern painting logic.
                 buildPattern();
             }
-        }
+//        }
 
         MarkingUtils.tryRuinPatternCompletion();
         MarkingUtils.tryResourcePatternCompletion();
@@ -171,6 +171,7 @@ public class Soldier extends Bunny {
         if(sr.enemyPaintLevel >= 1) {
             sectorScore -= 500;
         }
+
 
         return sectorScore;
 

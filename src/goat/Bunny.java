@@ -31,6 +31,7 @@ public abstract class Bunny extends Robot {
     TowerType nearestAlliedTowerType;
     MapLocation nearestAlliedPaintTowerLoc;
     MapLocation destination; // long-term destination
+    MapLocation center = new MapLocation(rc.getMapWidth() / 2, rc.getMapHeight() / 2);
     MapInfo[] nearbyMapInfos;
     RobotInfo[] nearbyFriendlies;
     RobotInfo[] nearbyOpponents;
@@ -83,7 +84,10 @@ public abstract class Bunny extends Robot {
             // Go to the center of that sector.
             nav.goTo(comms.getSectorCenter(bestSector), dist_to_best_sector);
         } else {
+            // Goes to random destination
             nav.goTo(destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
+            // Go towards the center
+//            nav.goTo(center, dist_to_best_sector);
         }
 
     }

@@ -14,10 +14,10 @@ public class Mopper extends Bunny {
         actionableOpponents = rc.senseNearbyRobots(2, rc.getTeam().opponent());
         actionableTiles = rc.senseNearbyMapInfos(2);
 
-        if(tryingToReplenish){
-            replenishLogic();
-        }
-        else if (rc.isActionReady()) {
+//        if(tryingToReplenish){
+//            replenishLogic();
+//        }
+        if (rc.isActionReady()) {
             Util.addToIndicatorString("DBA");
             doBestAction();
             if (canMove()) {

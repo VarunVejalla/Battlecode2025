@@ -22,19 +22,20 @@ public class Tower extends Robot {
         if (rc.getRoundNum() < Constants.SPAWN_OPENING_BOTS_ROUNDS) {
             openingBots();
         } else if (rc.getMoney() > Constants.SPAWN_BOTS_MIDGAME_COST_THRESHOLD) {
-            if(rc.getRoundNum() < Constants.SPAWN_MIDGAME_BOTS_ROUNDS) {
-                midGameBots();
-            }
-            else {
-                endGameBots();
-            }
+            midGameBots();
+//            if(rc.getRoundNum() < Constants.SPAWN_MIDGAME_BOTS_ROUNDS) {
+//                midGameBots();
+//            }
+//            else {
+//                endGameBots();
+//            }
         }
 
         // Read incoming messages
-//        Message[] messages = rc.readMessages(-1);
-//        for (Message m : messages) {
-            // Util.log("Tower received message: '#" + m.getSenderID() + " " + m.getBytes());
-//        }
+        Message[] messages = rc.readMessages(-1);
+        for (Message m : messages) {
+             Util.log("Tower received message: '#" + m.getSenderID() + " " + m.getBytes());
+        }
 
     }
 
