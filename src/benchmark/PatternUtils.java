@@ -41,8 +41,8 @@ public class PatternUtils {
         }
 
         if (rc.isMovementReady()) {
-//            soldier.nav.goTo(soldier.destination, 9);//Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
-            soldier.macroMove(0);
+            soldier.nav.goTo(soldier.destination, 9);//Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
+//            soldier.macroMove(0);
         }
     }
 

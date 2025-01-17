@@ -12,16 +12,16 @@ public class Splasher extends Bunny {
         super.run(); // Call shared logic for all bunnies
 
         // 1. Replenish or Perform Splash Attack
-//        if (tryingToReplenish) {
-//            replenishLogic();
-//        } else {
+        if (tryingToReplenish) {
+            replenishLogic();
+        } else {
             splashAttack();
             // 2. Movement Logic
             if (canMove()) {
                 moveLogic();
             }
             splashAttack();
-//        }
+        }
 
         // 4. End of Turn Logic
         sharedEndFunction();
