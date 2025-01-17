@@ -27,14 +27,17 @@ public abstract class Bunny extends Robot {
     MapLocation[] knownRuinsBySector = new MapLocation[144];
     MapLocation[] knownAlliedTowerLocs = new MapLocation[10];
     TowerType[] knownAlliedTowerTypes = new TowerType[10];
+    MapLocation nearestAlliedTowerLoc;
     TowerType nearestAlliedTowerType;
     MapLocation nearestAlliedPaintTowerLoc;
     MapLocation destination; // long-term destination
+    MapLocation center = new MapLocation(rc.getMapWidth() / 2, rc.getMapHeight() / 2);
     MapInfo[] nearbyMapInfos;
     RobotInfo[] nearbyFriendlies;
     RobotInfo[] nearbyOpponents;
     boolean tryingToReplenish = false;
     BunnyComms comms = new BunnyComms(rc, this);
+    MapLocation prevUpdateLoc;
     boolean symmetryUpdate = false;
     SymmetryType[] possibleSymmetries = {SymmetryType.HORIZONTAL, SymmetryType.VERTICAL, SymmetryType.ROTATIONAL};
 
@@ -50,7 +53,6 @@ public abstract class Bunny extends Robot {
         // Comms is run inside of scan surroundings (and nearest allied paint tower, which is called in surroundings)!
         scanSurroundings();
         updateDestinationIfNeeded();
-
     }
 
     public boolean canMove() {
@@ -82,7 +84,10 @@ public abstract class Bunny extends Robot {
             // Go to the center of that sector.
             nav.goTo(comms.getSectorCenter(bestSector), dist_to_best_sector);
         } else {
+            // Goes to random destination
             nav.goTo(destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
+            // Go towards the center
+//            nav.goTo(center, dist_to_best_sector);
         }
 
     }
@@ -97,16 +102,20 @@ public abstract class Bunny extends Robot {
      * Scan stuff around you (this method is executed at the beginning of every
      * turn)
      */
+    // 8k bytecode
     public void scanSurroundings() throws GameActionException {
+        // 300 bytecode
         nearbyMapInfos = Util.getFilledInMapInfo(rc.senseNearbyMapInfos());
         nearbyFriendlies = rc.senseNearbyRobots(-1, rc.getTeam());
         nearbyOpponents = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
 
         // COMMS IS HERE
         // Find sector that is fully enclosed and update bunny world.
+        // 2.2k bytecode
         comms.updateSectorInVision(rc.getLocation());
 
         // If you requested a map, wait for the tower to send it.
+        // 2k bytecode
         if(comms.waitingForMap) {
             comms.processMap();
         } else if (comms.waitingForMap2) {
@@ -114,13 +123,24 @@ public abstract class Bunny extends Robot {
         }
 
         // Updates both nearest allied paint tower and nearest allied tower.
+        // 1.7k bytecode
         updateKnownTowers();
+        // 200 bytecode
         setNearestAlliedTowers();
+        // Faster now I think
         updateKnownRuinsAndSymmetries();
     }
 
     public void updateKnownRuinsAndSymmetries() throws GameActionException {
-        for(MapInfo info : nearbyMapInfos){
+        // TODO: Should optimize this by only searching new squares based on previous move.
+//        for(MapInfo info : nearbyMapInfos){
+        Direction lastMoveDir = null;
+        if(prevUpdateLoc != null){
+            lastMoveDir = prevUpdateLoc.directionTo(rc.getLocation());
+        }
+        int[] indices = Util.getNewVisionIndicesAfterMove(lastMoveDir);
+        for(int idx : indices) {
+            MapInfo info = nearbyMapInfos[idx];
             if(info == null || !info.hasRuin()){
                 continue;
             }
@@ -175,6 +195,7 @@ public abstract class Bunny extends Robot {
                 }
             }
         }
+        prevUpdateLoc = rc.getLocation();
     }
 
     public void updateKnownTowers() throws GameActionException {
@@ -233,6 +254,7 @@ public abstract class Bunny extends Robot {
         int maxPaintDist = Integer.MAX_VALUE;
         nearestAlliedPaintTowerLoc = null;
         nearestAlliedTowerType = null;
+        nearestAlliedTowerLoc = null;
         MapLocation myLocation = rc.getLocation();
         for(int i = 0; i < knownAlliedTowerLocs.length; i++){
             if(knownAlliedTowerLocs[i] == null){
@@ -241,11 +263,31 @@ public abstract class Bunny extends Robot {
             int dist = myLocation.distanceSquaredTo(knownAlliedTowerLocs[i]);
             if(dist < maxDist){
                 maxDist = dist;
+                nearestAlliedTowerLoc = knownAlliedTowerLocs[i];
                 nearestAlliedTowerType = knownAlliedTowerTypes[i];
             }
             if(knownAlliedTowerTypes[i] == TowerType.PaintTower && dist < maxPaintDist){
                 nearestAlliedPaintTowerLoc = knownAlliedTowerLocs[i];
                 maxPaintDist = dist;
+            }
+        }
+    }
+
+    public void replenishLogic() throws GameActionException {
+        MapLocation homebase = nearestAlliedPaintTowerLoc;
+        // TODO: Make this smarter. Wander around friendly territory till you find someone to replenish you.
+        if(homebase == null){
+            homebase = nearestAlliedTowerLoc;
+        }
+        if(homebase == null) return;
+
+        if(rc.getLocation().distanceSquaredTo(homebase) > 9) {
+            nav.goToBug(homebase, 0);
+        } else {
+            tryReplenish();
+            nav.goToFuzzy(homebase, 0);
+            if(rc.isActionReady()){
+                tryReplenish();
             }
         }
     }

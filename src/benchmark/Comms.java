@@ -72,7 +72,8 @@ public class Comms {
         // Next 3 bits: ruin condition (assumed 3 bits)
         sectorValue |= (sr.towerType & 0b111) << 1;
 
-        // Last bit: free
+        // Last bit: experienced bit. Given a scan result, assuming scan complete.
+        sectorValue |= 0b1;
 
         return sectorValue;
     }

@@ -207,14 +207,17 @@ public class PatternUtils {
                     if ((x+y)%2 == 0) {
                         return UnitType.LEVEL_ONE_PAINT_TOWER;
                     } else {
-                        return UnitType.LEVEL_ONE_MONEY_TOWER;
+                        if(info.getMark().isSecondary()) {
+                            return UnitType.LEVEL_ONE_MONEY_TOWER;
+                        }
+                        return UnitType.LEVEL_ONE_DEFENSE_TOWER;
                     }
                 }
             }
         }
 
         // If we got here, then no type has been assigned to this guy yet, so make one rn.
-        UnitType buildingType = decideRuinUnitType();
+        UnitType buildingType = decideRuinUnitType(ruinLoc);
         // Mark it so that other people are aware of that.
         soldier.currRuinMarked = markRuinUnitType(ruinLoc, buildingType);
         return buildingType;
@@ -232,7 +235,7 @@ public class PatternUtils {
                 }
                 MapLocation loc = new MapLocation(x, y);
                 if(rc.canMark(loc)) {
-                    rc.mark(loc, true);
+                    rc.mark(loc, buildingType == UnitType.LEVEL_ONE_MONEY_TOWER);
                     return true;
                 }
             }
@@ -240,7 +243,10 @@ public class PatternUtils {
         return false;
     }
 
-    public static UnitType decideRuinUnitType() {
+    public static UnitType decideRuinUnitType(MapLocation ruinLoc) {
+        if(ruinLoc.distanceSquaredTo(soldier.center) < 100) {
+            return UnitType.LEVEL_ONE_DEFENSE_TOWER;
+        }
         if(soldier.nearestAlliedTowerType == TowerType.PaintTower) {
             return UnitType.LEVEL_ONE_MONEY_TOWER;
         }

@@ -14,28 +14,28 @@ public class Tower extends Robot {
 
     public void run() throws GameActionException {
         super.run();
+        Util.log("TOWER");
+        Util.addToIndicatorString("RUN");
         scanSurroundings();
+        runAttack();
 
-//        if(rc.getRoundNum() > 300) {
-//            rc.resign();
-//        }
         if (rc.getRoundNum() < Constants.SPAWN_OPENING_BOTS_ROUNDS) {
             openingBots();
         } else if (rc.getMoney() > Constants.SPAWN_BOTS_MIDGAME_COST_THRESHOLD) {
-            if(rc.getRoundNum() < Constants.SPAWN_MIDGAME_BOTS_ROUNDS) {
-                midGameBots();
-            }
-            else {
-                endGameBots();
-            }
+            midGameBots();
+//            if(rc.getRoundNum() < Constants.SPAWN_MIDGAME_BOTS_ROUNDS) {
+//                midGameBots();
+//            }
+//            else {
+//                endGameBots();
+//            }
         }
 
         // Read incoming messages
         Message[] messages = rc.readMessages(-1);
         for (Message m : messages) {
-            // Util.log("Tower received message: '#" + m.getSenderID() + " " + m.getBytes());
+             Util.log("Tower received message: '#" + m.getSenderID() + " " + m.getBytes());
         }
-        runAttack();
 
     }
 
@@ -116,9 +116,12 @@ public class Tower extends Robot {
      */
     public void runAttack() throws GameActionException {
         // see if there's an enemy to attack
+        Util.addToIndicatorString("RA; ");
         MapLocation target = findBestAttackTarget();
+        Util.log("TGT: " + target);
+        Util.addToIndicatorString("TGT: " + target);
         if (target != null && rc.isActionReady() && rc.canAttack(target)) {
-            // Util.log("Tower running attack");
+            Util.log("Tower running attack");
             rc.attack(target);
         }
         // run AoE attack if needed

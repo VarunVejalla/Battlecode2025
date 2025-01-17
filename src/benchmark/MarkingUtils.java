@@ -30,7 +30,7 @@ public class MarkingUtils {
         // Move towards the ruin if we're too far to mark it (we need to be adjacent to
         // it to mark it)
         if (ruinLoc.distanceSquaredTo(rc.getLocation()) > Constants.MAX_RUIN_DISTANCE_SQUARED) {
-            bunny.nav.goTo(ruinLoc, Constants.MAX_RUIN_DISTANCE_SQUARED);
+            bunny.nav.goToBug(ruinLoc, Constants.MAX_RUIN_DISTANCE_SQUARED);
         }
 
         // Mark tower pattern on the ruin if in range

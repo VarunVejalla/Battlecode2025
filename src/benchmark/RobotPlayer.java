@@ -34,6 +34,7 @@ public class RobotPlayer {
             int currentTurn = rc.getRoundNum();
 
             try {
+                Util.log("RUNNING GANG");
                 robot.run();
                 if (rc.getRoundNum() != currentTurn && rc.getRoundNum() > spawnedRound + 1) {
                     System.out.println("BYTECODE EXCEEDED");
@@ -41,9 +42,9 @@ public class RobotPlayer {
                 }
 
                 // End early for debugging.
-//                if (currentTurn > 150) {
-//                System.out.println("Resigning early for debugging!");
-//                 rc.resign();
+//                if (currentTurn > 60) {
+//                    System.out.println("Resigning early for debugging!");
+//                    rc.resign();
 //                }
             } catch (Exception e) {
                 e.printStackTrace();

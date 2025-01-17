@@ -1,9 +1,6 @@
 package benchmark;
 
-import battlecode.common.Direction;
-import battlecode.common.GameActionException;
-import battlecode.common.MapLocation;
-import battlecode.common.RobotController;
+import battlecode.common.*;
 
 enum NavigationMode {
     FUZZYNAV, BUGNAV;
@@ -104,6 +101,7 @@ public class Navigation {
                 if (dist < closestDistToTarget) {
                     closestDistToTarget = dist;
                     closestDir = dir;
+                    Util.addToIndicatorString("CLSR " + dist);
                 }
 
                 // Check if wall-following is viable
@@ -112,14 +110,10 @@ public class Navigation {
                 }
             } else {
                 if (wallDir == null) {
-                    if (!rc.onTheMap(newLoc)) { // Hard check for if wall is outer boundary (don't count that as a
-                                                // wall).
-                        if (rc.canSenseLocation(newLoc) && rc.senseRobotAtLocation(newLoc) == null) { // Hard check for
-                                                                                                      // if wall is
-                                                                                                      // another robot
-                                                                                                      // (don't count
-                                                                                                      // that as a
-                                                                                                      // wall).
+                    // Hard check for if wall is outer boundary (don't count that as a wall).
+                    if (rc.onTheMap(newLoc)) {
+                        // Hard check for if wall is another robot (don't count that as a wall).
+                        if (rc.canSenseLocation(newLoc) && rc.senseRobotAtLocation(newLoc) == null) {
                             lastWallFollowed = newLoc;
                         }
                     }
@@ -138,21 +132,31 @@ public class Navigation {
         return wallDir;
     }
 
-    public Direction fuzzyNav(MapLocation target) throws GameActionException {
+    public Direction fuzzyNav(MapLocation target, int minDistToSatisfy) throws GameActionException {
+        Util.addToIndicatorString("FZ" + target);
         Direction toTarget = robot.myLoc.directionTo(target);
         Direction[] moveOptions = {
                 toTarget,
                 toTarget.rotateLeft(),
                 toTarget.rotateRight(),
                 toTarget.rotateLeft().rotateLeft(),
-                toTarget.rotateRight().rotateRight()
+                toTarget.rotateRight().rotateRight(),
+                Direction.CENTER
         };
+//        if(rc.getLocation().distanceSquaredTo(target) <= minDistToSatisfy) {
+//            moveOptions = new Direction[]{
+//                    toTarget,
+//                    toTarget.rotateLeft(),
+//                    toTarget.rotateRight(),
+//                    toTarget.rotateLeft().rotateLeft(),
+//                    toTarget.rotateRight().rotateRight(),
+//                    Direction.CENTER
+//            };
+//        }
 
         Direction bestDir = null;
         int leastNumMoves = Integer.MAX_VALUE;
-        int leastDistanceSquared = Integer.MAX_VALUE;
-
-        MapLocation bestNewLoc = robot.myLoc;
+        int leastHeuristic = Integer.MAX_VALUE;
 
         for (int i = moveOptions.length; i-- > 0;) {
             Direction dir = moveOptions[i];
@@ -162,18 +166,39 @@ public class Navigation {
                 continue;
             }
 
-            if (!rc.sensePassability(newLoc))
+            if (!rc.sensePassability(newLoc)) {
                 continue;
+            }
 
             int numMoves = Util.minMovesToReach(newLoc, target);
             int distanceSquared = newLoc.distanceSquaredTo(target);
+            int distance = (int)Math.sqrt(distanceSquared);
+            MapInfo info = rc.senseMapInfo(newLoc);
+            int paintHeuristic = 0;
+            if(info.getPaint().isAlly()){
+                paintHeuristic = -5;
+            } else if(info.getPaint().isEnemy()){
+                paintHeuristic = 5;
+            }
+
+            int numAllies = 0;
+            RobotInfo[] adjAllies = rc.senseNearbyRobots(newLoc, 2, robot.myTeam);
+            for(RobotInfo ally : adjAllies){
+                if(!Util.isTower(ally.getType())){
+                    numAllies++;
+                }
+            }
+            int allyHeuristic = numAllies * 5;
+
+            Util.addToIndicatorString("D" + distance + ",P" + paintHeuristic + ",A" + allyHeuristic + ";");
+
+            int heuristic = distance + paintHeuristic + allyHeuristic;
 
             if (numMoves < leastNumMoves ||
-                    (numMoves == leastNumMoves && distanceSquared < leastDistanceSquared)) {
+                    (numMoves == leastNumMoves && heuristic < leastHeuristic)) {
                 leastNumMoves = numMoves;
-                leastDistanceSquared = distanceSquared;
+                leastHeuristic = heuristic;
                 bestDir = dir;
-                bestNewLoc = newLoc;
             }
         }
         return bestDir;
@@ -202,7 +227,7 @@ public class Navigation {
             Direction toGo = null;
             switch (mode) {
                 case FUZZYNAV:
-                    toGo = fuzzyNav(target);
+                    toGo = fuzzyNav(target, minDistToSatisfy);
                     break;
                 case BUGNAV:
                     toGo = bugNav(target);
@@ -293,7 +318,7 @@ public class Navigation {
             }
         }
         if (bestDirection != null) {
-            rc.move(bestDirection);
+            Util.move(bestDirection);
             recentlyVisited[recentlyVisitedIdx] = rc.getLocation();
             recentlyVisitedIdx = (recentlyVisitedIdx + 1) % recentlyVisited.length;
             return true;

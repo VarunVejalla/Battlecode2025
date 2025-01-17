@@ -14,21 +14,15 @@ public class Mopper extends Bunny {
         actionableOpponents = rc.senseNearbyRobots(2, rc.getTeam().opponent());
         actionableTiles = rc.senseNearbyMapInfos(2);
 
-        updateDestinationIfNeeded();
-        Util.log("YUHHH");
-
+//        if(tryingToReplenish){
+//            replenishLogic();
+//        }
         if (rc.isActionReady()) {
-            if (tryingToReplenish) {
-                Util.log("Tryna replenish");
-                tryReplenish();
-            } else {
-                Util.log("Doing best action");
-                doBestAction();
+            Util.addToIndicatorString("DBA");
+            doBestAction();
+            if (canMove()) {
+                moveLogic();
             }
-        }
-
-        if (canMove()) {
-            moveLogic();
         }
 
         sharedEndFunction();
@@ -53,15 +47,6 @@ public class Mopper extends Bunny {
     public void moveLogic() throws GameActionException {
         myLoc = rc.getLocation();
 
-        // if we are trying to replenish, move towards the nearest tower if we're not
-        // close enough
-        if (nearestAlliedPaintTowerLoc != null
-                && tryingToReplenish
-                && myLoc.distanceSquaredTo(nearestAlliedPaintTowerLoc) > GameConstants.PAINT_TRANSFER_RADIUS_SQUARED) {
-            nav.goTo(nearestAlliedPaintTowerLoc, GameConstants.PAINT_TRANSFER_RADIUS_SQUARED);
-            return;
-        }
-
         int bestDistance = Integer.MAX_VALUE;
         MapLocation bestLocation = null;
 
@@ -82,7 +67,7 @@ public class Mopper extends Bunny {
         }
 
         if (bestLocation != null) {
-            nav.goTo(bestLocation, UnitType.MOPPER.actionRadiusSquared);
+            nav.goToBug(bestLocation, UnitType.MOPPER.actionRadiusSquared);
         } else {
             // Move in the direction
             macroMove(3);
