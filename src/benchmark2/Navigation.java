@@ -1,4 +1,4 @@
-package benchmark;
+package benchmark2;
 
 import battlecode.common.*;
 
@@ -41,12 +41,16 @@ public class Navigation {
             resetBugNav();
         }
         prevTarget = target;
-        return goTo(target, minDistToSatisfy);
+        return goTo(target, minDistToSatisfy, false);
     }
 
     public boolean goToFuzzy(MapLocation target, int minDistToSatisfy) throws GameActionException {
+        return goToFuzzy(target, minDistToSatisfy, false);
+    }
+
+    public boolean goToFuzzy(MapLocation target, int minDistToSatisfy, boolean allow_center) throws GameActionException {
         mode = NavigationMode.FUZZYNAV;
-        return goTo(target, minDistToSatisfy);
+        return goTo(target, minDistToSatisfy, allow_center);
     }
 
     public void resetBugNav() {
@@ -127,12 +131,14 @@ public class Navigation {
         }
 
         if (closestDir != null) {
+    //            Direction bestDir = closestDir;
+    //            int bestHeuristic = heuristic(closestDir);
             return closestDir;
         }
         return wallDir;
     }
 
-    public Direction fuzzyNav(MapLocation target, int minDistToSatisfy) throws GameActionException {
+    public Direction fuzzyNav(MapLocation target, boolean center_allowed) throws GameActionException {
         Util.addToIndicatorString("FZ" + target);
         Direction toTarget = robot.myLoc.directionTo(target);
         Direction[] moveOptions = {
@@ -143,16 +149,16 @@ public class Navigation {
                 toTarget.rotateRight().rotateRight(),
                 Direction.CENTER
         };
-//        if(rc.getLocation().distanceSquaredTo(target) <= minDistToSatisfy) {
-//            moveOptions = new Direction[]{
-//                    toTarget,
-//                    toTarget.rotateLeft(),
-//                    toTarget.rotateRight(),
-//                    toTarget.rotateLeft().rotateLeft(),
-//                    toTarget.rotateRight().rotateRight(),
-//                    Direction.CENTER
-//            };
-//        }
+        if(!center_allowed) {
+            moveOptions = new Direction[]{
+                    toTarget,
+                    toTarget.rotateLeft(),
+                    toTarget.rotateRight(),
+                    toTarget.rotateLeft().rotateLeft(),
+                    toTarget.rotateRight().rotateRight(),
+                    Direction.CENTER
+            };
+        }
 
         Direction bestDir = null;
         int leastNumMoves = Integer.MAX_VALUE;
@@ -162,7 +168,7 @@ public class Navigation {
             Direction dir = moveOptions[i];
             MapLocation newLoc = robot.myLoc.add(dir);
 
-            if (!rc.canSenseLocation(newLoc) || !rc.canMove(dir)) {
+            if (dir != Direction.CENTER && (!rc.canSenseLocation(newLoc) || !rc.canMove(dir))) {
                 continue;
             }
 
@@ -190,12 +196,14 @@ public class Navigation {
             }
             int allyHeuristic = numAllies * 5;
 
-            Util.addToIndicatorString("D" + distance + ",P" + paintHeuristic + ",A" + allyHeuristic + ";");
+            Util.addToIndicatorString("D" + distance + "," + paintHeuristic + "," + allyHeuristic + ";");
+            Util.log("D" + dir + "," + distance + "," + paintHeuristic + "," + allyHeuristic + ";");
 
-            int heuristic = distance + paintHeuristic + allyHeuristic;
+            int heuristic = numMoves + distance + paintHeuristic + allyHeuristic;
 
             if (numMoves < leastNumMoves ||
                     (numMoves == leastNumMoves && heuristic < leastHeuristic)) {
+//            if(heuristic < leastHeuristic){
                 leastNumMoves = numMoves;
                 leastHeuristic = heuristic;
                 bestDir = dir;
@@ -204,16 +212,7 @@ public class Navigation {
         return bestDir;
     }
 
-    public void moveRandom() throws GameActionException {
-        int randomIdx = robot.rng.nextInt(8);
-        for (int i = 0; i < Robot.directions.length; i++) {
-            if (Util.tryMove(Robot.directions[(randomIdx + i) % Robot.directions.length])) {
-                return;
-            }
-        }
-    }
-
-    public boolean goTo(MapLocation target, int minDistToSatisfy) throws GameActionException {
+    public boolean goTo(MapLocation target, int minDistToSatisfy, boolean center_allowed) throws GameActionException {
         // thy journey hath been completed
         if (robot.myLoc.distanceSquaredTo(target) <= minDistToSatisfy) {
             return true;
@@ -227,7 +226,7 @@ public class Navigation {
             Direction toGo = null;
             switch (mode) {
                 case FUZZYNAV:
-                    toGo = fuzzyNav(target, minDistToSatisfy);
+                    toGo = fuzzyNav(target, center_allowed);
                     break;
                 case BUGNAV:
                     toGo = bugNav(target);
@@ -235,94 +234,14 @@ public class Navigation {
             }
             if (toGo == null)
                 return false;
+            if(toGo == Direction.CENTER){
+                return true;
+            }
             Util.tryMove(toGo); // Should always return true since fuzzyNav checks if rc.canMove(dir)
             if (robot.myLoc.distanceSquaredTo(target) <= minDistToSatisfy) {
                 return true;
             }
         }
         return true;
-    }
-
-    public boolean circle(MapLocation center, int minDist, int maxDist) throws GameActionException {
-        // Util.log("Tryna circle CCW");
-        if (circle(center, minDist, maxDist, true)) {
-            return true;
-        }
-        // Util.log("Tryna circle CW");
-        return circle(center, minDist, maxDist, false);
-    }
-
-    // from:
-    // https://github.com/srikarg89/Battlecode2022/blob/main/src/cracked4BuildOrder/Navigation.java
-    public boolean circle(MapLocation center, int minDist, int maxDist, boolean ccw) throws GameActionException {
-        if (!rc.isMovementReady()) {
-            return false;
-        }
-        MapLocation myLoc = robot.myLoc;
-        if (Util.minMovesToReach(myLoc, center) > maxDist) {
-            // Util.log("Moving closer!");
-            return goTo(center, minDist);
-        }
-        if (Util.minMovesToReach(myLoc, center) < minDist) {
-            // Util.log("Moving away!");
-            Direction centerDir = myLoc.directionTo(center);
-            MapLocation target = myLoc.subtract(centerDir).subtract(centerDir).subtract(centerDir).subtract(centerDir)
-                    .subtract(centerDir);
-            boolean moved = goToBug(target, minDist);
-            if (moved) {
-                return true;
-            }
-            moved = goToFuzzy(target, minDist);
-            if (moved) {
-                return true;
-            }
-            return false;
-        }
-
-        int dx = myLoc.x - center.x;
-        int dy = myLoc.y - center.y;
-        double theta = Math.atan2(dy, dx);
-        theta += (ccw ? 0.5 : -0.5);
-        int avgDist = (minDist + maxDist) / 2;
-
-        int x = (int) ((double) avgDist * Math.cos(theta));
-        int y = (int) ((double) avgDist * Math.sin(theta));
-        MapLocation target = center.translate(x, y);
-        Direction targetDir = myLoc.directionTo(target);
-
-        Direction[] options = { targetDir, targetDir.rotateRight(), targetDir.rotateLeft(),
-                targetDir.rotateRight().rotateRight(), targetDir.rotateLeft().rotateLeft() };
-        Direction bestDirection = null;
-        int bestHeuristic = Integer.MAX_VALUE;
-        for (int i = 0; i < options.length; i++) {
-            if (!rc.canMove(options[i])) {
-                continue;
-            }
-            MapLocation newLoc = myLoc.add(options[i]);
-            if (Util.checkIfItemInArray(newLoc, recentlyVisited)) {
-                continue;
-            }
-            int heuristic = i * 10;
-            heuristic += locsToIgnore[newLoc.x][newLoc.y] ? 1000 : 0;
-            int centerDist = Util.minMovesToReach(center, newLoc);
-            heuristic += Math.abs(centerDist - avgDist) * 15;
-            if (Util.minMovesToReach(center, newLoc) < minDist) {
-                continue;
-            }
-            if (Util.minMovesToReach(center, newLoc) > maxDist) {
-                continue;
-            }
-            if (heuristic < bestHeuristic) {
-                bestDirection = options[i];
-                bestHeuristic = heuristic;
-            }
-        }
-        if (bestDirection != null) {
-            Util.move(bestDirection);
-            recentlyVisited[recentlyVisitedIdx] = rc.getLocation();
-            recentlyVisitedIdx = (recentlyVisitedIdx + 1) % recentlyVisited.length;
-            return true;
-        }
-        return false;
     }
 }

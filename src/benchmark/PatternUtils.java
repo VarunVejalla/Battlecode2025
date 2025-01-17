@@ -6,8 +6,6 @@ enum PatternPriority {
     LOW, MEDIUM, HIGH
 }
 
-
-
 public class PatternUtils {
     static Soldier soldier;
     static RobotController rc;
@@ -23,6 +21,7 @@ public class PatternUtils {
     public static final long[] secondaryColorMask = {0xFDFDDFDFDFDFFFFFL,0xDFFBDFDFDDFFDFFFL,0x9FF9FFFF9DFFFDFFL,0xBFFDDFBFBDFFBFFFL,0xFBFBDFBFBFBFFFFFL,0x5FFFFF5F5FDFFFFFL,0xDDFDFF7FDDDF5FFFL,0xDDFDDFDFBDDFDDDFL,0xFFF9DF9F9FFF9DFDL,0xBBFBDFBFDDBFBDBFL,0xBBFBFEFFBDBEBFFFL,0xBFFFFEBEBFBFFFFFL,0xFDF7BF7F7FDFFFFFL,0x7DF7FFDF7BDF5FFFL,0x5DFFFF5F5FFF59DFL,0xFFFDFF5FDDDF3DD9L,0xFFFFDFFF9D9F9F9CL,0xFFFBFEBFBDBEDDB5L,0xBBFFFEBEBFFEB5BFL,0xFBEFFFBEF7BEBFFFL,0xFBEF7EFEFFBFFFFFL,0x7FDFBF7F7BFF7FFFL,0x7DF7BF7DFBDF7BDFL,0xFFF7FF5F7BDDDBD9L,0xFFFFFFFF5FDF5938L,0xFFFFFFFFFDFE1D82L,0xFFFFFFFEBFBEB4D4L,0xFFEFFEBEF7BBB7B5L,0xFBEF7EFBF7BEF7BFL,0xFFBF7EFEF7FEFFFFL,0x7FD7FFFD7BFFFBFFL,0xFFD7BD7D7FFD7BFBL,0xFFFFBFFD7B5D7F5AL,0xFFFFFFFFFBF55B44L,0xFFFFFFFFFFFFE001L,0xFFFFFFFFF7EAB6A8L,0xFFFF7FFAF6BAFEB6L,0xFFAF7AFAFFFAF7F7L,0xFFAFFFFAF7FFF7FFL,0xFFF7BDFDFBFDFFFFL,0xF7DFBDFF7B7DFB7FL,0xFFDFF5FDFB777B6BL,0xFFFFFFF5FF75EACAL,0xFFFFFFFFEFE1EE70L,0xFFFFFFEBFEEBE726L,0xFFBFEBFBF6EEF6E7L,0xEFBF7BFEF6FBF6FFL,0xFFEF7BFBF7FBFFFFL,0xF7DFBDFDFF7FFFFFL,0xF7DFF7FDFB75FFFFL,0xF7FFF5F5FFF5EB7FL,0xFF7FF5F7EF6DEF6BL,0xFFFEFFE7EE67FE6EL,0xFEFFEBEFEEF3EEE7L,0xEFFFEBEBFFEBE6FFL,0xEFBFEFFBF6EBFFFFL,0xEFBF7BFBFEFFFFFFL,0xFFFFF5F5FF7FFFFFL,0xF77FFDF7EF75FFFFL,0xF77EF7EFEF77EF7FL,0xFE7EE7E7FFE7EFEFL,0xEEFEEFF7EEEFEEFFL,0xEEFFFBEFEEEBFFFFL,0xFFFFEBEBFEFFFFFFL,0xF77EF7F7FF7FFFFFL,0xFEFEF7F7EFF7FFFFL,0xFE7FFFE7EFFFEFFFL,0xFF7EEFEFEFEFFFFFL,0xEEFEEFEFFEFFFFFFL};
 
     public static void runDefaultBehavior() throws GameActionException {
+        Util.addToIndicatorString("DFL;");
         // move destination to be on the line connecting what it currently is to right outside any overlap with vision radius
         boolean isPaintReady = rc.isActionReady() && rc.getPaint() >= UnitType.SOLDIER.attackCost;
         if (isPaintReady) {
@@ -30,19 +29,18 @@ public class PatternUtils {
                 int index = soldier.spiralOutwardIndices[i];
                 if (soldier.nearbyMapInfos[index] == null || soldier.nearbyMapInfos[index].hasRuin() || soldier.nearbyMapInfos[index].isWall()) {
                     continue;
-                } else {
-                    if (soldier.nearbyMapInfos[index].getPaint() == PaintType.EMPTY) {
-                        MapLocation location = soldier.nearbyMapInfos[index].getMapLocation();
-                        rc.attack(location, (location.x+location.y)%2 == 0);
-                        break;
-                    }
+                }
+                MapLocation location = soldier.nearbyMapInfos[index].getMapLocation();
+                if (rc.canAttack(location) && soldier.nearbyMapInfos[index].getPaint() == PaintType.EMPTY) {
+                    rc.attack(location, (location.x+location.y)%2 == 0);
+                    break;
                 }
             }
         }
 
         if (rc.isMovementReady()) {
-            soldier.nav.goTo(soldier.destination, 9);//Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
-//            soldier.macroMove(0);
+            Util.addToIndicatorString("DEST " + soldier.destination  + ";");
+            soldier.nav.goToBug(soldier.destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
         }
     }
 
@@ -97,28 +95,28 @@ public class PatternUtils {
                 Direction direction = soldier.myLoc.directionTo(soldier.nearbyMapInfos[index].getMapLocation());
 
                 if (rc.canMove(direction.rotateRight())) {
-                    rc.move(direction.rotateRight());
+                    Util.move(direction.rotateRight());
                 }
 
             } else if (r2 == 2) {
                 // diagonally adjacent to center
                 Direction direction = soldier.myLoc.directionTo(soldier.nearbyMapInfos[index].getMapLocation());
                 if (rc.canMove(direction.rotateRight())) {
-                    rc.move(direction.rotateRight());
+                    Util.move(direction.rotateRight());
                 } else if (rc.canMove(direction.rotateLeft())) {
-                    rc.move(direction.rotateLeft());
+                    Util.move(direction.rotateLeft());
                 }
             } else if (r2 == 4) {
                 Direction direction = soldier.myLoc.directionTo(soldier.nearbyMapInfos[index].getMapLocation());
                 if (rc.canMove(direction)) {
-                    rc.move(direction);
+                    Util.move(direction);
                 } else if (rc.canMove(direction.rotateRight())) {
-                    rc.move(direction.rotateRight());
+                    Util.move(direction.rotateRight());
                 } else if (rc.canMove(direction.rotateLeft())) {
-                    rc.move(direction.rotateLeft());
+                    Util.move(direction.rotateLeft());
                 }
             } else {
-                soldier.nav.goTo(soldier.nearbyMapInfos[index].getMapLocation(), 0);
+                soldier.nav.goToFuzzy(soldier.nearbyMapInfos[index].getMapLocation(), 0);
             }
         }
     }
@@ -153,60 +151,147 @@ public class PatternUtils {
         }
     }
 
-    public static PatternPriority findPriority(int index, boolean[][] pattern) {
-        // guaranteed that this is a ruin
-        boolean hasEmpty = false;
-        boolean hasEnemy = false;
-        boolean hasConflictingPaint = false;
+    public static void workOnDefiniteResourcePattern(int dx, int dy, boolean[][] paintPattern) throws GameActionException {
+        boolean isPaintReady = rc.isActionReady() && rc.getPaint() >= UnitType.SOLDIER.attackCost;
 
-        int dx = shift_dx[index];
-        int dy = shift_dy[index];
+        if (isPaintReady) {
+            byte[] ordering = ExcessConstants.orderFillingRuinCall(13*dx + dy + 84);
+            MapLocation attackSquare;
+            for (short attackIndex : ordering) {
+                if (soldier.nearbyMapInfos[attackIndex] == null || soldier.nearbyMapInfos[attackIndex].hasRuin() || soldier.nearbyMapInfos[attackIndex].isWall()) {
+                    continue;
+                }
+                PaintType currentPaint = soldier.nearbyMapInfos[attackIndex].getPaint();
+                int offsetX = shift_dx[attackIndex] - dx;
+                int offsetY = shift_dy[attackIndex] - dy;
+                if (offsetX < -2 || offsetX > 2 || offsetY < -2 || offsetY > 2) {
+                    continue;
+                }
 
-        byte[] indexOrder;
-        if (dx < -6 || dx > 6 || dy < -6 || dy > 6) {
-            indexOrder = new byte[]{};
-        }
-        else {
-            indexOrder = ExcessConstants.gridLookupIndicesPatternCall(13*dx + dy + 84);
-        }
-
-        for (int neighboringIndex : indexOrder) {
-            if (neighboringIndex == index) {
-                continue;
+                if (currentPaint == PaintType.EMPTY || (currentPaint.isAlly() && currentPaint.isSecondary() != paintPattern[offsetX + 2][offsetY + 2])) {
+                    attackSquare = soldier.nearbyMapInfos[attackIndex].getMapLocation();
+                    // this check is needed for when we're near the edges
+                    if (0 <= attackSquare.x && 0 <= attackSquare.y && attackSquare.x < rc.getMapWidth() && attackSquare.y < rc.getMapHeight()) {
+                        if (offsetX * offsetX + offsetY * offsetY <= 8) {
+                            rc.attack(soldier.nearbyMapInfos[attackIndex].getMapLocation(), paintPattern[offsetX + 2][offsetY + 2]);
+                        } else {
+                            rc.attack(soldier.nearbyMapInfos[attackIndex].getMapLocation(), (offsetX + dx + offsetY + dy) % 2 == 0);
+                        }
+                        break;
+                    }
+                }
             }
-            PaintType paintType = soldier.nearbyMapInfos[neighboringIndex].getPaint();
-            if (paintType == PaintType.EMPTY) {
-                return PatternPriority.HIGH;
-            } else if (paintType.isEnemy()) {
-                hasEnemy = true;
-            } else {
-                int lookupX = shift_dx[neighboringIndex] - shift_dx[index] + 2;
-                int lookupY = shift_dy[neighboringIndex] - shift_dy[index] + 2;
-                if (paintType.isSecondary() != pattern[lookupX][lookupY]) {
-                    hasConflictingPaint = true;
+        }
+    }
+
+    public static boolean closeEnoughToDetermineRuinType(MapLocation ruinLoc) throws GameActionException {
+        for(int x = ruinLoc.x - 1; x <= ruinLoc.x + 1; x++) {
+            for(int y = ruinLoc.y - 1; y <= ruinLoc.y + 1; y++) {
+                MapLocation loc = new MapLocation(x, y);
+                if(!rc.canSenseLocation(loc)){
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    public static UnitType getRuinUnitType(MapLocation ruinLoc) throws GameActionException {
+        // Check for any existing markings on what tower type to build.
+        for(int x = ruinLoc.x - 1; x <= ruinLoc.x + 1; x++) {
+            for(int y = ruinLoc.y - 1; y <= ruinLoc.y + 1; y++) {
+                MapLocation loc = new MapLocation(x, y);
+                MapInfo info = rc.senseMapInfo(loc);
+                if(info.getMark().isAlly()) {
+                    soldier.currRuinMarked = true;
+                    if ((x+y)%2 == 0) {
+                        return UnitType.LEVEL_ONE_PAINT_TOWER;
+                    } else {
+                        return UnitType.LEVEL_ONE_MONEY_TOWER;
+                    }
                 }
             }
         }
 
-        //by end of this loop, we see no empty
-
-        if (hasEnemy) {
-            // has enemy and no empty
-            return PatternPriority.LOW;
-        } else if (hasConflictingPaint) {
-            return PatternPriority.HIGH;
-        } else {
-            return PatternPriority.MEDIUM;
-        }
+        // If we got here, then no type has been assigned to this guy yet, so make one rn.
+        UnitType buildingType = decideRuinUnitType(ruinLoc);
+        // Mark it so that other people are aware of that.
+        soldier.currRuinMarked = markRuinUnitType(ruinLoc, buildingType);
+        return buildingType;
     }
 
-    public static UnitType getPatternUnitType() {
+    public static boolean markRuinUnitType(MapLocation ruinLoc, UnitType buildingType) throws GameActionException {
+        boolean intendedMod = false;
+        if(buildingType == UnitType.LEVEL_ONE_PAINT_TOWER) {
+            intendedMod = true;
+        }
+        for(int x = ruinLoc.x - 1; x <= ruinLoc.x + 1; x++) {
+            for(int y = ruinLoc.y - 1; y <= ruinLoc.y + 1; y++) {
+                if (((x+y)%2 == 0) != intendedMod) {
+                    continue;
+                }
+                MapLocation loc = new MapLocation(x, y);
+                if(rc.canMark(loc)) {
+                    rc.mark(loc, true);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public static UnitType decideRuinUnitType(MapLocation ruinLoc) {
+//        if(ruinLoc.distanceSquaredTo(soldier.center) < 80) {
+//            return UnitType.LEVEL_ONE_DEFENSE_TOWER;
+//        }
         if(soldier.nearestAlliedTowerType == TowerType.PaintTower) {
             return UnitType.LEVEL_ONE_MONEY_TOWER;
         }
         else {
             return UnitType.LEVEL_ONE_PAINT_TOWER;
         }
+    }
+
+    public static boolean checkRuinCompleted(MapLocation ruinLoc, UnitType ruinType) throws GameActionException {
+        boolean[][] pattern = rc.getTowerPattern(ruinType);
+        return checkPatternCompleted(ruinLoc, pattern);
+    }
+
+    public static boolean checkPatternCompleted(MapLocation centerLoc, boolean[][] pattern) throws GameActionException {
+        for(int x = centerLoc.x - 2; x <= centerLoc.x + 2; x++) {
+            for(int y = centerLoc.y - 2; y <= centerLoc.y + 2; y++) {
+                if(x == centerLoc.x && y == centerLoc.y) {
+                    continue;
+                }
+                MapLocation loc = new MapLocation(x, y);
+                if(!rc.canSenseLocation(loc)){
+                    return false;
+                }
+                boolean shouldBeSecondary = pattern[x - centerLoc.x + 2][y - centerLoc.y + 2];
+                if(shouldBeSecondary && rc.senseMapInfo(loc).getPaint() != PaintType.ALLY_SECONDARY){
+                    return false;
+                }
+                if(!shouldBeSecondary && rc.senseMapInfo(loc).getPaint() != PaintType.ALLY_PRIMARY){
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    public static boolean checkEnemyPaintInConsctructionArea(MapLocation centerLoc) throws GameActionException {
+        for(int x = centerLoc.x - 2; x <= centerLoc.x + 2; x++) {
+            for(int y = centerLoc.y - 2; y <= centerLoc.y + 2; y++) {
+                MapLocation loc = new MapLocation(x, y);
+                if(!rc.canSenseLocation(loc)){
+                    continue;
+                }
+                if(rc.senseMapInfo(loc).getPaint().isEnemy()){
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     // TODO: Script to unroll created, but varun's gonna change some code so wait until that's done.

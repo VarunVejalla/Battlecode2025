@@ -1,4 +1,4 @@
-package goat;
+package benchmark2;
 
 import battlecode.common.*;
 
@@ -20,52 +20,6 @@ public class PatternUtils {
     public static final long[] primaryColorMask = {0x5FFFFF7FFDFFDDFFL,0xFDFDFF7FBFDFBDFFL,0xFFFFDF9FFF9F9FFFL,0xFBFBFEFFDFBFDDFFL,0xBFFFFEFFFDFFBDFFL,0xFDF5FFFFFFFF5FDFL,0x7FF7DFDF7FFFFDDDL,0xFFFBFF7F5FFF3FBDL,0x9FFFFFFFFD9E7F9FL,0xFFFDFEFEBFFEDFDDL,0xFFEFDFBEFFFFFDBDL,0xFBEBFFFFFFFEBFBFL,0x5FFFFFDFFBFF7BFFL,0xDFFDBF7FDFFFFBDBL,0xFFF59FFFF9DFFFF8L,0xDDFBDFFF3BFFDBB6L,0x9FF9FF9FFFFE71F3L,0xBBFDDFFED7FFB7DAL,0xFFEB5FFFF5BFFFF4L,0xBFFB7EFFBFFFF7B7L,0xBFFFFFBFF7FEF7FFL,0xFDF7FFDDFFDDFBFFL,0xFFDFFFDF5FFDDF7BL,0x7DDFBFFDDDFF7D6EL,0xFDFFFF5DB9FDBEC7L,0xFFFFFF9F9F99F27DL,0xFBFFFEBBD5FBDF2BL,0xFBBF7FFBBDFEFCEEL,0xFFBFFFBEBFFBBEF7L,0xFBEFFFBBFFBBF7FFL,0xFFFFBD7FFF5D7FFFL,0x7FFFFFFFFB57DF5FL,0x7FD7FD7FFFF7C9EDL,0xFFFFFD7D7F4FACBBL,0xFFFFFFFFFE001FFEL,0xFFFFFAFAFEB7CD57L,0xFFAFFAFFFFEFA5EDL,0xFFFFFFFFF6AFBEBFL,0xFFFF7AFFFEBAFFFFL,0xF7DFF7FF7F7F7BFFL,0xFFF7F7F5FFF77FDBL,0xF7F7BFF76FFDEFDCL,0xF7FFF5EF6BEF7F35L,0xFFFFE7E7FE7E738FL,0xEFFFEBF6E7F6FED9L,0xEFEF7FEEEFFBEFBCL,0xFFEFEFEBFFEEFFB7L,0xEFBFEFFEFEFEF7FFL,0xFFFFF7FFFBFDFBFFL,0xFF7FBDF7FFFFFB7BL,0xFF5EBFFFEB7FFFEAL,0xF6FEFFEDFBF7FAF6L,0xFE7FE7FFFFF9E3F3L,0xEF7EFFF3F7EFF77AL,0xFEBE7FFFE6FFFFE6L,0xFEFF7BEFFFFFF6F7L,0xFFFFEFFFF7FBF7FFL,0xF75FFFFFFFF5FF7FL,0xFFDEF7FDFFFFEF6FL,0xFEFFFDF5FFEDFEEFL,0xFFFFFFFFEE79FE7FL,0xFF7FFBEBFFF3FF6FL,0xFFBEEFFBFFFFEEEFL,0xEEBFFFFFFFEBFEFFL,0xFFFFFDFFEFF7EFFFL,0xF77FFDEFFF6FEFFFL,0xFFFEE7FFFE67FFFFL,0xEEFFFBF7FEF7EFFFL,0xFFFFFBFFEFEFEFFFL};
     public static final long[] secondaryColorMask = {0xFDFDDFDFDFDFFFFFL,0xDFFBDFDFDDFFDFFFL,0x9FF9FFFF9DFFFDFFL,0xBFFDDFBFBDFFBFFFL,0xFBFBDFBFBFBFFFFFL,0x5FFFFF5F5FDFFFFFL,0xDDFDFF7FDDDF5FFFL,0xDDFDDFDFBDDFDDDFL,0xFFF9DF9F9FFF9DFDL,0xBBFBDFBFDDBFBDBFL,0xBBFBFEFFBDBEBFFFL,0xBFFFFEBEBFBFFFFFL,0xFDF7BF7F7FDFFFFFL,0x7DF7FFDF7BDF5FFFL,0x5DFFFF5F5FFF59DFL,0xFFFDFF5FDDDF3DD9L,0xFFFFDFFF9D9F9F9CL,0xFFFBFEBFBDBEDDB5L,0xBBFFFEBEBFFEB5BFL,0xFBEFFFBEF7BEBFFFL,0xFBEF7EFEFFBFFFFFL,0x7FDFBF7F7BFF7FFFL,0x7DF7BF7DFBDF7BDFL,0xFFF7FF5F7BDDDBD9L,0xFFFFFFFF5FDF5938L,0xFFFFFFFFFDFE1D82L,0xFFFFFFFEBFBEB4D4L,0xFFEFFEBEF7BBB7B5L,0xFBEF7EFBF7BEF7BFL,0xFFBF7EFEF7FEFFFFL,0x7FD7FFFD7BFFFBFFL,0xFFD7BD7D7FFD7BFBL,0xFFFFBFFD7B5D7F5AL,0xFFFFFFFFFBF55B44L,0xFFFFFFFFFFFFE001L,0xFFFFFFFFF7EAB6A8L,0xFFFF7FFAF6BAFEB6L,0xFFAF7AFAFFFAF7F7L,0xFFAFFFFAF7FFF7FFL,0xFFF7BDFDFBFDFFFFL,0xF7DFBDFF7B7DFB7FL,0xFFDFF5FDFB777B6BL,0xFFFFFFF5FF75EACAL,0xFFFFFFFFEFE1EE70L,0xFFFFFFEBFEEBE726L,0xFFBFEBFBF6EEF6E7L,0xEFBF7BFEF6FBF6FFL,0xFFEF7BFBF7FBFFFFL,0xF7DFBDFDFF7FFFFFL,0xF7DFF7FDFB75FFFFL,0xF7FFF5F5FFF5EB7FL,0xFF7FF5F7EF6DEF6BL,0xFFFEFFE7EE67FE6EL,0xFEFFEBEFEEF3EEE7L,0xEFFFEBEBFFEBE6FFL,0xEFBFEFFBF6EBFFFFL,0xEFBF7BFBFEFFFFFFL,0xFFFFF5F5FF7FFFFFL,0xF77FFDF7EF75FFFFL,0xF77EF7EFEF77EF7FL,0xFE7EE7E7FFE7EFEFL,0xEEFEEFF7EEEFEEFFL,0xEEFFFBEFEEEBFFFFL,0xFFFFEBEBFEFFFFFFL,0xF77EF7F7FF7FFFFFL,0xFEFEF7F7EFF7FFFFL,0xFE7FFFE7EFFFEFFFL,0xFF7EEFEFEFEFFFFFL,0xEEFEEFEFFEFFFFFFL};
 
-    public static boolean getDefaultColor(int x, int y) {
-        int lookup = 4*(x&3)+(y&3);
-
-        switch (lookup) {
-            case 0:
-                return true;
-            case 1:
-                return true;
-            case 2:
-                return false;
-            case 3:
-                return true;
-            case 4:
-                return true;
-            case 5:
-                return false;
-            case 6:
-                return false;
-            case 7:
-                return false;
-            case 8:
-                return false;
-            case 9:
-                return false;
-            case 10:
-                return true;
-            case 11:
-                return false;
-            case 12:
-                return true;
-            case 13:
-                return false;
-            case 14:
-                return false;
-            case 15:
-                return false;
-            default:
-                assert false;
-                return false;
-        }
-    }
-
-    public static boolean getDefaultColor(MapLocation loc) {
-        return getDefaultColor(loc.x, loc.y);
-    }
-
     public static void runDefaultBehavior() throws GameActionException {
         Util.addToIndicatorString("DFL;");
         // move destination to be on the line connecting what it currently is to right outside any overlap with vision radius
@@ -78,7 +32,7 @@ public class PatternUtils {
                 }
                 MapLocation location = soldier.nearbyMapInfos[index].getMapLocation();
                 if (rc.canAttack(location) && soldier.nearbyMapInfos[index].getPaint() == PaintType.EMPTY) {
-                    rc.attack(location, getDefaultColor(location));
+                    rc.attack(location, (location.x+location.y)%2 == 0);
                     break;
                 }
             }
@@ -116,7 +70,7 @@ public class PatternUtils {
                         rc.attack(soldier.nearbyMapInfos[attackIndex].getMapLocation(), paintPattern[offsetX+2][offsetY+2]);
 
                     } else {
-                        rc.attack(soldier.nearbyMapInfos[attackIndex].getMapLocation(), getDefaultColor(offsetX+dx, offsetY+dy));
+                        rc.attack(soldier.nearbyMapInfos[attackIndex].getMapLocation(), (offsetX+dx+offsetY+dy)%2==0);
                     }
                     break;
                 } else if (currentPaint.isEnemy()) {
@@ -126,7 +80,7 @@ public class PatternUtils {
                     int offsetY = shift_dy[attackIndex] - dy;
 
                     if (offsetX*offsetX + offsetY*offsetY <= 8 && paintPattern[offsetX+2][offsetY+2] != currentPaint.isSecondary()) {
-                        rc.attack(soldier.nearbyMapInfos[attackIndex].getMapLocation(), getDefaultColor(offsetX+dx, offsetY+dy));
+                        rc.attack(soldier.nearbyMapInfos[attackIndex].getMapLocation(), paintPattern[offsetX+2][offsetY+2]);
                         break;
                     }
                 }
@@ -188,7 +142,7 @@ public class PatternUtils {
                         if (offsetX * offsetX + offsetY * offsetY <= 8) {
                             rc.attack(soldier.nearbyMapInfos[attackIndex].getMapLocation(), paintPattern[offsetX + 2][offsetY + 2]);
                         } else {
-                            rc.attack(soldier.nearbyMapInfos[attackIndex].getMapLocation(), getDefaultColor(offsetX + dx, offsetY + dy));
+                            rc.attack(soldier.nearbyMapInfos[attackIndex].getMapLocation(), (offsetX + dx + offsetY + dy) % 2 == 0);
                         }
                         break;
                     }
@@ -221,7 +175,7 @@ public class PatternUtils {
                         if (offsetX * offsetX + offsetY * offsetY <= 8) {
                             rc.attack(soldier.nearbyMapInfos[attackIndex].getMapLocation(), paintPattern[offsetX + 2][offsetY + 2]);
                         } else {
-                            rc.attack(soldier.nearbyMapInfos[attackIndex].getMapLocation(), getDefaultColor(offsetX+dx, offsetY+dy));
+                            rc.attack(soldier.nearbyMapInfos[attackIndex].getMapLocation(), (offsetX + dx + offsetY + dy) % 2 == 0);
                         }
                         break;
                     }
@@ -253,17 +207,14 @@ public class PatternUtils {
                     if ((x+y)%2 == 0) {
                         return UnitType.LEVEL_ONE_PAINT_TOWER;
                     } else {
-                        if(info.getMark().isSecondary()) {
-                            return UnitType.LEVEL_ONE_MONEY_TOWER;
-                        }
-                        return UnitType.LEVEL_ONE_DEFENSE_TOWER;
+                        return UnitType.LEVEL_ONE_MONEY_TOWER;
                     }
                 }
             }
         }
 
         // If we got here, then no type has been assigned to this guy yet, so make one rn.
-        UnitType buildingType = decideRuinUnitType(ruinLoc);
+        UnitType buildingType = decideRuinUnitType();
         // Mark it so that other people are aware of that.
         soldier.currRuinMarked = markRuinUnitType(ruinLoc, buildingType);
         return buildingType;
@@ -281,7 +232,7 @@ public class PatternUtils {
                 }
                 MapLocation loc = new MapLocation(x, y);
                 if(rc.canMark(loc)) {
-                    rc.mark(loc, buildingType == UnitType.LEVEL_ONE_MONEY_TOWER);
+                    rc.mark(loc, true);
                     return true;
                 }
             }
@@ -289,10 +240,7 @@ public class PatternUtils {
         return false;
     }
 
-    public static UnitType decideRuinUnitType(MapLocation ruinLoc) {
-        if(ruinLoc.distanceSquaredTo(soldier.center) < 100) {
-            return UnitType.LEVEL_ONE_DEFENSE_TOWER;
-        }
+    public static UnitType decideRuinUnitType() {
         if(soldier.nearestAlliedTowerType == TowerType.PaintTower) {
             return UnitType.LEVEL_ONE_MONEY_TOWER;
         }

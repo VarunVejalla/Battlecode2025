@@ -1,4 +1,4 @@
-package benchmark;
+package benchmark2;
 
 import battlecode.common.GameActionException;
 import battlecode.common.Message;

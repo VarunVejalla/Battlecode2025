@@ -1,4 +1,4 @@
-package benchmark;
+package benchmark2;
 
 import battlecode.common.*;
 
@@ -308,7 +308,7 @@ public class Util {
     }
 
     public static void log(String str) {
-        if(Constants.MUTE || (rc.getID() != 13046)){
+        if(Constants.MUTE || (rc.getID() != 12365)){
 //        if(Constants.MUTE){
             return;
         }

@@ -1,4 +1,4 @@
-package benchmark;
+package benchmark2;
 
 public class Constants {
 

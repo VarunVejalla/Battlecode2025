@@ -1,4 +1,4 @@
-package benchmark;
+package benchmark2;
 
 import battlecode.common.*;
 
@@ -82,12 +82,11 @@ public abstract class Bunny extends Robot {
 
         if(bestSector != -1) {
             // Go to the center of that sector.
-            nav.goTo(comms.getSectorCenter(bestSector), dist_to_best_sector);
+            nav.goToBug(comms.getSectorCenter(bestSector), dist_to_best_sector);
         } else {
             // Goes to random destination
-            nav.goTo(destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
+            nav.goToBug(destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
             // Go towards the center
-//            nav.goTo(center, dist_to_best_sector);
         }
 
     }
@@ -360,7 +359,7 @@ public abstract class Bunny extends Robot {
      * reached our current destination
      */
     public void updateDestinationIfNeeded() throws GameActionException {
-        if (nearestAlliedPaintTowerLoc != null && (tryingToReplenish || checkIfIShouldStartReplenishing())) {
+        if ((nearestAlliedPaintTowerLoc != null || nearestAlliedTowerLoc != null) && (tryingToReplenish || checkIfIShouldStartReplenishing())) {
             destination = nearestAlliedPaintTowerLoc;
             tryingToReplenish = true;
             Util.addToIndicatorString("REP");
