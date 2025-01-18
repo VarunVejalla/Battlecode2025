@@ -35,7 +35,7 @@ public class Soldier extends Bunny {
         if (metric < Constants.RUIN_SEARCHING_THRESHOLD) {
             // we are kamikazes
             if (destination == null ||
-                    rc.getLocation().distanceSquaredTo(destination) <= globalinfo.Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION) {
+                    rc.getLocation().distanceSquaredTo(destination) <= Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION) {
                 destination = Util.getRotationalReflection(myLoc);
             }
             if (checkIfIShouldStartReplenishing()) {
