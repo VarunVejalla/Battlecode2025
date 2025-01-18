@@ -433,7 +433,7 @@ public class Soldier extends Bunny {
             Util.logBytecode("Built ruin");
         } else {
             Util.log("Running default!");
-            PatternUtils.runDefaultBehavior();
+            PatternUtils.runDefaultBehavior(false);
             Util.logBytecode("Default behavior");
         }
     }
@@ -510,7 +510,7 @@ public class Soldier extends Bunny {
             Util.logBytecode("Worked on potential");
         } else {
             Util.log("Running default!");
-            PatternUtils.runDefaultBehavior();
+            PatternUtils.runDefaultBehavior(true);
             Util.logBytecode("Default behavior");
         }
     }

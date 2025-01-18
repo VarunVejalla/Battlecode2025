@@ -117,9 +117,7 @@ public class Soldier extends Bunny {
         }
         return new MapLocation((int)(myLoc.x + vx * t), (int)(myLoc.y + vy * t));
     }
-    public double getMetric() {
-        return (double) (rc.getRoundNum() * (1 + rc.getNumberTowers()))/(mapHeight * mapWidth);
-    }
+
     public MapLocation getVerticalDestination(MapLocation current) {
         return new MapLocation(current.x, mapHeight-1-current.y);
     }

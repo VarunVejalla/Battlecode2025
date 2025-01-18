@@ -63,10 +63,10 @@ public class PatternUtils {
         return getDefaultColor(location.x, location.y);
     }
 
-    public static void runDefaultBehavior() throws GameActionException {
+    public static void runDefaultBehavior(boolean paint) throws GameActionException {
         Util.addToIndicatorString("DFL;");
         // move destination to be on the line connecting what it currently is to right outside any overlap with vision radius
-        boolean isPaintReady = rc.isActionReady() && rc.getPaint() >= UnitType.SOLDIER.attackCost;
+        boolean isPaintReady = paint && rc.isActionReady() && rc.getPaint() >= UnitType.SOLDIER.attackCost;
         if (isPaintReady) {
             for (int i = 0; i < 29; i++) {
                 int index = soldier.spiralOutwardIndices[i];
