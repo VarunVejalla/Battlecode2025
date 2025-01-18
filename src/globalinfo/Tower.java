@@ -11,16 +11,22 @@ public class Tower extends Robot {
     int myTowerNumber;
     int numRoundsLessThan1400 = 5;
     int previousNumTowers;
+    int currentRound;
+    int roundsUnder1100 = 10;
 
 
     public Tower(RobotController rc) throws GameActionException {
         super(rc);
+
+        // also change so first two towers have different IDs
         myTowerNumber = rc.getNumberTowers();
         previousNumTowers = myTowerNumber;
     }
 
     public void run() throws GameActionException {
         super.run();
+
+        currentRound = rc.getRoundNum();
 
         Util.log("TOWER");
         Util.addToIndicatorString("RUN");
@@ -54,6 +60,29 @@ public class Tower extends Robot {
         }
 
     }
+
+//    public void runTowerStrat() {
+//
+//    }
+//
+//    public void firstTowerStrat() {
+//        if (rc.getType() == UnitType.LEVEL_ONE_PAINT_TOWER) {
+//            // just spawn two robots
+//            // wait until we would give the robots just sent out enough time to find a new pattern
+//            // how many rounds should that be?
+//            // see how many rounds the amount of money is above 1000ish (maybe say 1100 or 1050)
+//            // if not enough rounds have passed, don't spawn
+//            if (rc.getChips() < 1100) {
+//                roundsUnder1100++;
+//            }
+//            if (rc.getChips() )
+//            // if enough rounds have passed for the robots we just sent out to reasonably have found a tower pattern and to have tried completing it
+//            // spawn another unit
+//            // the robot we just sent out gets 24 turns to paint it, plus maybe 10 turns to paint it.
+//        }
+//    }
+//
+//    public void
 
     public void scanSurroundings() throws GameActionException {
         nearbyMapInfos = rc.senseNearbyMapInfos();

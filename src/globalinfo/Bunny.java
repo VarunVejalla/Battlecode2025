@@ -375,6 +375,31 @@ public abstract class Bunny extends Robot {
         }
     }
 
+    public void checkForUpgrades() throws GameActionException {
+        int threshold = Integer.MAX_VALUE;
+        for (RobotInfo friendlyRobot : rc.senseNearbyRobots(GameConstants.BUILD_TOWER_RADIUS_SQUARED, myTeam)) {
+            if (friendlyRobot.getType().isTowerType()) {
+                if (friendlyRobot.getType() == UnitType.LEVEL_ONE_PAINT_TOWER) {
+                    threshold = 2500;
+                } else if (friendlyRobot.getType() == UnitType.LEVEL_ONE_PAINT_TOWER) {
+                    threshold = 2550;
+                } else if (friendlyRobot.getType() == UnitType.LEVEL_ONE_DEFENSE_TOWER) {
+                    threshold = 2600;
+                } else if (friendlyRobot.getType() == UnitType.LEVEL_TWO_PAINT_TOWER) {
+                    threshold = 5000;
+                } else if (friendlyRobot.getType() == UnitType.LEVEL_TWO_MONEY_TOWER) {
+                    threshold = 5050;
+                } else if (friendlyRobot.getType() == UnitType.LEVEL_TWO_DEFENSE_TOWER) {
+                    threshold = 5100;
+                }
+                if (rc.getChips() >= threshold) {
+                    rc.upgradeTower(friendlyRobot.getLocation());
+                }
+                return;
+            }
+        }
+    }
+
     public MapLocation findEmptyTiles() throws GameActionException {
         // MapInfo[] visionTiles = rc.senseNearbyMapInfos();
         int emptyX = 0;

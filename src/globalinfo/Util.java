@@ -214,6 +214,7 @@ public class Util {
     }
 
     public static MapLocation getRandomMapLocation() {
+        robot.rng.nextInt(rc.getMapWidth());
         return new MapLocation((int) (Math.random() * rc.getMapWidth()), (int) (Math.random() * rc.getMapHeight()));
     }
 
