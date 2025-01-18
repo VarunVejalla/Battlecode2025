@@ -132,9 +132,9 @@ public class Navigation {
 
         if (closestDir != null) {
             Direction bestDir = closestDir;
-            float bestHeuristic = calcHeuristic(closestDir, target);
-            float leftHeuristic = calcHeuristic(closestDir.rotateLeft(), target);
-            float rightHeuristic = calcHeuristic(closestDir.rotateRight(), target);
+            float bestHeuristic = calcHeuristic(closestDir, target, true);
+            float leftHeuristic = calcHeuristic(closestDir.rotateLeft(), target, true);
+            float rightHeuristic = calcHeuristic(closestDir.rotateRight(), target, true);
             if(leftHeuristic < bestHeuristic){
                 bestDir = closestDir.rotateLeft();
                 bestHeuristic = leftHeuristic;
@@ -148,7 +148,7 @@ public class Navigation {
         return wallDir;
     }
 
-    public float calcHeuristic(Direction dir, MapLocation target) throws GameActionException {
+    public float calcHeuristic(Direction dir, MapLocation target, boolean use_paint_heuristic) throws GameActionException {
         MapLocation newLoc = rc.getLocation().add(dir);
         if(!rc.canSenseLocation(newLoc)){
             return Integer.MAX_VALUE;
@@ -158,10 +158,12 @@ public class Navigation {
         float distance = (float)Math.sqrt(distanceSquared);
         MapInfo info = rc.senseMapInfo(newLoc);
         float paintHeuristic = 0.0F;
-        if(info.getPaint().isAlly()){
-            paintHeuristic = -0.1F;
-        } else if(info.getPaint().isEnemy()){
-            paintHeuristic = 0.1F;
+        if(use_paint_heuristic) {
+            if (info.getPaint().isAlly()) {
+                paintHeuristic = -0.1F;
+            } else if (info.getPaint().isEnemy()) {
+                paintHeuristic = 0.1F;
+            }
         }
 
         float allyHeuristic = 0.0F;
@@ -172,7 +174,7 @@ public class Navigation {
             }
         }
 
-        Util.addToIndicatorString("D" + distance + "," + paintHeuristic + "," + allyHeuristic + ";");
+//        Util.addToIndicatorString("D" + distance + "," + paintHeuristic + "," + allyHeuristic + ";");
         Util.log("D" + dir + "," + distance + "," + paintHeuristic + "," + allyHeuristic + ";");
 
         float heuristic = numMoves + distance + paintHeuristic + allyHeuristic;
@@ -217,23 +219,23 @@ public class Navigation {
                 continue;
             }
 
-            if(ignore_heuristic){
-                int numMoves = Util.minMovesToReach(newLoc, target);
-                int distanceSquared = newLoc.distanceSquaredTo(target);
-                if (numMoves < leastNumMoves ||
-                    (numMoves == leastNumMoves && distanceSquared < leastDistanceSqured)) {
-                    leastDistanceSqured = distanceSquared;
-                    leastNumMoves = numMoves;
-                    bestDir = dir;
-                }
-            }
-            else {
-                float heuristic = calcHeuristic(dir, target);
+//            if(ignore_heuristic){
+//                int numMoves = Util.minMovesToReach(newLoc, target);
+//                int distanceSquared = newLoc.distanceSquaredTo(target);
+//                if (numMoves < leastNumMoves ||
+//                    (numMoves == leastNumMoves && distanceSquared < leastDistanceSqured)) {
+//                    leastDistanceSqured = distanceSquared;
+//                    leastNumMoves = numMoves;
+//                    bestDir = dir;
+//                }
+//            }
+//            else {
+                float heuristic = calcHeuristic(dir, target, !ignore_heuristic);
                 if(heuristic < leastHeuristic){
                     leastHeuristic = heuristic;
                     bestDir = dir;
                 }
-            }
+//            }
         }
         return bestDir;
     }

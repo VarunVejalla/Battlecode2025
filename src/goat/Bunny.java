@@ -296,17 +296,17 @@ public abstract class Bunny extends Robot {
      * transfer paint
      */
     public void tryReplenish() throws GameActionException {
-        if (nearestAlliedPaintTowerLoc == null) return;
+        if (nearestAlliedTowerLoc == null) return;
 
         if (rc.getLocation()
-                .distanceSquaredTo(nearestAlliedPaintTowerLoc) <= GameConstants.PAINT_TRANSFER_RADIUS_SQUARED) {
-            int towerPaintQuantity = rc.senseRobotAtLocation(nearestAlliedPaintTowerLoc).getPaintAmount();
+                .distanceSquaredTo(nearestAlliedTowerLoc) <= GameConstants.PAINT_TRANSFER_RADIUS_SQUARED) {
+            int towerPaintQuantity = rc.senseRobotAtLocation(nearestAlliedTowerLoc).getPaintAmount();
             int paintToFillUp = Math.min(
                     rc.getType().paintCapacity - rc.getPaint(), // amount of paint needed to fully top off
                     towerPaintQuantity); // amount of paint available in the tower
 
-            if (rc.isActionReady() && rc.canTransferPaint(nearestAlliedPaintTowerLoc, -paintToFillUp)) {
-                rc.transferPaint(nearestAlliedPaintTowerLoc, -paintToFillUp);
+            if (rc.isActionReady() && rc.canTransferPaint(nearestAlliedTowerLoc, -paintToFillUp)) {
+                rc.transferPaint(nearestAlliedTowerLoc, -paintToFillUp);
             }
 
             if (checkIfImDoneReplenishing()) {

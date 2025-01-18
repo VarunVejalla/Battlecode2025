@@ -85,6 +85,51 @@ for dx, dy in canon:
     lookup_invalid.append(lookup)
 
 
+lookup_nonoverlap_invalid = []
+for dx, dy in canon:
+    # suppose this is invalid and you don't want any squares to overlap w/ the other pattern. what other square get marked invalid?
+    lookup = 0
+    for index in relevant_indices[::-1]:
+        new_dx, new_dy = canon[index]
+        if abs(new_dx-dx) <= 4 and abs(new_dy-dy) <= 4:
+            lookup = 2*lookup
+        else:
+            # mark this as 1
+            lookup = 2*lookup+1
+    lookup_nonoverlap_invalid.append(lookup)
+
+# x x x x x
+# x x x x x
+# x x o x x
+# x x x x x
+# - - - - -
+# x x x x x
+# x x o x x
+# x x x x x
+# x x x x x
+
+lookup_rcoverlap_invalid = []
+for dx, dy in canon:
+    # suppose this is a resource pattern center and you don't want any squares to overlap w/ the other pattern, unless it works out. what other square get marked invalid?
+    lookup = 0
+    for index in relevant_indices[::-1]:
+        new_dx, new_dy = canon[index]
+        abs_dx = abs(new_dx-dx)
+        abs_dy = abs(new_dy-dy)
+        overlap_x = max(5 - abs(new_dx-dx), 0)
+        overlap_y = max(5 - abs(new_dy-dy), 0)
+
+        if abs_dx <= 4 and abs_dy <= 4:
+            if (overlap_x == 1 and overlap_y in {1, 2, 5}) or (overlap_y == 1 and overlap_x in {1, 2, 5}):
+                lookup = 2*lookup+1 # Valid overlap
+            else:
+                lookup = 2*lookup # Invalid overlap
+        else:
+            # mark this as 1
+            lookup = 2*lookup+1 # Valid (no overlap)
+    lookup_rcoverlap_invalid.append(lookup)
+
+
 
 lookup_empty = []
 for dx, dy in canon:
@@ -201,13 +246,16 @@ for dx in range(-6, 7):
                 lookup.append((False, distance, delta[0]*delta[0]+delta[1]*delta[1], i))
             else:
                 lookup.append((True, distance, delta[0]*delta[0]+delta[1]*delta[1], i))
-        
+
         lookup.sort()
         lookup = [m[3] for m in lookup]
         lookup_resource_filling.append(lookup)
 
 
-
+print("Non-overlapping")
+print(getStringLong(lookup_nonoverlap_invalid))
+print("RC-overlapping")
+print(getStringLong(lookup_rcoverlap_invalid))
 
 
 # for dx, dy in canon:
