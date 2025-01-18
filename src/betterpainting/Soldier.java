@@ -1,6 +1,7 @@
 package betterpainting;
 
 import battlecode.common.*;
+import scala.collection.Map;
 
 enum Responsibility {
     SELF_RESPONSIBLE, UNASSIGNED
@@ -53,6 +54,42 @@ public class Soldier extends Bunny {
         // 6. End of Turn Logic
         // Perform any shared cleanup or post-turn logic
         sharedEndFunction();
+    }
+
+    public boolean checkIfIShouldStartReplenishing() throws GameActionException {
+        boolean[][] pattern = null;
+        MapLocation center = null;
+        if(currRuinLoc != null){
+            center = currRuinLoc;
+            pattern = rc.getTowerPattern(PatternUtils.decideRuinUnitType(currRuinLoc));
+        }
+        else if(currResourceCenterLoc != null){
+            center = currResourceCenterLoc;
+            pattern = rc.getResourcePattern();
+        }
+        if(center == null){
+            return rc.getPaint() <= Constants.PAINT_THRESHOLD_TO_REPLENISH;
+        }
+
+        MapLocation myLoc = rc.getLocation();
+        int needToComplete = 0;
+        for(int x = center.x - 2; x <= center.x + 2; x++){
+            for(int y = center.y - 2; y <= center.y + 2; y++){
+                int index = Util.getMapInfoIndex(x - myLoc.x, y - myLoc.y);
+                if(index == -1 || nearbyMapInfos[index] == null){
+                    continue;
+                }
+                PaintType paintType = nearbyMapInfos[index].getPaint();
+                if(!paintType.isAlly()){
+                    needToComplete++;
+                }
+                else if(nearbyMapInfos[index].getPaint().isSecondary() != pattern[x - center.x + 2][y - center.y + 2]){
+                    needToComplete++;
+                }
+            }
+        }
+
+        return rc.getPaint() - needToComplete * rc.getType().attackCost <= Constants.PAINT_THRESHOLD_TO_REPLENISH_WHEN_WORKING;
     }
 
     // Attacking logic.
@@ -234,17 +271,26 @@ public class Soldier extends Bunny {
             int overlap_x = Math.max(5 - abs_dx, 0);
             int overlap_y = Math.max(5 - abs_dy, 0);
 
-            if(info.hasRuin() && rc.senseRobotAtLocation(info.getMapLocation()) == null && (abs_dx <= 4 && abs_dy <= 4)){
-                // Failure! Ruin there.
-                Util.addToIndicatorString("IVD1");
-                PatternUtils.markPotentialRCInvalid();
-                return false;
+            if(info.hasRuin()){
+                boolean towerBuilt = rc.senseRobotAtLocation(info.getMapLocation()) != null;
+                if(!towerBuilt && (abs_dx <= 4 && abs_dy <= 4)) {
+                    // Failure! Ruin there.
+                    Util.addToIndicatorString("IVD1");
+                    PatternUtils.markPotentialRCInvalid();
+                    return false;
+                }
+                if(towerBuilt && (abs_dx <= 2 && abs_dy <= 2)) {
+                    // Failure! Ruin there.
+                    Util.addToIndicatorString("IVD2");
+                    PatternUtils.markPotentialRCInvalid();
+                    return false;
+                }
             }
             if((info.isResourcePatternCenter() || info.getMark() == PaintType.ALLY_PRIMARY) && abs_dx <= 4 && abs_dy <= 4){
                 boolean valid_overlap = (overlap_x == 1 && overlap_y == 1) || (overlap_x == 1 && overlap_y == 2) || (overlap_x == 1 && overlap_y == 5) || (overlap_x == 2 && overlap_y == 1) || (overlap_x == 5 && overlap_y == 1);
                 if(!valid_overlap){
                     // Failure! RC there.
-                    Util.addToIndicatorString("IVD2");
+                    Util.addToIndicatorString("IVD3");
                     PatternUtils.markPotentialRCInvalid();
                     return false;
                 }

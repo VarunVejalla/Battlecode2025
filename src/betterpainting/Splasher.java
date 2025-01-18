@@ -27,6 +27,10 @@ public class Splasher extends Bunny {
         sharedEndFunction();
     }
 
+    public boolean checkIfIShouldStartReplenishing() throws GameActionException {
+        return rc.getPaint() <= Constants.PAINT_THRESHOLD_TO_REPLENISH;
+    }
+
     /**
      * Perform a splash attack, prioritizing clusters of enemy paint or robots.
      */
