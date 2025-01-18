@@ -111,8 +111,10 @@ public class MarkingUtils {
         MapInfo[] possibleCenters = rc.senseNearbyMapInfos(8);
 
         for (MapInfo center : possibleCenters) {
-            if (center.getPaint().isAlly() && !center.getPaint().isSecondary() &&
-                    rc.canCompleteResourcePattern(center.getMapLocation())) {
+            Util.log("Tryna complete resource pattern at " + center);
+            if (center.getPaint() == PaintType.ALLY_SECONDARY &&
+                rc.canCompleteResourcePattern(center.getMapLocation())) {
+                Util.log("Can complete it!");
                 rc.completeResourcePattern(center.getMapLocation());
             }
         }
