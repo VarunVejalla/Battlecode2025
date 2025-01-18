@@ -28,6 +28,10 @@ public class Mopper extends Bunny {
         sharedEndFunction();
     }
 
+    public boolean checkIfIShouldStartReplenishing() throws GameActionException {
+        return rc.getPaint() <= Constants.PAINT_THRESHOLD_TO_REPLENISH;
+    }
+
     /**
      * Returns a score evaluating how favorable it would be for this robot to move to this sector.
      */

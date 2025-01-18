@@ -321,14 +321,7 @@ public abstract class Bunny extends Robot {
      * paint
      * based on current paint quantity and distance to nearest tower.
      */
-    public boolean checkIfIShouldStartReplenishing() throws GameActionException {
-        // TODO: make this a more intelligent decision based on factors like:
-        // - distance to nearest tower
-        // - whether you're really close to finishing a pattern, in which case you
-        // should consider sacrificing yourself for the greater good
-
-        return rc.getPaint() <= Constants.PAINT_THRESHOLD_TO_REPLENISH;
-    }
+    public abstract boolean checkIfIShouldStartReplenishing() throws GameActionException;
 
     public boolean checkIfImDoneReplenishing() throws GameActionException {
         // TODO: make this a more intelligent decision based on factors like:
