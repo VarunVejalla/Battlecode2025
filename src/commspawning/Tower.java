@@ -7,9 +7,11 @@ public class Tower extends Robot {
     TowerComms comms = new TowerComms(rc, this, this);
     MapInfo[] nearbyMapInfos;
     RobotInfo[] friendliesToComm = null;
+    Direction dirToCenter;
 
     public Tower(RobotController rc) throws GameActionException {
         super(rc);
+        dirToCenter = rc.getLocation().directionTo(new MapLocation(rc.getMapWidth() / 2, rc.getMapHeight() / 2));
     }
 
     public void run() throws GameActionException {
@@ -45,8 +47,14 @@ public class Tower extends Robot {
         Direction dir = directions[rng.nextInt(directions.length)];
         MapLocation nextLoc = rc.getLocation().add(dir);
 
-        if (rc.canBuildRobot(UnitType.SOLDIER, nextLoc)) {
-            rc.buildRobot(UnitType.SOLDIER, nextLoc);
+        if(rc.getRoundNum() % 3 == 0) {
+            if (rc.canBuildRobot(UnitType.SOLDIER, nextLoc)) {
+                rc.buildRobot(UnitType.SOLDIER, nextLoc);
+            }
+        } else {
+            if (rc.canBuildRobot(UnitType.SOLDIER, nextLoc)) {
+                rc.buildRobot(UnitType.SOLDIER, nextLoc);
+            }
         }
     }
 
