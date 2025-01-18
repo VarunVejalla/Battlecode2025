@@ -30,7 +30,29 @@ public class Soldier extends Bunny {
 
     public void run() throws GameActionException {
         super.run(); // Call the shared logic for all bunnies
-        Util.logBytecode("Soldier");
+
+        double metric = getMetric();
+        if (metric < 2) {
+            // we are kamikazes
+            if (destination == null ||
+                    rc.getLocation().distanceSquaredTo(destination) <= globalinfo.Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION) {
+                destination = Util.getRotationalReflection(myLoc);
+            }
+            if (checkIfIShouldStartReplenishing()) {
+                // if we're already nearby, might as well
+                tryReplenish();
+            }
+            tryingToReplenish = false;
+        } else {
+            updateDestinationIfNeeded();
+        }
+
+        // TODO: is this needed?
+        if (!tryingToReplenish && (rc.getNumberTowers() <= 3 || rc.getRoundNum() < 100)) {
+            destination = Util.getRotationalReflection(myLoc);
+        }
+
+
 
         // 1. If trying to replenish, go do that.
         // TODO: If nearestAlliedPaintTowerLoc == null, should we explore or smth?
@@ -46,7 +68,11 @@ public class Soldier extends Bunny {
             }
             else {
                 // 3. If not attacking, run pattern painting logic.
-                buildPattern();
+                if (metric < 2) {
+                    buildPatternHardExplore();
+                } else {
+                    buildPattern();
+                }
                 Util.logBytecode("Built pattern");
             }
         }
@@ -318,7 +344,7 @@ public class Soldier extends Bunny {
         return false;
     }
 
-    public void buildRuin() throws GameActionException {
+    public void buildRuin(boolean paintEmpty) throws GameActionException {
         int deltaX = currRuinLoc.x - rc.getLocation().x;
         int deltaY = currRuinLoc.y - rc.getLocation().y;
         int index = Util.getMapInfoIndex(deltaX, deltaY);
@@ -334,7 +360,8 @@ public class Soldier extends Bunny {
         UnitType currRuinType = PatternUtils.decideRuinUnitType(currRuinLoc);
 
         boolean[][] pattern = rc.getTowerPattern(currRuinType);
-        PatternUtils.workOnRuin(index, pattern);
+        // TODO: Srikar, do you want the last argument to be true or false here?
+        PatternUtils.workOnRuin(index, pattern, paintEmpty);
         if (rc.canCompleteTowerPattern(currRuinType, nearbyMapInfos[index].getMapLocation())) {
             rc.completeTowerPattern(currRuinType, nearbyMapInfos[index].getMapLocation());
         }
@@ -376,6 +403,40 @@ public class Soldier extends Bunny {
         }
     }
 
+    public void buildPatternHardExplore() throws GameActionException {
+        // If we're already building a ruin, check if it's been completed.
+        Util.log("Beginning of hard: " + currRuinLoc);
+        Util.addToIndicatorString("R " + currRuinLoc);
+        if(currRuinResponsibility == Responsibility.SELF_RESPONSIBLE){
+            Util.addToIndicatorString("RP");
+        }
+
+        // Check if ruin completed or is unable to be completed.
+        if(currRuinLoc != null){
+            if(checkRuinStillValid()){
+                return;
+            }
+            Util.logBytecode("Checked ruin valid");
+        }
+
+        // If not building ruin, or resource pattern, or validating resource center location, figure out what to do next.
+        if(currRuinLoc == null){
+            // Find a ruin to build.
+            checkForNewRuinToBuild();
+
+            Util.logBytecode("Check new ruin to build");
+        }
+
+        // If we're already building a ruin, go with that.
+        if(currRuinLoc != null){
+            buildRuin(false);
+            Util.logBytecode("Built ruin");
+        } else {
+            Util.log("Running default!");
+            PatternUtils.runDefaultBehavior(false);
+            Util.logBytecode("Default behavior");
+        }
+    }
 
     public void buildPattern() throws GameActionException {
         // If we're already building a ruin, check if it's been completed.
@@ -436,7 +497,7 @@ public class Soldier extends Bunny {
 
         // If we're already building a ruin, go with that.
         if(currRuinLoc != null){
-            buildRuin();
+            buildRuin(true);
             Util.logBytecode("Built ruin");
         }
         // If working on a resource center, continue doing so.
@@ -449,7 +510,7 @@ public class Soldier extends Bunny {
             Util.logBytecode("Worked on potential");
         } else {
             Util.log("Running default!");
-            PatternUtils.runDefaultBehavior();
+            PatternUtils.runDefaultBehavior(true);
             Util.logBytecode("Default behavior");
         }
     }

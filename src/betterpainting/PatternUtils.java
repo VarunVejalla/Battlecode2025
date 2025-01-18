@@ -17,16 +17,56 @@ public class PatternUtils {
     public static final long[] squareHasResourceCenter = {0x5DF19F1F199F1D98L,0x19F1DE1F199E1994L,0x19F9DE1E1D9E1191L,0x99E9DE1E959E1598L,0xBBE95E9E959E9D94L,0x5DD19F5F59DD1918L,0x1DD19F5D199E1900L,0x1DF19E1C199C1080L,0x19E1DE1E11981010L,0x9BE95E1A159A1100L,0x9BA95EBA959E1480L,0xBBA95EBEB5BA9494L,0x5DD59D5D595D5B58L,0x5DD19F5D19555900L,0x1DD19D1D19D40000L,0x19D19D1C11080000L,0x99E11E1810001000L,0x99A95A9A10900000L,0x9BA95A9A95AA0000L,0xBBA95EBA94AAB480L,0xBBAB5ABAB4BAB6B4L,0x55D5B55D5955594AL,0x5DD5955519550840L,0x55D19D1509010000L,0x11D1940900000000L,0x1999000010000000L,0x89A94A1080000000L,0xABA95A8A84808000L,0xBBAB4AAA94AA8420L,0xABAB6ABAB4AAB4A6L,0x55D7B5555B554949L,0x5555B55549450808L,0x7554954508000800L,0x54D2800008000000L,0x1E00000000000L,0xAB2C400004000000L,0xEAAA4AA284000400L,0xAAAB6AAAA4A28404L,0xABAF6AAAB6AAA4A5L,0x7557B5556B554B58L,0x7756B5454B454900L,0x7456A56548440000L,0x6456A14420000000L,0xE666200002000000L,0xE22E60A240000000L,0xEA2E62E2A4220000L,0xEEAE6AA2A6A2A480L,0xEAAF6AAAE6AAA6B4L,0xF756B5756B557B4AL,0x7656B5E56B554A40L,0x7656A5656B614000L,0xE656A56162402000L,0xE61E21E062000200L,0xE62E62E0E2204000L,0xEE2E62E2E6E0A000L,0xEE2E6BE2E6AAA620L,0xEEAE6AEAE6AAF6A6L,0xF656B5F5EB656A4AL,0xF656B5E56A61EA40L,0xF65EA1E16A616220L,0xE61EE1E1E2606202L,0xEE3E61E0E660E240L,0xEE2E6BE2E661E620L,0xEE2E6BEBE6E2E626L,0xF65EA5E5EA65EE6AL,0xE65EE1E5EA61EA66L,0xE67EE1E1EE61E263L,0xE63EE1E3E661E66AL,0xEE3E63E3E663EE66L};
 
     public static boolean getDefaultColor(int x, int y) {
-        return (x+y)%2 == 0;
+//        return (x+y)%2 == 0;
+        int lookup = 4*(x&3)+(y&3);
+
+        switch (lookup) {
+            case 0:
+                return true;
+            case 1:
+                return true;
+            case 2:
+                return false;
+            case 3:
+                return true;
+            case 4:
+                return true;
+            case 5:
+                return false;
+            case 6:
+                return false;
+            case 7:
+                return false;
+            case 8:
+                return false;
+            case 9:
+                return false;
+            case 10:
+                return true;
+            case 11:
+                return false;
+            case 12:
+                return true;
+            case 13:
+                return false;
+            case 14:
+                return false;
+            case 15:
+                return false;
+            default:
+                assert false;
+                return false;
+        }
     }
+
     public static boolean getDefaultColor(MapLocation location) {
         return getDefaultColor(location.x, location.y);
     }
 
-    public static void runDefaultBehavior() throws GameActionException {
+    public static void runDefaultBehavior(boolean paint) throws GameActionException {
         Util.addToIndicatorString("DFL;");
         // move destination to be on the line connecting what it currently is to right outside any overlap with vision radius
-        boolean isPaintReady = rc.isActionReady() && rc.getPaint() >= UnitType.SOLDIER.attackCost;
+        boolean isPaintReady = paint && rc.isActionReady() && rc.getPaint() >= UnitType.SOLDIER.attackCost;
         if (isPaintReady) {
             for (int i = 0; i < 29; i++) {
                 int index = soldier.spiralOutwardIndices[i];
@@ -47,7 +87,7 @@ public class PatternUtils {
         }
     }
 
-    public static void workOnRuin(int index, boolean[][] paintPattern) throws GameActionException {
+    public static void workOnRuin(int index, boolean[][] paintPattern, boolean paintEmpty) throws GameActionException {
         boolean isPaintReady = rc.isActionReady() && rc.getPaint() >= UnitType.SOLDIER.attackCost;
 
         if (isPaintReady) {
@@ -71,11 +111,11 @@ public class PatternUtils {
                     int offsetY = shift_dy[attackIndex] - dy;
                     if (offsetX*offsetX + offsetY*offsetY <= 8) {
                         rc.attack(soldier.nearbyMapInfos[attackIndex].getMapLocation(), paintPattern[offsetX+2][offsetY+2]);
-
-                    } else {
+                        break;
+                    } else if (paintEmpty) {
                         rc.attack(soldier.nearbyMapInfos[attackIndex].getMapLocation(), getDefaultColor(offsetX+dx, offsetY+dy));
+                        break;
                     }
-                    break;
                 } else if (currentPaint.isEnemy()) {
                     continue;
                 } else {
@@ -263,12 +303,14 @@ public class PatternUtils {
     }
 
     public static UnitType decideRuinUnitType(MapLocation ruinLoc) {
-        // TODO
-        if(soldier.nearestAlliedTowerType == TowerType.PaintTower) {
+        // TODO: use map dimensions, number of chips(?), round number, etc (but only globally available information?)
+        // ruinLoc isn't globally available, but can we still use it?
+        if (rc.getNumberTowers() < 6) {
             return UnitType.LEVEL_ONE_MONEY_TOWER;
-        }
-        else {
+        } else if (rc.getNumberTowers()%2 == 0) {
             return UnitType.LEVEL_ONE_PAINT_TOWER;
+        } else {
+            return UnitType.LEVEL_ONE_MONEY_TOWER;
         }
     }
 
