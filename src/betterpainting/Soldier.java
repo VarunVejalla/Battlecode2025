@@ -20,12 +20,18 @@ public class Soldier extends Bunny {
     MapLocation currRuinLoc = null;
     Responsibility currRuinResponsibility = Responsibility.UNASSIGNED;
     int[] roundPaintedRuinsBySector = new int[144];
+    MapLocation rotationalDestination;
 
     public Soldier(RobotController rc) throws GameActionException {
         super(rc);
         invalidPotentialLocs = new boolean[3600];
         PatternUtils.soldier = this;
         PatternUtils.rc = rc;
+        double metric = getMetric();
+
+        if (metric < Constants.RUIN_SEARCHING_THRESHOLD && rc.getRoundNum() < 100) {
+            destination = Util.getRotationalReflection(myLoc);
+        }
     }
 
     public void run() throws GameActionException {
@@ -34,9 +40,8 @@ public class Soldier extends Bunny {
         double metric = getMetric();
         if (metric < Constants.RUIN_SEARCHING_THRESHOLD) {
             // we are kamikazes
-            if (destination == null ||
-                    rc.getLocation().distanceSquaredTo(destination) <= Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION) {
-                destination = Util.getRotationalReflection(myLoc);
+            if (rc.getLocation().distanceSquaredTo(destination) <= Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION) {
+                destination = Util.getRandomMapLocation();
             }
             if (checkIfIShouldStartReplenishing()) {
                 // if we're already nearby, might as well

@@ -27,16 +27,16 @@ public class Util {
         double t = Double.MAX_VALUE;
 
         if (vx > 0) {
-            t = Math.min(t, (rc.getMapWidth()-3-location.x)/vx);
+            t = Math.min(t, (rc.getMapWidth()-2-location.x)/vx);
         }
         if (vx < 0) {
-            t = Math.min(t, (2-location.x)/vx);
+            t = Math.min(t, (1-location.x)/vx);
         }
         if (vy > 0) {
-            t = Math.min(t, (rc.getMapHeight()-location.y)/vy);
+            t = Math.min(t, (rc.getMapHeight()-2-location.y)/vy);
         }
         if (vy < 0) {
-            t = Math.min(t, (2-location.y)/vy);
+            t = Math.min(t, (1-location.y)/vy);
         }
         return new MapLocation((int)(location.x + vx * t), (int)(location.y + vy * t));
     }
