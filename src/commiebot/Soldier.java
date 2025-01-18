@@ -1,4 +1,4 @@
-package benchmark2;
+package commiebot;
 
 import battlecode.common.*;
 
@@ -109,9 +109,9 @@ public class Soldier extends Bunny {
 
     public void buildPattern() throws GameActionException {
         // If we're already building a ruin, check if it's been completed.
-        Util.log("Beginning of method: " + currRuinLoc + ", " + currRuinType);
-        Util.addToIndicatorString("R " + currRuinLoc);
-        Util.addToIndicatorString("RC " + currResourceCenterLoc);
+//        Util.log("Beginning of method: " + currRuinLoc + ", " + currRuinType);
+        // Util.addToIndicatorString("R " + currRuinLoc);
+        // Util.addToIndicatorString("RC " + currResourceCenterLoc);
         boolean[][] resourcePattern = rc.getResourcePattern();
         int resourceCenterIndex = -1;
         ResourceValidity resourceValidity = ResourceValidity.POSSIBLE;
@@ -139,7 +139,7 @@ public class Soldier extends Bunny {
             // Check if there's a better resource center to build at.
             if (resourceCenterIndex != -1) {
                 currResourceCenterLoc = nearbyMapInfos[resourceCenterIndex].getMapLocation();
-                Util.addToIndicatorString("NRC " + currResourceCenterLoc);
+                // Util.addToIndicatorString("NRC " + currResourceCenterLoc);
             } else if(rc.canSenseLocation(currResourceCenterLoc)) {
                 // If the resource center loc is done or invalid, skip it.
                 currResourceCenterLoc = null;
@@ -154,19 +154,19 @@ public class Soldier extends Bunny {
                 int myDist = rc.getLocation().distanceSquaredTo(currResourceCenterLoc);
                 for(RobotInfo info : nearbyFriendlies){
                     if(info.getLocation().distanceSquaredTo(currResourceCenterLoc) < myDist){
-                        Util.log("I'm the not closest! Robot that's closer: " + info.getID() + ", " + info.getLocation());
+//                        Util.log("I'm the not closest! Robot that's closer: " + info.getID() + ", " + info.getLocation());
                         amClosest = false;
                         break;
                     }
                     else if(info.getLocation().distanceSquaredTo(currResourceCenterLoc) == myDist && rc.getID() > info.getID()){
                         // Tiebreaker is robot id. Lower id stays.
-                        Util.log("I'm the not closest! Tiebreaker with robot: " + info.getID());
+//                        Util.log("I'm the not closest! Tiebreaker with robot: " + info.getID());
                         amClosest = false;
                         break;
                     }
                 }
                 if(amClosest) {
-                    Util.log("I'm the closest! Staying behind.");
+//                    Util.log("I'm the closest! Staying behind.");
                     currResourceMyResponsibility = true;
                 }
                 else {
@@ -195,19 +195,19 @@ public class Soldier extends Bunny {
                 int myDist = rc.getLocation().distanceSquaredTo(currRuinLoc);
                 for(RobotInfo info : nearbyFriendlies){
                     if(info.getLocation().distanceSquaredTo(currRuinLoc) < myDist){
-                        Util.log("I'm the not closest! Robot that's closer: " + info.getID() + ", " + info.getLocation());
+//                        Util.log("I'm the not closest! Robot that's closer: " + info.getID() + ", " + info.getLocation());
                         amClosest = false;
                         break;
                     }
                     else if(info.getLocation().distanceSquaredTo(currRuinLoc) == myDist && rc.getID() > info.getID()){
                         // Tiebreaker is robot id. Lower id stays.
-                        Util.log("I'm the not closest! Tiebreaker with robot: " + info.getID());
+//                        Util.log("I'm the not closest! Tiebreaker with robot: " + info.getID());
                         amClosest = false;
                         break;
                     }
                 }
                 if(amClosest) {
-                    Util.log("I'm the closest! Staying behind.");
+//                    Util.log("I'm the closest! Staying behind.");
                     currRuinMyResponsibility = true;
                 }
                 else {
@@ -227,14 +227,14 @@ public class Soldier extends Bunny {
         if(currRuinLoc == null && currResourceCenterLoc == null){
             // Find a ruin to build.
             checkForNewRuinToBuild();
-            if(currRuinLoc != null) Util.addToIndicatorString("NR " + currRuinLoc);
+//            if(currRuinLoc != null)  Util.addToIndicatorString("NR " + currRuinLoc);
 
             // If none found, find a resource pattern to build.
             if(currRuinLoc == null) {
                 // 2650 bytecode.
                 if (resourceCenterIndex != -1) {
                     currResourceCenterLoc = nearbyMapInfos[resourceCenterIndex].getMapLocation();
-                    if(currRuinLoc != null) Util.addToIndicatorString("NRC " + currResourceCenterLoc);
+//                    if(currRuinLoc != null)  Util.addToIndicatorString("NRC " + currResourceCenterLoc);
                 }
             }
         }
@@ -246,7 +246,7 @@ public class Soldier extends Bunny {
             int index = Util.getMapInfoIndex(deltaX, deltaY);
             // Too far away, move towards pattern
             if(index == -1){
-                Util.log("Moving towards: " + currRuinLoc + ", " + currRuinType);
+//                Util.log("Moving towards: " + currRuinLoc + ", " + currRuinType);
                 nav.goToFuzzy(currRuinLoc, 0);
                 return;
             }
@@ -258,7 +258,7 @@ public class Soldier extends Bunny {
 
             if(currRuinType == null){
                 if(!PatternUtils.closeEnoughToDetermineRuinType(currRuinLoc)){
-                    Util.log("Moving towards 2: " + currRuinLoc + ", " + currRuinType);
+//                    Util.log("Moving towards 2: " + currRuinLoc + ", " + currRuinType);
                     nav.goToFuzzy(currRuinLoc, 0);
                     return;
                 }
@@ -306,7 +306,7 @@ public class Soldier extends Bunny {
             return;
         }
 
-        Util.log("Running default!");
+//        Util.log("Running default!");
 
         PatternUtils.runDefaultBehavior();
     }
@@ -400,7 +400,6 @@ public class Soldier extends Bunny {
                 cornerUnknown = false;
             }
         }
-
 
 
         previousCornersGood = previousCornersGood && !cornerUnknown;
