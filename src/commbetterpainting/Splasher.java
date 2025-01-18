@@ -324,9 +324,9 @@ public class Splasher extends Bunny {
         ScanResult sr = comms.decodeSector(encodedSector);
         int tileScore = 0;
         // Move towards areas with high enemy paint.
-        if(sr.enemyPaintLevel >= 2) {
-            tileScore+= 50;
-        }
+//        if(sr.enemyPaintLevel >= 2) {
+//            tileScore+= 50;
+//        }
 
 //        // Tiebreak by going to unexperienced places.
 //        if((encodedSector & 1) == 0) {
@@ -344,11 +344,11 @@ public class Splasher extends Bunny {
     public void moveLogic() throws GameActionException {
         myLoc = rc.getLocation();
 
-        if (tryingToReplenish && nearestAlliedPaintTowerLoc != null &&
-                myLoc.distanceSquaredTo(nearestAlliedPaintTowerLoc) > GameConstants.PAINT_TRANSFER_RADIUS_SQUARED) {
-            nav.goToBug(nearestAlliedPaintTowerLoc, GameConstants.PAINT_TRANSFER_RADIUS_SQUARED);
-            return;
-        }
+//        if (tryingToReplenish && nearestAlliedPaintTowerLoc != null &&
+//                myLoc.distanceSquaredTo(nearestAlliedPaintTowerLoc) > GameConstants.PAINT_TRANSFER_RADIUS_SQUARED) {
+//            nav.goToBug(nearestAlliedPaintTowerLoc, GameConstants.PAINT_TRANSFER_RADIUS_SQUARED);
+//            return;
+//        }
 
         macroMove(0);
     }
