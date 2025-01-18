@@ -45,10 +45,14 @@ public class Soldier extends Bunny {
         double metric = getMetric();
         if (metric < 2) {
 
+
             // we are kamikazes
             if (destination == null ||
                     rc.getLocation().distanceSquaredTo(destination) <= Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION) {
                 destination = getRotationalDestination();
+            }
+            if (checkIfIShouldStartReplenishing()) {
+                tryReplenish();
             }
             tryingToReplenish = false;
 
@@ -116,7 +120,6 @@ public class Soldier extends Bunny {
     public double getMetric() {
         return (double) (rc.getRoundNum() * (1 + rc.getNumberTowers()))/(mapHeight * mapWidth);
     }
-
     public MapLocation getVerticalDestination(MapLocation current) {
         return new MapLocation(current.x, mapHeight-1-current.y);
     }
