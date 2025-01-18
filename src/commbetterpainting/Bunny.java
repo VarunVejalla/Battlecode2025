@@ -1,4 +1,4 @@
-package commspawning;
+package commbetterpainting;
 
 import battlecode.common.*;
 
@@ -52,7 +52,33 @@ public abstract class Bunny extends Robot {
         super.run();
         // Comms is run inside of scan surroundings (and nearest allied paint tower, which is called in surroundings)!
         scanSurroundings();
-        updateDestinationIfNeeded();
+        checkForUpgrades();
+
+    }
+
+    public void checkForUpgrades() throws GameActionException {
+        int threshold = Integer.MAX_VALUE;
+        for (RobotInfo friendlyRobot : rc.senseNearbyRobots(GameConstants.BUILD_TOWER_RADIUS_SQUARED, myTeam)) {
+            if (friendlyRobot.getType().isTowerType()) {
+                if (friendlyRobot.getType() == UnitType.LEVEL_ONE_PAINT_TOWER) {
+                    threshold = 2500;
+                } else if (friendlyRobot.getType() == UnitType.LEVEL_ONE_PAINT_TOWER) {
+                    threshold = 2550;
+                } else if (friendlyRobot.getType() == UnitType.LEVEL_ONE_DEFENSE_TOWER) {
+                    threshold = 2600;
+                } else if (friendlyRobot.getType() == UnitType.LEVEL_TWO_PAINT_TOWER) {
+                    threshold = 5000;
+                } else if (friendlyRobot.getType() == UnitType.LEVEL_TWO_MONEY_TOWER) {
+                    threshold = 5050;
+                } else if (friendlyRobot.getType() == UnitType.LEVEL_TWO_DEFENSE_TOWER) {
+                    threshold = 5100;
+                }
+                if (rc.getChips() >= threshold) {
+                    rc.upgradeTower(friendlyRobot.getLocation());
+                }
+                return;
+            }
+        }
     }
 
     public boolean canMove() {
@@ -321,14 +347,7 @@ public abstract class Bunny extends Robot {
      * paint
      * based on current paint quantity and distance to nearest tower.
      */
-    public boolean checkIfIShouldStartReplenishing() throws GameActionException {
-        // TODO: make this a more intelligent decision based on factors like:
-        // - distance to nearest tower
-        // - whether you're really close to finishing a pattern, in which case you
-        // should consider sacrificing yourself for the greater good
-
-        return rc.getPaint() <= Constants.PAINT_THRESHOLD_TO_REPLENISH;
-    }
+    public abstract boolean checkIfIShouldStartReplenishing() throws GameActionException;
 
     public boolean checkIfImDoneReplenishing() throws GameActionException {
         // TODO: make this a more intelligent decision based on factors like:

@@ -1,4 +1,4 @@
-package commspawning;
+package commbetterpainting;
 
 import battlecode.common.*;
 
@@ -10,7 +10,7 @@ public class BunnyComms extends Comms {
     public int lastMapUpdate = -(MAP_COOLDOWN + 1);
     public int lastMap2Update = -(MAP2_COOLDOWN + 1); // used for larger maps.
 
-    public final int BUFFER_COOLDOWN = 10;
+    public final int BUFFER_COOLDOWN = 20;
     public int lastBufferUpdate = -(BUFFER_COOLDOWN + 1);
 
     public final boolean isLargeMap = sectorCount >= MAX_MAP_SECTORS_SENT_PER_ROUND;
@@ -22,7 +22,6 @@ public class BunnyComms extends Comms {
 
     boolean waitingForMap = false;
     boolean waitingForMap2= false; // used for larger maps.
-
 
     Bunny bunny;
 
@@ -108,10 +107,6 @@ public class BunnyComms extends Comms {
      * Handles the first 80 sectors for large maps.
      */
     public void processMap() throws GameActionException {
-        unbuiltRuinIndex = 0;
-        enemyTowerIndex = 0;
-        friendlyTowerIndex = 0;
-
         boolean successfulRequest = processMapUpdates(0, "BunnyComms loaded map 1!", rc.getRoundNum());
         lastMapUpdate = rc.getRoundNum(); // Refresh map update.
         waitingForMap = !successfulRequest;
@@ -146,8 +141,6 @@ public class BunnyComms extends Comms {
                 // Util.log("Updating sector: " + sectorIndex + "/" + (sectorCount - 1));
                 myWorld[sectorIndex] = bytes & 0xFF;
                 bytes >>>= 8;
-
-//                updateTowerKnowledge(sectorIndex);
             }
         }
     }
@@ -160,7 +153,6 @@ public class BunnyComms extends Comms {
 
         // Checking bunny world
         if(sectorIndex != -1) {
-
             ScanResult sr = scanSector(sectorIndex);
 
             int encodedSector = encodeSector(sr);

@@ -23,25 +23,26 @@ public class PatternUtils {
     public static void runDefaultBehavior() throws GameActionException {
         Util.addToIndicatorString("DFL;");
         // move destination to be on the line connecting what it currently is to right outside any overlap with vision radius
-        boolean isPaintReady = rc.isActionReady() && rc.getPaint() >= UnitType.SOLDIER.attackCost;
-        if (isPaintReady) {
-            for (int i = 0; i < 29; i++) {
-                int index = soldier.spiralOutwardIndices[i];
-                if (soldier.nearbyMapInfos[index] == null || soldier.nearbyMapInfos[index].hasRuin() || soldier.nearbyMapInfos[index].isWall()) {
-                    continue;
-                }
-                MapLocation location = soldier.nearbyMapInfos[index].getMapLocation();
-                if (rc.canAttack(location) && soldier.nearbyMapInfos[index].getPaint() == PaintType.EMPTY) {
-                    rc.attack(location, (location.x+location.y)%2 == 0);
-                    break;
-                }
-            }
-        }
-
-        if (rc.isMovementReady()) {
-            Util.addToIndicatorString("DEST " + soldier.destination  + ";");
-            soldier.nav.goToBug(soldier.destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
-        }
+//        boolean isPaintReady = rc.isActionReady() && rc.getPaint() >= UnitType.SOLDIER.attackCost;
+//        if (isPaintReady) {
+//            for (int i = 0; i < 29; i++) {
+//                int index = soldier.spiralOutwardIndices[i];
+//                if (soldier.nearbyMapInfos[index] == null || soldier.nearbyMapInfos[index].hasRuin() || soldier.nearbyMapInfos[index].isWall()) {
+//                    continue;
+//                }
+//                MapLocation location = soldier.nearbyMapInfos[index].getMapLocation();
+//                if (rc.canAttack(location) && soldier.nearbyMapInfos[index].getPaint() == PaintType.EMPTY) {
+//                    rc.attack(location, (location.x+location.y)%2 == 0);
+//                    break;
+//                }
+//            }
+//        }
+//
+//        if (rc.isMovementReady()) {
+//            Util.addToIndicatorString("DEST " + soldier.destination  + ";");
+//            soldier.nav.goToBug(soldier.destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
+//        }
+        soldier.macroMove(0);
     }
 
     public static void workOnRuin(int index, boolean[][] paintPattern) throws GameActionException {

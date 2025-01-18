@@ -470,20 +470,26 @@ public class Soldier extends Bunny {
         ScanResult sr = comms.decodeSector(encodedSector);
         int sectorScore = 0;
 
+        // if there's an enemy tower, go there for sure
+        if(sr.towerType >= 5) {
+            sectorScore += 1000000;
+            Util.log("FOUND AN ENEMY TOWER TO ATTACK");
+        }
+
         // If the region is mostly empty and there's an unbuilt ruin, go there first.
-        if(sr.emptyPaintLevel >= 2 && sr.towerType == 1) {
-            sectorScore += 1000;
-        }
-
-        // Prefer regions with 5-12 empty cells.
-        if(sr.emptyPaintLevel == 2) {
-            sectorScore += 500;
-        }
-
-        // Avoid regions with enemy cells.
-        if(sr.enemyPaintLevel >= 1) {
-            sectorScore -= 500;
-        }
+//        if(sr.emptyPaintLevel >= 2 && sr.towerType == 1) {
+//            sectorScore += 1000;
+//        }
+//
+//        // Prefer regions with 5-12 empty cells.
+//        if(sr.emptyPaintLevel == 2) {
+//            sectorScore += 500;
+//        }
+//
+//        // Avoid regions with enemy cells.
+//        if(sr.enemyPaintLevel >= 1) {
+//            sectorScore -= 500;
+//        }
 
         return sectorScore;
 
