@@ -30,7 +30,7 @@ public class Soldier extends Bunny {
 
     public void run() throws GameActionException {
         super.run(); // Call the shared logic for all bunnies
-        Util.log("YURRRR");
+        Util.logBytecode("Soldier");
 
         // 1. If trying to replenish, go do that.
         // TODO: If nearestAlliedPaintTowerLoc == null, should we explore or smth?
@@ -39,17 +39,22 @@ public class Soldier extends Bunny {
         }
         else {
             RobotInfo attackInfo = getAttackTarget();
+            Util.logBytecode("Get attack target");
             if(attackInfo != null) {
                 runAttackLogic(attackInfo);
+                Util.logBytecode("Running attack logic");
             }
             else {
                 // 3. If not attacking, run pattern painting logic.
                 buildPattern();
+                Util.logBytecode("Built pattern");
             }
         }
 
         MarkingUtils.tryRuinPatternCompletion();
         MarkingUtils.tryResourcePatternCompletion();
+
+        Util.logBytecode("Tried completion");
 
         // 6. End of Turn Logic
         // Perform any shared cleanup or post-turn logic
@@ -393,18 +398,21 @@ public class Soldier extends Bunny {
             if(checkRuinStillValid()){
                 return;
             }
+            Util.logBytecode("Checked ruin valid");
         }
 
         if(currResourceCenterLoc != null){
             if(checkResourceCenterStillValid()){
                 return;
             }
+            Util.logBytecode("Checked resource valid");
         }
 
         if(potentialResourceCenterLoc != null){
             if(checkPotentialResourceCenterLocValid()){
                 return;
             }
+            Util.logBytecode("Checked potential valid");
         }
 
         // If not building ruin, or resource pattern, or validating resource center location, figure out what to do next.
@@ -412,31 +420,42 @@ public class Soldier extends Bunny {
             // Find a ruin to build.
             checkForNewRuinToBuild();
 
+            Util.logBytecode("Check new ruin to build");
+
             // If none found, find a resource pattern to build.
-            if(currRuinLoc == null) {
+            if(currRuinLoc == null && shouldSearchForResourceCenter()) {
                 // 2650 bytecode.
                 int resourceCenterIndex = PatternUtils.getPotentialResourcePatternCenterIndex(nearbyMapInfos);
                 if (resourceCenterIndex != -1) {
                     potentialResourceCenterLoc = nearbyMapInfos[resourceCenterIndex].getMapLocation();
                     Util.addToIndicatorString("NRC " + currResourceCenterLoc);
                 }
+                Util.logBytecode("Got optential resource pattern");
             }
         }
 
         // If we're already building a ruin, go with that.
         if(currRuinLoc != null){
             buildRuin();
+            Util.logBytecode("Built ruin");
         }
         // If working on a resource center, continue doing so.
         else if(currResourceCenterLoc != null){
             buildResourceCenter();
+            Util.logBytecode("Worked on RC");
         }
         else if(potentialResourceCenterLoc != null){
             PatternUtils.workOnPotentialResourceCenter();
+            Util.logBytecode("Worked on potential");
         } else {
             Util.log("Running default!");
             PatternUtils.runDefaultBehavior();
+            Util.logBytecode("Default behavior");
         }
+    }
+
+    public boolean shouldSearchForResourceCenter() {
+        return rc.getRoundNum() > 100;
     }
 
     /**
