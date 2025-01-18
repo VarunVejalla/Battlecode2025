@@ -1,0 +1,188 @@
+
+        index = Util.getMapInfoIndex(loc.x - 2, loc.y);
+        if(index != -1 && nearbyMapInfos[index] != null) {
+            switch(nearbyMapInfos[index].getPaint()) {
+                case EMPTY:
+                    emptyCount++;
+                    break;
+                
+            }
+        }
+
+
+        index = Util.getMapInfoIndex(loc.x - 1, loc.y - 1);
+        if(index != -1 && nearbyMapInfos[index] != null) {
+            switch(nearbyMapInfos[index].getPaint()) {
+                case EMPTY:
+                    emptyCount++;
+                    break;
+                
+                case ENEMY_PRIMARY:
+                case ENEMY_SECONDARY:
+                    enemyCount++;
+                    break;
+
+            }
+        }
+
+
+        index = Util.getMapInfoIndex(loc.x - 1, loc.y);
+        if(index != -1 && nearbyMapInfos[index] != null) {
+            switch(nearbyMapInfos[index].getPaint()) {
+                case EMPTY:
+                    emptyCount++;
+                    break;
+                
+                case ENEMY_PRIMARY:
+                case ENEMY_SECONDARY:
+                    enemyCount++;
+                    break;
+
+            }
+        }
+
+
+        index = Util.getMapInfoIndex(loc.x - 1, loc.y + 1);
+        if(index != -1 && nearbyMapInfos[index] != null) {
+            switch(nearbyMapInfos[index].getPaint()) {
+                case EMPTY:
+                    emptyCount++;
+                    break;
+                
+                case ENEMY_PRIMARY:
+                case ENEMY_SECONDARY:
+                    enemyCount++;
+                    break;
+
+            }
+        }
+
+
+        index = Util.getMapInfoIndex(loc.x, loc.y - 2);
+        if(index != -1 && nearbyMapInfos[index] != null) {
+            switch(nearbyMapInfos[index].getPaint()) {
+                case EMPTY:
+                    emptyCount++;
+                    break;
+                
+            }
+        }
+
+
+        index = Util.getMapInfoIndex(loc.x, loc.y - 1);
+        if(index != -1 && nearbyMapInfos[index] != null) {
+            switch(nearbyMapInfos[index].getPaint()) {
+                case EMPTY:
+                    emptyCount++;
+                    break;
+                
+                case ENEMY_PRIMARY:
+                case ENEMY_SECONDARY:
+                    enemyCount++;
+                    break;
+
+            }
+        }
+
+
+        index = Util.getMapInfoIndex(loc.x, loc.y);
+        if(index != -1 && nearbyMapInfos[index] != null) {
+            switch(nearbyMapInfos[index].getPaint()) {
+                case EMPTY:
+                    emptyCount++;
+                    break;
+                
+                case ENEMY_PRIMARY:
+                case ENEMY_SECONDARY:
+                    enemyCount++;
+                    break;
+
+            }
+        }
+
+
+        index = Util.getMapInfoIndex(loc.x, loc.y + 1);
+        if(index != -1 && nearbyMapInfos[index] != null) {
+            switch(nearbyMapInfos[index].getPaint()) {
+                case EMPTY:
+                    emptyCount++;
+                    break;
+                
+                case ENEMY_PRIMARY:
+                case ENEMY_SECONDARY:
+                    enemyCount++;
+                    break;
+
+            }
+        }
+
+
+        index = Util.getMapInfoIndex(loc.x, loc.y + 2);
+        if(index != -1 && nearbyMapInfos[index] != null) {
+            switch(nearbyMapInfos[index].getPaint()) {
+                case EMPTY:
+                    emptyCount++;
+                    break;
+                
+            }
+        }
+
+
+        index = Util.getMapInfoIndex(loc.x + 1, loc.y - 1);
+        if(index != -1 && nearbyMapInfos[index] != null) {
+            switch(nearbyMapInfos[index].getPaint()) {
+                case EMPTY:
+                    emptyCount++;
+                    break;
+                
+                case ENEMY_PRIMARY:
+                case ENEMY_SECONDARY:
+                    enemyCount++;
+                    break;
+
+            }
+        }
+
+
+        index = Util.getMapInfoIndex(loc.x + 1, loc.y);
+        if(index != -1 && nearbyMapInfos[index] != null) {
+            switch(nearbyMapInfos[index].getPaint()) {
+                case EMPTY:
+                    emptyCount++;
+                    break;
+                
+                case ENEMY_PRIMARY:
+                case ENEMY_SECONDARY:
+                    enemyCount++;
+                    break;
+
+            }
+        }
+
+
+        index = Util.getMapInfoIndex(loc.x + 1, loc.y + 1);
+        if(index != -1 && nearbyMapInfos[index] != null) {
+            switch(nearbyMapInfos[index].getPaint()) {
+                case EMPTY:
+                    emptyCount++;
+                    break;
+                
+                case ENEMY_PRIMARY:
+                case ENEMY_SECONDARY:
+                    enemyCount++;
+                    break;
+
+            }
+        }
+
+
+        index = Util.getMapInfoIndex(loc.x + 2, loc.y);
+        if(index != -1 && nearbyMapInfos[index] != null) {
+            switch(nearbyMapInfos[index].getPaint()) {
+                case EMPTY:
+                    emptyCount++;
+                    break;
+                
+            }
+        }
+

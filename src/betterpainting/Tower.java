@@ -115,7 +115,7 @@ public class Tower extends Robot {
         }
 
         // see if there's an enemy to attack
-        Util.addToIndicatorString("RA; ");
+        Util.addToIndicatorString("RA");
         MapLocation target = findBestAttackTarget();
         Util.log("TGT: " + target);
         Util.addToIndicatorString("TGT: " + target);

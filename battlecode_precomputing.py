@@ -252,10 +252,27 @@ for dx in range(-6, 7):
         lookup_resource_filling.append(lookup)
 
 
-print("Non-overlapping")
-print(getStringLong(lookup_nonoverlap_invalid))
-print("RC-overlapping")
-print(getStringLong(lookup_rcoverlap_invalid))
+lookup_splasher_offlimits = []
+for dx, dy in canon:
+    # suppose this is invalid and you don't want any squares to overlap w/ the other pattern. what other square get marked invalid?
+    lookup = 0
+    for index in relevant_indices[::-1]:
+        new_dx, new_dy = canon[index]
+        distsquared = (new_dx-dx)*(new_dx-dx) + (new_dy-dy)*(new_dy-dy)
+        if distsquared <= 4:
+            lookup = 2*lookup
+        else:
+            # mark this as 1
+            lookup = 2*lookup+1
+    lookup_splasher_offlimits.append(lookup)
+
+print("Splasher off limits")
+print(getStringLong(lookup_splasher_offlimits))
+
+# print("Non-overlapping")
+# print(getStringLong(lookup_nonoverlap_invalid))
+# print("RC-overlapping")
+# print(getStringLong(lookup_rcoverlap_invalid))
 
 
 # for dx, dy in canon:

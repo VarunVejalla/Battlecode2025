@@ -308,8 +308,9 @@ public class Util {
     }
 
     public static void log(String str) {
-        if(Constants.MUTE || (rc.getID() != 11877)){
+        if(Constants.MUTE || (rc.getID() != 12355)){
 //        if(Constants.MUTE){
+//        if(true){
             return;
         }
         System.out.println(str);
@@ -317,23 +318,6 @@ public class Util {
 
     public static void logBytecode(String prefix) {
         Util.log(prefix + ": " + Clock.getBytecodesLeft());
-    }
-
-    public static void insertionSort(int arr[]){
-        int n = arr.length;
-        for (int i = 1; i < n; ++i) {
-            int key = arr[i];
-            int j = i - 1;
-
-        /* Move elements of arr[0..i-1], that are
-           greater than key, to one position ahead
-           of their current position */
-            while (j >= 0 && arr[j] > key) {
-                arr[j + 1] = arr[j];
-                j = j - 1;
-            }
-            arr[j + 1] = key;
-        }
     }
 
     public static Direction[] closeDirections(Direction dir) {
