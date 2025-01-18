@@ -36,8 +36,27 @@ public class Soldier extends Bunny {
 
 
     public void run() throws GameActionException {
-        super.run(); // Call the shared logic for all bunnies
+//        super.run(); // Call the shared logic for all bunnies
+        scanSurroundings();
+//        updateDestinationIfNeeded();
+        checkForUpgrades();
 
+
+        double metric = getMetric();
+        if (metric < 2) {
+
+            // we are kamikazes
+            if (destination == null ||
+                    rc.getLocation().distanceSquaredTo(destination) <= Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION) {
+                destination = getRotationalDestination();
+            }
+            tryingToReplenish = false;
+
+        } else {
+            updateDestinationIfNeeded();
+        }
+
+//        else if (rc.)
         if (!tryingToReplenish && (rc.getNumberTowers() <= 3 || rc.getRoundNum() < 100)) {
             destination = getRotationalDestination();
         }
@@ -53,12 +72,13 @@ public class Soldier extends Bunny {
                 runAttackLogic(attackInfo);
             }
             else {
+
                 // 3. If not attacking, run pattern painting logic.
-//                if (rc.getNumberTowers() <= 3 && rc.getRoundNum() < 50) {
-//                    buildPatternHardExplore();
-//                } else {
-//                    buildPattern();
-//                }
+                if (metric < 2) {
+                    buildPatternHardExplore();
+                } else {
+                    buildPattern();
+                }
                 buildPattern();
 
 
@@ -92,6 +112,9 @@ public class Soldier extends Bunny {
             t = Math.min(t, (2-myLoc.y)/vy);
         }
         return new MapLocation((int)(myLoc.x + vx * t), (int)(myLoc.y + vy * t));
+    }
+    public double getMetric() {
+        return (double) (rc.getRoundNum() * (1 + rc.getNumberTowers()))/(mapHeight * mapWidth);
     }
 
     public MapLocation getVerticalDestination(MapLocation current) {
@@ -153,7 +176,7 @@ public class Soldier extends Bunny {
         }
 
         // If we're already building a ruin, go with that.
-        if(currRuinLoc != null){
+        if(currRuinLoc != null && !PatternUtils.checkEnemyPaintInConsctructionArea(currRuinLoc)){
             int deltaX = currRuinLoc.x - rc.getLocation().x;
             int deltaY = currRuinLoc.y - rc.getLocation().y;
             int index = Util.getMapInfoIndex(deltaX, deltaY);
@@ -165,7 +188,9 @@ public class Soldier extends Bunny {
             }
 
             boolean[][] pattern = rc.getTowerPattern(PatternUtils.getIntendedTowerType());
+
             PatternUtils.workOnRuin(index, pattern, false);
+
             if (rc.canCompleteTowerPattern(PatternUtils.getIntendedTowerType(), nearbyMapInfos[index].getMapLocation())) {
                 rc.completeTowerPattern(PatternUtils.getIntendedTowerType(), nearbyMapInfos[index].getMapLocation());
             }
@@ -559,9 +584,10 @@ public class Soldier extends Bunny {
         // maybe just ignore whenever we see enemy paint?
 
         for(int index : spiralOutwardIndices) {
-            if (nearbyMapInfos[index] == null || !nearbyMapInfos[index].hasRuin() || rc.canSenseRobotAtLocation(nearbyMapInfos[index].getMapLocation())) {
+            if (nearbyMapInfos[index] == null || !nearbyMapInfos[index].hasRuin() || rc.canSenseRobotAtLocation(nearbyMapInfos[index].getMapLocation()) || PatternUtils.checkEnemyPaintInConsctructionArea(nearbyMapInfos[index].getMapLocation())) {
                 continue;
             }
+
 
             MapLocation ruinLoc = nearbyMapInfos[index].getMapLocation();
             int sectorIdx = comms.getSectorIndex(ruinLoc);

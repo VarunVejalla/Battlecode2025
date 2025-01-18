@@ -183,6 +183,9 @@ public class PatternUtils {
 
                 if (currentPaint == PaintType.EMPTY) {
                     attackSquare = soldier.nearbyMapInfos[attackIndex].getMapLocation();
+                    if (!attackSquare.isWithinDistanceSquared(soldier.myLoc, 9)) {
+                        continue;
+                    }
                     // this check is needed for when we're near the edges
                     if (0 <= attackSquare.x && 0 <= attackSquare.y && attackSquare.x < rc.getMapWidth() && attackSquare.y < rc.getMapHeight()) {
                         if (offsetX * offsetX + offsetY * offsetY <= 8) {
