@@ -19,6 +19,9 @@ public class Robot {
     int previousNumTotalTowers;
     int currentNumTotalChips;
     int currentNumTotalTowers;
+    int minMoneyTowers;
+    int estimatedIncomePerRound;
+    int roundSpawn;
 
     /**
      * Array containing all the possible movement directions.
@@ -44,6 +47,10 @@ public class Robot {
         this.mapHeight = rc.getMapHeight();
         this.nav = new Navigation(rc, this);
         rng = new Random(42); // seed the random number generator with the id of the bot
+        roundSpawn = rc.getRoundNum();
+        this.myLoc = rc.getLocation();
+        currentNumTotalChips = rc.getChips();
+        currentNumTotalTowers = rc.getNumberTowers();
     }
 
     public void run() throws GameActionException {
@@ -51,6 +58,22 @@ public class Robot {
         currentNumTotalTowers = rc.getNumberTowers();
         indicatorString = "";
         myLoc = rc.getLocation();
+
+        int deltaChips = currentNumTotalChips - previousNumTotalChips;
+        if (currentNumTotalTowers >= previousNumTotalTowers) {
+            if (deltaChips/20 > minMoneyTowers) {
+                minMoneyTowers = deltaChips/20;
+            }
+        } else {
+            minMoneyTowers -= previousNumTotalTowers - currentNumTotalTowers;
+            if (minMoneyTowers < 0) {
+                minMoneyTowers = 0;
+            }
+        }
+    }
+
+    public double getMetric() {
+        return (double) (rc.getRoundNum() * (1 + rc.getNumberTowers()))/(mapHeight * mapWidth);
     }
 
     public void sharedEndFunction() throws GameActionException {

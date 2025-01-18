@@ -14,6 +14,8 @@ public class Tower extends Robot {
     int currentRound;
     int roundsUnder1100 = 10;
 
+    UnitType lastSpawnedUnitType;
+
 
     public Tower(RobotController rc) throws GameActionException {
         super(rc);
@@ -43,9 +45,7 @@ public class Tower extends Robot {
             if (numTotalSpawned < 2) {
                 soldierSpawning();
             }
-        } else if (getMetric() < 2 && !isSaving()) {
-            soldierSpawning();
-        } else if (getMetric() > 2 && !isSaving()) {
+        } else if (!isSaving()) {
             midGameBots();
         }
 //            if(rc.getRoundNum() < Constants.SPAWN_MIDGAME_BOTS_ROUNDS) {
@@ -97,6 +97,7 @@ public class Tower extends Robot {
     public void tryBuilding(UnitType unitType, MapLocation location) throws GameActionException {
         if (rc.canBuildRobot(unitType, location)) {
             numTotalSpawned++;
+            lastSpawnedUnitType = unitType;
             rc.buildRobot(unitType, location);
         }
     }
@@ -130,14 +131,20 @@ public class Tower extends Robot {
     public void midGameBots() throws GameActionException {
         Direction dir = directions[rng.nextInt(directions.length)];
         MapLocation nextLoc = rc.getLocation().add(dir);
-        int robotType = rng.nextInt(3); // yes splashers
-        if (robotType == 0) {
+        if (getMetric() < 1.4) {
             tryBuilding(UnitType.SOLDIER, nextLoc);
-        } else if (robotType == 1) {
-            tryBuilding(UnitType.MOPPER, nextLoc);
-        } else if (robotType == 2) {
+        } else {
             tryBuilding(UnitType.SPLASHER, nextLoc);
         }
+
+//        int robotType = rng.nextInt(3); // yes splashers
+//        if (robotType == 0) {
+//            tryBuilding(UnitType.SOLDIER, nextLoc);
+//        } else if (robotType == 1) {
+//            tryBuilding(UnitType.MOPPER, nextLoc);
+//        } else if (robotType == 2) {
+//            tryBuilding(UnitType.SPLASHER, nextLoc);
+//        }
     }
 
     public void endGameBots() throws GameActionException {

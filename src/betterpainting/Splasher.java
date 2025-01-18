@@ -15,6 +15,9 @@ public class Splasher extends Bunny {
 
     public void run() throws GameActionException {
         super.run(); // Call shared logic for all bunnies
+
+        updateDestinationIfNeeded();
+
 //        Util.logBytecode("Ran super");
 //        updateOffLimits();
 //        Util.logBytecode("Updated off limits");
@@ -44,6 +47,7 @@ public class Splasher extends Bunny {
         // 4. End of Turn Logic
         sharedEndFunction();
     }
+
 
     public boolean checkIfIShouldStartReplenishing() throws GameActionException {
         return rc.getPaint() <= Constants.PAINT_THRESHOLD_TO_REPLENISH;

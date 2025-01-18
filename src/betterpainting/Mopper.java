@@ -11,6 +11,9 @@ public class Mopper extends Bunny {
 
     public void run() throws GameActionException {
         super.run();
+
+        updateDestinationIfNeeded();
+
         actionableOpponents = rc.senseNearbyRobots(2, rc.getTeam().opponent());
         actionableTiles = rc.senseNearbyMapInfos(2);
 

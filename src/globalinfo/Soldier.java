@@ -83,7 +83,7 @@ public class Soldier extends Bunny {
                 } else {
                     buildPattern();
                 }
-                buildPattern();
+//                buildPattern();
 
 
             }
