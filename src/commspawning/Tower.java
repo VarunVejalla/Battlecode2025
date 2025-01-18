@@ -6,8 +6,11 @@ public class Tower extends Robot {
 
     TowerComms comms = new TowerComms(rc, this, this);
     MapInfo[] nearbyMapInfos;
-    RobotInfo[] friendliesToComm = null;
+//    RobotInfo[] friendliesToComm = null;
+    RobotInfo[] friendliesToPaint = null;
     Direction dirToCenter;
+    RobotInfo replenishingRobot = null;
+
 
     public Tower(RobotController rc) throws GameActionException {
         super(rc);
@@ -19,8 +22,9 @@ public class Tower extends Robot {
 //        Util.log("TOWER");
         Util.addToIndicatorString("RUN");
         scanSurroundings();
-        comms.updateKnowledge();
+        replenishRobots();
 
+        comms.updateKnowledge();
         runAttack();
 
         if (rc.getRoundNum() < Constants.SPAWN_OPENING_BOTS_ROUNDS) {
@@ -45,10 +49,67 @@ public class Tower extends Robot {
 
     public void scanSurroundings() throws GameActionException {
         nearbyMapInfos = rc.senseNearbyMapInfos();
-        friendliesToComm = rc.senseNearbyRobots(GameConstants.MESSAGE_RADIUS_SQUARED, rc.getTeam());
+//        friendliesToComm = rc.senseNearbyRobots(GameConstants.MESSAGE_RADIUS_SQUARED, rc.getTeam());
+        friendliesToPaint = rc.senseNearbyRobots(GameConstants.PAINT_TRANSFER_RADIUS_SQUARED, rc.getTeam());
 
         // processMessages
         comms.processSectorMessages();
+    }
+
+    public void replenishRobots() throws GameActionException {
+
+        Util.logArray("Friends", friendliesToPaint);
+        if(replenishingRobot != null)
+            Util.log("Replenishing robot: " + replenishingRobot.getID());
+        // No one needs paint.
+        if(friendliesToPaint.length == 0) return;
+
+        // If the replenishing robot is still here, serve them.
+        if(replenishingRobot != null) {
+            boolean robStillHere = false;
+            for(RobotInfo r : friendliesToPaint) {
+                if(r.getID() == replenishingRobot.getID()) {
+                    robStillHere = true;
+                    replenishingRobot = r;
+                    break;
+                }
+            }
+
+            // If they're gone, reset to null.
+            if(!robStillHere) replenishingRobot = null;
+        }
+
+        // Not serving anyone yet, start with the first robot that needs replenishing.
+        if(replenishingRobot == null) {
+            for(RobotInfo r : friendliesToPaint) {
+                if(r.getPaintAmount() < Constants.PAINT_THRESHOLD_TO_REPLENISH) {
+                    Util.log("Robot needs paint"+ r.getID());
+                    replenishingRobot = r;
+                    break;
+                }
+            }
+            // No one to serve? Return.
+            return;
+        }
+
+        // Already serving someone, serve them, unless someone is going to die.
+        for(RobotInfo rob : friendliesToPaint) {
+            if(rob.getPaintAmount() <= 5) {
+                replenishingRobot = rob;
+                break;
+            }
+        }
+
+        int paintToFillUp = Math.min(replenishingRobot.getType().paintCapacity - replenishingRobot.getPaintAmount(), rc.getPaint());
+
+        if (rc.canTransferPaint(replenishingRobot.getLocation(), paintToFillUp)) {
+            Util.log("Transferring paint: " + replenishingRobot.getID());
+            rc.transferPaint(replenishingRobot.getLocation(), paintToFillUp);
+        } else {
+            Util.log("Couldn't tranfer to " + replenishingRobot.getLocation());
+        }
+
+        if(rc.getRoundNum() > 70) rc.resign();
     }
 
     public void openingBots() throws GameActionException {
