@@ -287,7 +287,7 @@ public class PatternUtils {
         return PatternCompleted.COMPLETE;
     }
 
-    public static boolean checkEnemyPaintInConsctructionArea(MapLocation centerLoc) throws GameActionException {
+    public static boolean checkEnemyPaintInConstructionArea(MapLocation centerLoc) throws GameActionException {
         for(int x = centerLoc.x - 2; x <= centerLoc.x + 2; x++) {
             for(int y = centerLoc.y - 2; y <= centerLoc.y + 2; y++) {
                 MapLocation loc = new MapLocation(x, y);
