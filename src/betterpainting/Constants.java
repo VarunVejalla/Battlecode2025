@@ -13,4 +13,6 @@ public class Constants {
     public static final int SPAWN_BOTS_MIDGAME_COST_THRESHOLD = 1500;
     public static final int TOWER_COST = 1000;
     public static final int ROUNDS_TO_IGNORE_PAINTED_RUINS = 40;
+
+    public static final double RUIN_SEARCHING_THRESHOLD = 2;
 }

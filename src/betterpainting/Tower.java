@@ -34,7 +34,7 @@ public class Tower extends Robot {
             numRoundsLessThanN = 0;
         }
 
-        if (rc.getRoundNum() < 100 && rc.getNumberTowers() <= 3) {
+        if (rc.getRoundNum() < 50 && rc.getNumberTowers() <= 3) {
             if (numTotalSpawned < 2) {
                 soldierSpawning();
             }

@@ -32,7 +32,7 @@ public class Soldier extends Bunny {
         super.run(); // Call the shared logic for all bunnies
 
         double metric = getMetric();
-        if (metric < 2) {
+        if (metric < Constants.RUIN_SEARCHING_THRESHOLD) {
             // we are kamikazes
             if (destination == null ||
                     rc.getLocation().distanceSquaredTo(destination) <= globalinfo.Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION) {
@@ -68,7 +68,7 @@ public class Soldier extends Bunny {
             }
             else {
                 // 3. If not attacking, run pattern painting logic.
-                if (metric < 2) {
+                if (metric < Constants.RUIN_SEARCHING_THRESHOLD) {
                     buildPatternHardExplore();
                 } else {
                     buildPattern();
