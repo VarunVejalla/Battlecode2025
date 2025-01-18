@@ -23,12 +23,6 @@ public class Tower extends Robot {
             openingBots();
         } else if (rc.getMoney() > Constants.SPAWN_BOTS_MIDGAME_COST_THRESHOLD) {
             midGameBots();
-//            if(rc.getRoundNum() < Constants.SPAWN_MIDGAME_BOTS_ROUNDS) {
-//                midGameBots();
-//            }
-//            else {
-//                endGameBots();
-//            }
         }
 
         // Read incoming messages
@@ -88,12 +82,6 @@ public class Tower extends Robot {
 
     }
 
-    public boolean shouldRunAoEAttack() throws GameActionException {
-        // check if there are enough enemies in the action radius
-        RobotInfo[] bots = rc.senseNearbyRobots(rc.getType().actionRadiusSquared, rc.getTeam().opponent());
-        return bots.length > 3;
-    }
-
     /**
      * Find best enemy bot in action radiues to attack, based on health of bot
      */
@@ -115,19 +103,21 @@ public class Tower extends Robot {
      * Attack any enemies in your vision radius
      */
     public void runAttack() throws GameActionException {
+
+        // run AoE attack
+        if (rc.canAttack(null)) {
+            rc.attack(null);
+        }
+
         // see if there's an enemy to attack
         Util.addToIndicatorString("RA; ");
         MapLocation target = findBestAttackTarget();
         Util.log("TGT: " + target);
         Util.addToIndicatorString("TGT: " + target);
-        if (target != null && rc.isActionReady() && rc.canAttack(target)) {
+
+        if (target != null && rc.canAttack(target)) {
             Util.log("Tower running attack");
             rc.attack(target);
-        }
-        // run AoE attack if needed
-        if (rc.isActionReady() && shouldRunAoEAttack()) {
-            // Util.log("Tower running AoE attack");
-            rc.attack(null);
         }
     }
 }

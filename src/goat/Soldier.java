@@ -100,7 +100,7 @@ public class Soldier extends Bunny {
 
     public boolean checkRuinStillValid() throws GameActionException {
         // Check if ruin is invalid.
-        if((rc.canSenseLocation(currRuinLoc) && rc.senseRobotAtLocation(currRuinLoc) != null) || PatternUtils.checkEnemyPaintInConsctructionArea(currRuinLoc)){
+        if((rc.canSenseLocation(currRuinLoc) && rc.senseRobotAtLocation(currRuinLoc) != null) || PatternUtils.checkEnemyPaintInConstructionArea(currRuinLoc)){
             roundPaintedRuinsBySector[comms.getSectorIndex(currRuinLoc)] = rc.getRoundNum();
             currRuinLoc = null;
             currRuinResponsibility = Responsibility.UNASSIGNED;
@@ -141,7 +141,7 @@ public class Soldier extends Bunny {
 
     public boolean checkResourceCenterStillValid() throws GameActionException {
         // Check if resource center is completed or can still be completed.
-        if((rc.canSenseLocation(currResourceCenterLoc) && rc.senseMapInfo(currResourceCenterLoc).isResourcePatternCenter()) || PatternUtils.checkEnemyPaintInConsctructionArea(currResourceCenterLoc)){
+        if((rc.canSenseLocation(currResourceCenterLoc) && rc.senseMapInfo(currResourceCenterLoc).isResourcePatternCenter()) || PatternUtils.checkEnemyPaintInConstructionArea(currResourceCenterLoc)){
             currResourceCenterLoc = null;
             currResourceResponsibility = Responsibility.UNASSIGNED;
             return false;

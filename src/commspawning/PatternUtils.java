@@ -241,12 +241,14 @@ public class PatternUtils {
     }
 
     public static UnitType decideRuinUnitType() {
-        if(soldier.nearestAlliedTowerType == TowerType.PaintTower) {
-            return UnitType.LEVEL_ONE_MONEY_TOWER;
-        }
-        else {
-            return UnitType.LEVEL_ONE_PAINT_TOWER;
-        }
+        // TODO: DONT FUCKING PUSH THIS
+//        if(soldier.nearestAlliedTowerType == TowerType.PaintTower) {
+//            return UnitType.LEVEL_ONE_MONEY_TOWER;
+//        }
+//        else {
+//            return UnitType.LEVEL_ONE_PAINT_TOWER;
+//        }
+        return UnitType.LEVEL_ONE_MONEY_TOWER;
     }
 
     public static boolean checkRuinCompleted(MapLocation ruinLoc, UnitType ruinType) throws GameActionException {

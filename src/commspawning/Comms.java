@@ -96,8 +96,8 @@ public class Comms {
      * Returns the center of a sector given its index.
      */
     public MapLocation getSectorCenter(int sectorIndex) {
-        int row = sectorIndex / sectorCols;
-        int col = sectorIndex % sectorCols;
+        int row = sectorIndex / sectorRows;
+        int col = sectorIndex % sectorRows;
 
         int centerX = col * 5 + 2; // Center of the 5x5 grid
         int centerY = row * 5 + 2;

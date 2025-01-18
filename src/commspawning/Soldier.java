@@ -25,10 +25,7 @@ public class Soldier extends Bunny {
     boolean currRuinMyResponsibility = false;
     boolean currResourceMyResponsibility = false;
     int[] roundPaintedRuinsBySector = new int[144];
-
-
     MapInfo[] patternHistory = new MapInfo[25];
-
 
     public Soldier(RobotController rc) throws GameActionException {
         super(rc);
