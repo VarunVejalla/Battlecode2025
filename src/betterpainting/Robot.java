@@ -73,7 +73,7 @@ public class Robot {
     }
 
     public double getMetric() {
-        return (double) (rc.getRoundNum() * (1 + rc.getNumberTowers()))/(mapHeight * mapWidth);
+        return (double) (rc.getRoundNum() * (2 + rc.getNumberTowers()))/(mapHeight * mapWidth);
     }
 
     public void sharedEndFunction() throws GameActionException {
