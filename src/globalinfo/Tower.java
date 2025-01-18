@@ -43,7 +43,9 @@ public class Tower extends Robot {
             if (numTotalSpawned < 2) {
                 soldierSpawning();
             }
-        } else if (!isSaving()) {
+        } else if (getMetric() < 2 && !isSaving()) {
+            soldierSpawning();
+        } else if (getMetric() > 2 && !isSaving()) {
             midGameBots();
         }
 //            if(rc.getRoundNum() < Constants.SPAWN_MIDGAME_BOTS_ROUNDS) {

@@ -77,6 +77,10 @@ public class Robot {
         myLoc = rc.getLocation();
     }
 
+    public double getMetric() {
+        return (double) (rc.getRoundNum() * (1 + rc.getNumberTowers()))/(mapHeight * mapWidth);
+    }
+
     public void sharedEndFunction() throws GameActionException {
         // this function is available to all robots, if they'd like to run it at the end
         // of their turn
