@@ -7,29 +7,45 @@ public class Tower extends Robot {
     TowerComms comms = new TowerComms(rc, this, this);
     MapInfo[] nearbyMapInfos;
     RobotInfo[] friendliesToComm = null;
+    int numTotalSpawned = 0;
+    int myTowerNumber;
+    int numRoundsLessThan1400 = 5;
+    int previousNumTowers;
+
 
     public Tower(RobotController rc) throws GameActionException {
         super(rc);
+        myTowerNumber = rc.getNumberTowers();
+        previousNumTowers = myTowerNumber;
     }
 
     public void run() throws GameActionException {
         super.run();
+
         Util.log("TOWER");
         Util.addToIndicatorString("RUN");
         scanSurroundings();
         runAttack();
 
-        if (rc.getRoundNum() < Constants.SPAWN_OPENING_BOTS_ROUNDS) {
-            openingBots();
-        } else if (rc.getMoney() > Constants.SPAWN_BOTS_MIDGAME_COST_THRESHOLD) {
+        if (rc.getChips() < 1400) {
+            numRoundsLessThan1400++;
+        } else {
+            numRoundsLessThan1400 = 0;
+        }
+
+        if (rc.getRoundNum() < 100 && rc.getNumberTowers() <= 3) {
+            if (numTotalSpawned < 2) {
+                soldierSpawning();
+            }
+        } else if (!isSaving()) {
             midGameBots();
+        }
 //            if(rc.getRoundNum() < Constants.SPAWN_MIDGAME_BOTS_ROUNDS) {
 //                midGameBots();
 //            }
 //            else {
 //                endGameBots();
 //            }
-        }
 
         // Read incoming messages
         Message[] messages = rc.readMessages(-1);
@@ -47,25 +63,49 @@ public class Tower extends Robot {
         comms.processSectorMessages();
     }
 
-    public void openingBots() throws GameActionException {
+    public void tryBuilding(UnitType unitType, MapLocation location) throws GameActionException {
+        if (rc.canBuildRobot(unitType, location)) {
+            numTotalSpawned++;
+            rc.buildRobot(unitType, location);
+        }
+    }
+
+    public boolean isSaving() {
+        if (rc.getRoundNum() < 50 && rc.getNumberTowers() <= 3) {
+            return true;
+        }
+
+        if (numRoundsLessThan1400 >= 4) {
+            return true;
+        }
+
+        if (rc.getChips() >= 1400) {
+            return false;
+        } else if (rc.getNumberTowers() >= 25) {
+            return false;
+        } else if (rc.getNumberTowers() <= 1) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public void soldierSpawning() throws GameActionException {
         Direction dir = directions[rng.nextInt(directions.length)];
         MapLocation nextLoc = rc.getLocation().add(dir);
-
-        if (rc.canBuildRobot(UnitType.SOLDIER, nextLoc)) {
-            rc.buildRobot(UnitType.SOLDIER, nextLoc);
-        }
+        tryBuilding(UnitType.SOLDIER, nextLoc);
     }
 
     public void midGameBots() throws GameActionException {
         Direction dir = directions[rng.nextInt(directions.length)];
         MapLocation nextLoc = rc.getLocation().add(dir);
         int robotType = rng.nextInt(3); // yes splashers
-        if (robotType == 0 && rc.canBuildRobot(UnitType.SOLDIER, nextLoc)) {
-            rc.buildRobot(UnitType.SOLDIER, nextLoc);
-        } else if (robotType == 1 && rc.canBuildRobot(UnitType.MOPPER, nextLoc)) {
-            rc.buildRobot(UnitType.MOPPER, nextLoc);
-        } else if (robotType == 2 && rc.canBuildRobot(UnitType.SPLASHER, nextLoc)) {
-            rc.buildRobot(UnitType.SPLASHER, nextLoc);
+        if (robotType == 0) {
+            tryBuilding(UnitType.SOLDIER, nextLoc);
+        } else if (robotType == 1) {
+            tryBuilding(UnitType.MOPPER, nextLoc);
+        } else if (robotType == 2) {
+            tryBuilding(UnitType.SPLASHER, nextLoc);
         }
     }
 
@@ -73,17 +113,17 @@ public class Tower extends Robot {
         Direction dir = directions[rng.nextInt(directions.length)];
         MapLocation nextLoc = rc.getLocation().add(dir);
         // every 10 rounds, make a mopper
-        if(rc.getRoundNum() % 10 == 0 && rc.canBuildRobot(UnitType.MOPPER, nextLoc)) {
-            rc.buildRobot(UnitType.MOPPER, nextLoc);
+        if(rc.getRoundNum() % 10 == 0) {
+            tryBuilding(UnitType.MOPPER, nextLoc);
             return;
         }
 
         // rest of rounds, alternate between soldier and splasher
         int robotType = 2*rng.nextInt(2); // yes splashers
-        if (robotType == 0 && rc.canBuildRobot(UnitType.SOLDIER, nextLoc)) {
-            rc.buildRobot(UnitType.SOLDIER, nextLoc);
-        } else if (robotType == 2 && rc.canBuildRobot(UnitType.SPLASHER, nextLoc)) {
-            rc.buildRobot(UnitType.SPLASHER, nextLoc);
+        if (robotType == 0) {
+            tryBuilding(UnitType.SOLDIER, nextLoc);
+        } else if (robotType == 2) {
+            tryBuilding(UnitType.SPLASHER, nextLoc);
         }
 
     }

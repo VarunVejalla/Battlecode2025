@@ -20,8 +20,6 @@ public class Soldier extends Bunny {
 
     MapLocation currResourceCenterLoc = null;
     MapLocation currRuinLoc = null;
-    UnitType currRuinType = null;
-    boolean currRuinMarked = false;
     boolean currRuinMyResponsibility = false;
     boolean currResourceMyResponsibility = false;
     int[] roundPaintedRuinsBySector = new int[144];
@@ -29,15 +27,20 @@ public class Soldier extends Bunny {
 
     MapInfo[] patternHistory = new MapInfo[25];
 
-
     public Soldier(RobotController rc) throws GameActionException {
         super(rc);
         PatternUtils.soldier = this;
         PatternUtils.rc = rc;
     }
 
+
+
     public void run() throws GameActionException {
         super.run(); // Call the shared logic for all bunnies
+
+        if (!tryingToReplenish && (rc.getNumberTowers() <= 3 || rc.getRoundNum() < 100)) {
+            destination = getRotationalDestination();
+        }
 
         // 1. If trying to replenish, go do that.
         // TODO: If nearestAlliedPaintTowerLoc == null, should we explore or smth?
@@ -51,7 +54,14 @@ public class Soldier extends Bunny {
             }
             else {
                 // 3. If not attacking, run pattern painting logic.
+//                if (rc.getNumberTowers() <= 3 && rc.getRoundNum() < 50) {
+//                    buildPatternHardExplore();
+//                } else {
+//                    buildPattern();
+//                }
                 buildPattern();
+
+
             }
         }
 
@@ -62,6 +72,109 @@ public class Soldier extends Bunny {
         // Perform any shared cleanup or post-turn logic
         sharedEndFunction();
     }
+
+    public MapLocation getRotationalDestination() {
+        double vx = mapWidth/2.0 - myLoc.x;
+        double vy = mapHeight/2.0 - myLoc.y;
+
+        double t = Double.MAX_VALUE;
+
+        if (vx > 0) {
+            t = Math.min(t, (mapWidth-3-myLoc.x)/vx);
+        }
+        if (vx < 0) {
+            t = Math.min(t, (2-myLoc.x)/vx);
+        }
+        if (vy > 0) {
+            t = Math.min(t, (mapHeight-3-myLoc.y)/vy);
+        }
+        if (vy < 0) {
+            t = Math.min(t, (2-myLoc.y)/vy);
+        }
+        return new MapLocation((int)(myLoc.x + vx * t), (int)(myLoc.y + vy * t));
+    }
+
+    public MapLocation getVerticalDestination(MapLocation current) {
+        return new MapLocation(current.x, mapHeight-1-current.y);
+    }
+    public MapLocation getHorizontalDestination(MapLocation current) {
+        return new MapLocation(mapWidth-1-current.x, current.y);
+    }
+
+
+    public void buildPatternHardExplore() throws GameActionException {
+        Util.log("Beginning of method: " + currRuinLoc + ", " + PatternUtils.getIntendedTowerType());
+        Util.addToIndicatorString("R " + currRuinLoc);
+        Util.addToIndicatorString("RC " + currResourceCenterLoc);
+
+        // Check if ruin completed or is unable to be completed.
+        if(currRuinLoc != null){
+            if((rc.canSenseLocation(currRuinLoc) && rc.senseRobotAtLocation(currRuinLoc) != null) || PatternUtils.checkEnemyPaintInConsctructionArea(currRuinLoc)){
+                roundPaintedRuinsBySector[comms.getSectorIndex(currRuinLoc)] = rc.getRoundNum();
+                currRuinLoc = null;
+                currRuinMyResponsibility = false;
+            } else if(PatternUtils.checkRuinCompleted(currRuinLoc, PatternUtils.getIntendedTowerType()) && !currRuinMyResponsibility) {
+                // If i'm not the closest guy to the ruin, and the ruin is completed, dip.
+                boolean amClosest = true;
+                int myDist = rc.getLocation().distanceSquaredTo(currRuinLoc);
+                for(RobotInfo info : nearbyFriendlies){
+                    if(info.getLocation().distanceSquaredTo(currRuinLoc) < myDist){
+                        Util.log("I'm the not closest! Robot that's closer: " + info.getID() + ", " + info.getLocation());
+                        amClosest = false;
+                        break;
+                    }
+                    else if(info.getLocation().distanceSquaredTo(currRuinLoc) == myDist && rc.getID() > info.getID()){
+                        // Tiebreaker is robot id. Lower id stays.
+                        Util.log("I'm the not closest! Tiebreaker with robot: " + info.getID());
+                        amClosest = false;
+                        break;
+                    }
+                }
+                if(amClosest) {
+                    Util.log("I'm the closest! Staying behind.");
+                    currRuinMyResponsibility = true;
+                }
+                else {
+                    roundPaintedRuinsBySector[comms.getSectorIndex(currRuinLoc)] = rc.getRoundNum();
+                    Direction oppDir = rc.getLocation().directionTo(currRuinLoc);
+                    currRuinLoc = null;
+                    currRuinMyResponsibility = false;
+                    // Move away from the center.
+                    nav.goToFuzzy(rc.getLocation().add(oppDir).add(oppDir).add(oppDir), 0);
+                }
+            }
+        }
+
+        // If not building ruin, or resource pattern, figure out what to do next.
+        if(currRuinLoc == null){
+            // Find a ruin to build.
+            checkForNewRuinToBuild();
+            if(currRuinLoc != null) Util.addToIndicatorString("NR " + currRuinLoc);
+        }
+
+        // If we're already building a ruin, go with that.
+        if(currRuinLoc != null){
+            int deltaX = currRuinLoc.x - rc.getLocation().x;
+            int deltaY = currRuinLoc.y - rc.getLocation().y;
+            int index = Util.getMapInfoIndex(deltaX, deltaY);
+            // Too far away, move towards pattern
+            if(index == -1){
+                Util.log("Moving towards: " + currRuinLoc + ", " + PatternUtils.getIntendedTowerType());
+                nav.goToFuzzy(currRuinLoc, 0);
+                return;
+            }
+
+            boolean[][] pattern = rc.getTowerPattern(PatternUtils.getIntendedTowerType());
+            PatternUtils.workOnRuin(index, pattern, false);
+            if (rc.canCompleteTowerPattern(PatternUtils.getIntendedTowerType(), nearbyMapInfos[index].getMapLocation())) {
+                rc.completeTowerPattern(PatternUtils.getIntendedTowerType(), nearbyMapInfos[index].getMapLocation());
+            }
+        } else {
+            nav.goTo(destination, 5, false);
+        }
+    }
+
+
 
     public RobotInfo getAttackTarget() throws GameActionException {
         // Get location of tower to attack.
@@ -107,9 +220,11 @@ public class Soldier extends Bunny {
         }
     }
 
+
+
     public void buildPattern() throws GameActionException {
         // If we're already building a ruin, check if it's been completed.
-        Util.log("Beginning of method: " + currRuinLoc + ", " + currRuinType);
+        Util.log("Beginning of method: " + currRuinLoc + ", " + PatternUtils.getIntendedTowerType());
         Util.addToIndicatorString("R " + currRuinLoc);
         Util.addToIndicatorString("RC " + currResourceCenterLoc);
         boolean[][] resourcePattern = rc.getResourcePattern();
@@ -172,8 +287,6 @@ public class Soldier extends Bunny {
                 else {
                     Direction oppDir = rc.getLocation().directionTo(currResourceCenterLoc);
                     currRuinLoc = null;
-                    currRuinType = null;
-                    currRuinMarked = false;
                     currRuinMyResponsibility = false;
                     // Move away from the center.
                     nav.goToFuzzy(rc.getLocation().add(oppDir).add(oppDir).add(oppDir), 0);
@@ -186,10 +299,8 @@ public class Soldier extends Bunny {
             if((rc.canSenseLocation(currRuinLoc) && rc.senseRobotAtLocation(currRuinLoc) != null) || PatternUtils.checkEnemyPaintInConsctructionArea(currRuinLoc)){
                 roundPaintedRuinsBySector[comms.getSectorIndex(currRuinLoc)] = rc.getRoundNum();
                 currRuinLoc = null;
-                currRuinType = null;
-                currRuinMarked = false;
                 currRuinMyResponsibility = false;
-            } else if(currRuinType != null && PatternUtils.checkRuinCompleted(currRuinLoc, currRuinType) && !currRuinMyResponsibility) {
+            } else if(PatternUtils.checkRuinCompleted(currRuinLoc, PatternUtils.getIntendedTowerType()) && !currRuinMyResponsibility) {
                 // If i'm not the closest guy to the ruin, and the ruin is completed, dip.
                 boolean amClosest = true;
                 int myDist = rc.getLocation().distanceSquaredTo(currRuinLoc);
@@ -214,8 +325,6 @@ public class Soldier extends Bunny {
                     roundPaintedRuinsBySector[comms.getSectorIndex(currRuinLoc)] = rc.getRoundNum();
                     Direction oppDir = rc.getLocation().directionTo(currRuinLoc);
                     currRuinLoc = null;
-                    currRuinType = null;
-                    currRuinMarked = false;
                     currRuinMyResponsibility = false;
                     // Move away from the center.
                     nav.goToFuzzy(rc.getLocation().add(oppDir).add(oppDir).add(oppDir), 0);
@@ -246,39 +355,34 @@ public class Soldier extends Bunny {
             int index = Util.getMapInfoIndex(deltaX, deltaY);
             // Too far away, move towards pattern
             if(index == -1){
-                Util.log("Moving towards: " + currRuinLoc + ", " + currRuinType);
+                Util.log("Moving towards: " + currRuinLoc + ", " + PatternUtils.getIntendedTowerType());
                 nav.goToFuzzy(currRuinLoc, 0);
                 return;
             }
 
-            // If you haven't marked it yet, redetermine it each iteration.
-            if(currRuinType != null && !currRuinMarked){
-                currRuinType = null;
-            }
+//            if(currRuinType == null){
+//                if(!PatternUtils.closeEnoughToDetermineRuinType(currRuinLoc)){
+//                    Util.log("Moving towards 2: " + currRuinLoc + ", " + currRuinType);
+//                    nav.goToFuzzy(currRuinLoc, 0);
+//                    return;
+//                }
+//                currRuinType = PatternUtils.getRuinUnitType(currRuinLoc);
+//            }
 
-            if(currRuinType == null){
-                if(!PatternUtils.closeEnoughToDetermineRuinType(currRuinLoc)){
-                    Util.log("Moving towards 2: " + currRuinLoc + ", " + currRuinType);
-                    nav.goToFuzzy(currRuinLoc, 0);
-                    return;
-                }
-                currRuinType = PatternUtils.getRuinUnitType(currRuinLoc);
-            }
+//            if(!currRuinMarked){
+//                boolean marked = PatternUtils.markRuinUnitType(currRuinLoc, currRuinType);
+//                currRuinMarked = marked;
+//                // Get closer to mark.
+//                if(!currRuinMarked){
+//                    nav.goToFuzzy(currRuinLoc, 0);
+//                    return;
+//                }
+//            }
 
-            if(!currRuinMarked){
-                boolean marked = PatternUtils.markRuinUnitType(currRuinLoc, currRuinType);
-                currRuinMarked = marked;
-                // Get closer to mark.
-                if(!currRuinMarked){
-                    nav.goToFuzzy(currRuinLoc, 0);
-                    return;
-                }
-            }
-
-            boolean[][] pattern = rc.getTowerPattern(currRuinType);
-            PatternUtils.workOnRuin(index, pattern);
-            if (rc.canCompleteTowerPattern(currRuinType, nearbyMapInfos[index].getMapLocation())) {
-                rc.completeTowerPattern(currRuinType, nearbyMapInfos[index].getMapLocation());
+            boolean[][] pattern = rc.getTowerPattern(PatternUtils.getIntendedTowerType());
+            PatternUtils.workOnRuin(index, pattern, true);
+            if (rc.canCompleteTowerPattern(PatternUtils.getIntendedTowerType(), nearbyMapInfos[index].getMapLocation())) {
+                rc.completeTowerPattern(PatternUtils.getIntendedTowerType(), nearbyMapInfos[index].getMapLocation());
             }
             return;
         }
@@ -451,6 +555,9 @@ public class Soldier extends Bunny {
     public void checkForNewRuinToBuild() throws GameActionException {
         // Spirals outward up to vision radius.
         // 1500 bytecode.
+        // TODO: when we see enemy paint on the ruin, and we don't have someone to help us resolve it (splasher or mopper), ignore this ruin
+        // maybe just ignore whenever we see enemy paint?
+
         for(int index : spiralOutwardIndices) {
             if (nearbyMapInfos[index] == null || !nearbyMapInfos[index].hasRuin() || rc.canSenseRobotAtLocation(nearbyMapInfos[index].getMapLocation())) {
                 continue;
@@ -461,7 +568,6 @@ public class Soldier extends Bunny {
             if(roundPaintedRuinsBySector[sectorIdx] != 0 && roundPaintedRuinsBySector[sectorIdx] + Constants.ROUNDS_TO_IGNORE_PAINTED_RUINS > rc.getRoundNum()){
                 continue;
             }
-
             currRuinLoc = ruinLoc;
         }
     }
