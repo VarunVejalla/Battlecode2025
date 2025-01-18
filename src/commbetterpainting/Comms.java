@@ -6,20 +6,6 @@ import battlecode.common.RobotInfo;
 
 public class Comms {
 
-    // TODO: Things to test for.
-    // Does Scan Result work? Yes.
-    // Did the bunny's world update? Yes.
-    // Did the buffer update one term correctly? Yes.
-    // Can the bunny send a buffer message to the tower? Yes.
-    // Did the buffer update multiple terms correctly? Yes.
-    // Does the tower's world update correctly in response to the buffer message? Yes.
-    // Does the tower correctly transmit the map to the bunny? Yes.
-    // Does the bunny's map correctly update? Yes.
-    // Is message conversion working correctly? Yes.
-    // Make the bunny's movement match up with comms? (comms will work anyway!! but may not be optimized)
-    // TODO: Does this work for multiple robots with a single tower? maybe
-    // Does this work for large maps? yes!!!
-
     public final int MAP_UPDATE_REQUEST_CODE = 0xFFFF;
     public final int MAP2_UPDATE_REQUEST_CODE = 0xFFFE; // Used for larger maps.
     public final int MAX_MAP_SECTORS_SENT_PER_ROUND = 80;
@@ -96,8 +82,8 @@ public class Comms {
      * Returns the center of a sector given its index.
      */
     public MapLocation getSectorCenter(int sectorIndex) {
-        int row = sectorIndex / sectorCols;
-        int col = sectorIndex % sectorCols;
+        int row = sectorIndex / sectorRows;
+        int col = sectorIndex % sectorRows;
 
         int centerX = col * 5 + 2; // Center of the 5x5 grid
         int centerY = row * 5 + 2;
