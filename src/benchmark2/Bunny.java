@@ -360,7 +360,11 @@ public abstract class Bunny extends Robot {
      */
     public void updateDestinationIfNeeded() throws GameActionException {
         if ((nearestAlliedPaintTowerLoc != null || nearestAlliedTowerLoc != null) && (tryingToReplenish || checkIfIShouldStartReplenishing())) {
-            destination = nearestAlliedPaintTowerLoc;
+            if(nearestAlliedPaintTowerLoc != null){
+                destination = nearestAlliedPaintTowerLoc;
+            } else {
+                destination = nearestAlliedTowerLoc;
+            }
             tryingToReplenish = true;
             Util.addToIndicatorString("REP");
         }
