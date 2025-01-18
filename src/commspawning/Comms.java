@@ -6,23 +6,17 @@ import battlecode.common.RobotInfo;
 
 public class Comms {
 
-    // TODO: Things to test for.
-    // Does Scan Result work? Yes.
-    // Did the bunny's world update? Yes.
-    // Did the buffer update one term correctly? Yes.
-    // Can the bunny send a buffer message to the tower? Yes.
-    // Did the buffer update multiple terms correctly? Yes.
-    // Does the tower's world update correctly in response to the buffer message? Yes.
-    // Does the tower correctly transmit the map to the bunny? Yes.
-    // Does the bunny's map correctly update? Yes.
-    // Is message conversion working correctly? Yes.
-    // Make the bunny's movement match up with comms? (comms will work anyway!! but may not be optimized)
-    // TODO: Does this work for multiple robots with a single tower? maybe
-    // Does this work for large maps? yes!!!
-
     public final int MAP_UPDATE_REQUEST_CODE = 0xFFFF;
     public final int MAP2_UPDATE_REQUEST_CODE = 0xFFFE; // Used for larger maps.
     public final int MAX_MAP_SECTORS_SENT_PER_ROUND = 80;
+
+    int[] unbuiltRuins = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
+    int[] enemyTowers = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
+    int[] friendlyTowers = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
+
+    int unbuiltRuinIndex = 0;
+    int enemyTowerIndex = 0;
+    int friendlyTowerIndex = 0;
 
 
     RobotController rc;
@@ -219,6 +213,78 @@ public class Comms {
     public void describeWorld() {
         for (int sectorIndex = 0; sectorIndex < sectorCount; sectorIndex++) {
             if (myWorld[sectorIndex] == 0) continue;
+        }
+    }
+
+    public void updateTowerKnowledge(int sectorIndex) {
+        // This causes the bytecode to exceed sometimes but it's okay.
+        int ruinCondition = (myWorld[sectorIndex] >> 1) & 0b111;
+
+        switch(ruinCondition){
+            case 0:
+                return;
+            case 1:
+                unbuiltRuins[unbuiltRuinIndex] = sectorIndex;
+                unbuiltRuinIndex++;
+                return;
+            case 2,3,4:
+                friendlyTowers[friendlyTowerIndex] = sectorIndex;
+                friendlyTowerIndex++;
+                return;
+            case 5, 6, 7:
+                enemyTowers[enemyTowerIndex] = sectorIndex;
+                enemyTowerIndex++;
+                return;
+        }
+    }
+
+    public void describeWorldConcise() {
+        Util.log("\n -------------------------------- \n");
+        Util.log("My World: \n");
+        Util.log("Unbuilt ruins");
+        for (int unbuiltRuin : unbuiltRuins) {
+            if(unbuiltRuin == -1) break;
+            System.out.print(getSectorCenter(unbuiltRuin).toString() + " ");
+        }
+        System.out.println(); System.out.println();
+
+        Util.log("Friendly Towers");
+        for (int friendlyTower : friendlyTowers) {
+            if(friendlyTower == -1) break;
+            System.out.print(getSectorCenter(friendlyTower).toString() + " ");
+        }
+        System.out.println(); System.out.println();
+
+        Util.log("Enemy Towers");
+        for (int enemyTower : enemyTowers) {
+            if(enemyTower == -1) break;
+            System.out.print(getSectorCenter(enemyTower).toString() + " ");
+        }
+        System.out.println(); System.out.println();
+    }
+
+    public void updateKnowledge() {
+        enemyTowerIndex = 0;
+        unbuiltRuinIndex = 0;
+        friendlyTowerIndex = 0;
+
+        for (int i=0; i<sectorCount; i++) {
+            ScanResult sr = decodeSector(myWorld[i]);
+            // Enemy
+            if(sr.towerType >= 5) {
+                enemyTowers[enemyTowerIndex] = i;
+                enemyTowerIndex++;
+            }
+            // Unbuilt ruin
+            if(sr.towerType == 1) {
+                unbuiltRuins[unbuiltRuinIndex] = i;
+                unbuiltRuinIndex++;
+            }
+            // Friendly Towers
+            if(sr.towerType >= 2 && sr.towerType <= 4) {
+                friendlyTowers[friendlyTowerIndex] = i;
+                friendlyTowerIndex++;
+            }
         }
     }
 }

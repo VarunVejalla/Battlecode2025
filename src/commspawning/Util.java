@@ -308,7 +308,7 @@ public class Util {
     }
 
     public static void log(String str) {
-        if(Constants.MUTE || (rc.getID() != 12365)){
+        if(Constants.MUTE || (rc.getID() != Constants.DEBUG_ROBOT_ID)){
 //        if(Constants.MUTE){
             return;
         }

@@ -16,9 +16,11 @@ public class Tower extends Robot {
 
     public void run() throws GameActionException {
         super.run();
-        Util.log("TOWER");
+//        Util.log("TOWER");
         Util.addToIndicatorString("RUN");
         scanSurroundings();
+        comms.updateKnowledge();
+
         runAttack();
 
         if (rc.getRoundNum() < Constants.SPAWN_OPENING_BOTS_ROUNDS) {
@@ -30,7 +32,13 @@ public class Tower extends Robot {
         // Read incoming messages
         Message[] messages = rc.readMessages(-1);
         for (Message m : messages) {
-             Util.log("Tower received message: '#" + m.getSenderID() + " " + m.getBytes());
+            if(m.getBytes() != 65535) {
+                Util.log("Tower received message: '#" + m.getSenderID() + " " + m.getBytes());
+            }
+        }
+
+        if(rc.getRoundNum() == 236 && rc.getID() == Constants.DEBUG_ROBOT_ID) {
+            comms.describeWorldConcise();
         }
 
     }
@@ -120,7 +128,7 @@ public class Tower extends Robot {
         // see if there's an enemy to attack
         Util.addToIndicatorString("RA; ");
         MapLocation target = findBestAttackTarget();
-        Util.log("TGT: " + target);
+//        Util.log("TGT: " + target);
         Util.addToIndicatorString("TGT: " + target);
 
         if (target != null && rc.canAttack(target)) {
