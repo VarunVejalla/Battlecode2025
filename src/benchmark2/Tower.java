@@ -116,13 +116,13 @@ public class Tower extends Robot {
         }
 
         // see if there's an enemy to attack
-        commspawning.Util.addToIndicatorString("RA; ");
+        Util.addToIndicatorString("RA; ");
         MapLocation target = findBestAttackTarget();
-        commspawning.Util.log("TGT: " + target);
-        commspawning.Util.addToIndicatorString("TGT: " + target);
+        Util.log("TGT: " + target);
+        Util.addToIndicatorString("TGT: " + target);
 
         if (target != null && rc.canAttack(target)) {
-            commspawning.Util.log("Tower running attack");
+            Util.log("Tower running attack");
             rc.attack(target);
         }
     }
