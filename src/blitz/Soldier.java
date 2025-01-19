@@ -1,6 +1,7 @@
 package blitz;
 
 import battlecode.common.*;
+import scala.Int;
 
 enum Responsibility {
     SELF_RESPONSIBLE, UNASSIGNED
@@ -33,9 +34,9 @@ public class Soldier extends Bunny {
         double metric = getMetric();
         updateBlitzDestination();
 
-//        if (metric < Constants.RUIN_SEARCHING_THRESHOLD && rc.getRoundNum() < 100) {
-//            destination = Util.getRotationalReflection(myLoc);
-//        }
+        if (metric < Constants.RUIN_SEARCHING_THRESHOLD && rc.getRoundNum() < 100) {
+            destination = Util.getRotationalReflection(myLoc);
+        }
     }
 
     public void run() throws GameActionException {
@@ -63,9 +64,9 @@ public class Soldier extends Bunny {
         }
 
         // TODO: is this needed?
-//        if (!tryingToReplenish && (rc.getNumberTowers() <= 3 && rc.getRoundNum() < 100)) {
-//            destination = Util.getRotationalReflection(myLoc);
-//        }
+        if (!tryingToReplenish && (rc.getNumberTowers() <= 3 && rc.getRoundNum() < 100)) {
+            destination = Util.getRotationalReflection(myLoc);
+        }
 
         // 1. If trying to replenish, go do that.
         // TODO: If nearestAlliedPaintTowerLoc == null, should we explore or smth?
@@ -80,6 +81,9 @@ public class Soldier extends Bunny {
                 Util.logBytecode("Running attack logic");
             }
             else {
+                if(Constants.BLOCK_OFF_ENEMY_RUINS) {
+                    blockEnemyRuins();
+                }
                 // 3. If not attacking, run pattern painting logic.
                 if (metric < Constants.RUIN_SEARCHING_THRESHOLD) {
                     buildPatternHardExplore();
@@ -250,8 +254,47 @@ public class Soldier extends Bunny {
         blitzDestination = null;
     }
 
-    // Pattern logic.
+    public void blockEnemyRuins() throws GameActionException {
+        MapLocation[] nearbyRuins = rc.senseNearbyRuins(GameConstants.VISION_RADIUS_SQUARED);
+        for(MapLocation nearbyRuin : nearbyRuins){
+            // Only care about unfinished ruins here.
+            if(rc.senseRobotAtLocation(nearbyRuin) != null){
+                continue;
+            }
 
+            MapLocation closestEmpty = null;
+            int closestDistance = Integer.MAX_VALUE;
+            boolean isEnemyRuin = false;
+            boolean isBlockedOff = false;
+            for(int x = nearbyRuin.x - 2; x <= nearbyRuin.x + 2; x++) {
+                for(int y = nearbyRuin.y - 2; y <= nearbyRuin.y + 2; y++) {
+                    MapLocation loc = new MapLocation(x, y);
+                    if(!rc.canSenseLocation(loc)){
+                        continue;
+                    }
+                    PaintType paintType = rc.senseMapInfo(loc).getPaint();
+                    if(paintType.isEnemy()) {
+                        isEnemyRuin = true;
+                    } else if(paintType.isAlly()){
+                        isBlockedOff = true;
+                    } else if(myLoc.distanceSquaredTo(loc) < closestDistance) {
+                        closestEmpty = loc;
+                        closestDistance = myLoc.distanceSquaredTo(loc);
+                    }
+                }
+            }
+            if(isEnemyRuin && !isBlockedOff && closestEmpty != null){
+                Util.addToIndicatorString("BLK" + closestEmpty);
+                if(rc.canAttack(closestEmpty)){
+                    rc.attack(closestEmpty);
+                } else {
+                    nav.goToFuzzy(closestEmpty, 0);
+                }
+            }
+        }
+    }
+
+    // Pattern logic.
     public boolean checkRuinStillValid() throws GameActionException {
         // Check if ruin is invalid.
         if((rc.canSenseLocation(currRuinLoc) && rc.senseRobotAtLocation(currRuinLoc) != null) || PatternUtils.checkEnemyPaintInConsctructionArea(currRuinLoc)){
