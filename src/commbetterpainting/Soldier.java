@@ -38,16 +38,15 @@ public class Soldier extends Bunny {
     public void run() throws GameActionException {
         super.run(); // Call the shared logic for all bunnies
 
+
+
         double metric = getMetric();
         if (metric < Constants.RUIN_SEARCHING_THRESHOLD) {
             // we are kamikazes
             if (rc.getLocation().distanceSquaredTo(destination) <= Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION) {
                 destination = Util.getRandomMapLocation();
             }
-            if (checkIfIShouldStartReplenishing()) {
-                // if we're already nearby, might as well
-                tryReplenish();
-            }
+            tryReplenish();
             tryingToReplenish = false;
         } else {
             updateDestinationIfNeeded();
