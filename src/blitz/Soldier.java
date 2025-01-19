@@ -11,6 +11,7 @@ public class Soldier extends Bunny {
     public static final int[] spiralOutwardIndices = {34,25,33,35,43,24,26,42,44,16,32,36,52,15,17,23,27,41,45,51,53,14,18,50,54,8,31,37,60,7,9,22,28,40,46,59,61,6,10,13,19,49,55,58,62,2,30,38,66,1,3,21,29,39,47,65,67,5,11,57,63,0,4,12,20,48,56,64,68};
     public static final int[] invSpiralOutwardIndices = {61,49,45,50,62,57,37,29,25,30,38,58,63,39,21,13,9,14,22,40,64,51,31,15,5,1,6,16,32,52,46,26,10,2,0,3,11,27,47,53,33,17,7,4,8,18,34,54,65,41,23,19,12,20,24,42,66,59,43,35,28,36,44,60,67,55,48,56,68};
 
+    // Construction related variables
     MapLocation potentialResourceCenterLoc = null;
     boolean[] potentialRCCornersChecked = new boolean[4];
     boolean[] invalidPotentialLocs;
@@ -19,7 +20,10 @@ public class Soldier extends Bunny {
     MapLocation currRuinLoc = null;
     Responsibility currRuinResponsibility = Responsibility.UNASSIGNED;
     int[] roundPaintedRuinsBySector = new int[144];
-    MapLocation rotationalDestination;
+
+    // Blitz related variables.
+    boolean blitzDestinationIsKnownLoc = false;
+    MapLocation blitzDestination = null;
 
     public Soldier(RobotController rc) throws GameActionException {
         super(rc);
@@ -27,19 +31,26 @@ public class Soldier extends Bunny {
         PatternUtils.soldier = this;
         PatternUtils.rc = rc;
         double metric = getMetric();
+        updateBlitzDestination();
 
-        if (metric < Constants.RUIN_SEARCHING_THRESHOLD && rc.getRoundNum() < 100) {
-            destination = Util.getRotationalReflection(myLoc);
-        }
+//        if (metric < Constants.RUIN_SEARCHING_THRESHOLD && rc.getRoundNum() < 100) {
+//            destination = Util.getRotationalReflection(myLoc);
+//        }
     }
 
     public void run() throws GameActionException {
         super.run(); // Call the shared logic for all bunnies
+        updateEnemyTowerLocs();
+        updateBlitzDestination();
 
         double metric = getMetric();
         if (metric < Constants.RUIN_SEARCHING_THRESHOLD) {
             // we are kamikazes
-            if (rc.getLocation().distanceSquaredTo(destination) <= Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION) {
+            Util.addToIndicatorString("BD " + blitzDestination);
+            if(blitzDestination != null){
+                destination = blitzDestination;
+            }
+            if (destination == null || rc.getLocation().distanceSquaredTo(destination) <= Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION) {
                 destination = Util.getRandomMapLocation();
             }
             if (checkIfIShouldStartReplenishing()) {
@@ -52,9 +63,9 @@ public class Soldier extends Bunny {
         }
 
         // TODO: is this needed?
-        if (!tryingToReplenish && (rc.getNumberTowers() <= 3 && rc.getRoundNum() < 100)) {
-            destination = Util.getRotationalReflection(myLoc);
-        }
+//        if (!tryingToReplenish && (rc.getNumberTowers() <= 3 && rc.getRoundNum() < 100)) {
+//            destination = Util.getRotationalReflection(myLoc);
+//        }
 
         // 1. If trying to replenish, go do that.
         // TODO: If nearestAlliedPaintTowerLoc == null, should we explore or smth?
@@ -87,6 +98,28 @@ public class Soldier extends Bunny {
         // 6. End of Turn Logic
         // Perform any shared cleanup or post-turn logic
         sharedEndFunction();
+    }
+
+    public void updateDestinationIfNeeded() throws GameActionException {
+        if ((nearestAlliedPaintTowerLoc != null || nearestAlliedTowerLoc != null) && (tryingToReplenish || checkIfIShouldStartReplenishing())) {
+            if(nearestAlliedPaintTowerLoc != null){
+                destination = nearestAlliedPaintTowerLoc;
+            } else {
+                destination = nearestAlliedTowerLoc;
+            }
+            tryingToReplenish = true;
+            Util.addToIndicatorString("REP");
+            return;
+        }
+
+        if(blitzDestination != null){
+            destination = blitzDestination;
+        }
+
+        if (destination == null ||
+                rc.getLocation().distanceSquaredTo(destination) <= Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION) {
+            destination = Util.getRandomMapLocation();
+        }
     }
 
     public boolean checkIfIShouldStartReplenishing() throws GameActionException {
@@ -169,6 +202,52 @@ public class Soldier extends Bunny {
         else if(!rc.isActionReady() && distToTarget <= attackInfo.getType().actionRadiusSquared){
             nav.goToFuzzy(backoutLoc, 0);
         }
+    }
+
+    public void updateBlitzDestination() throws GameActionException {
+        if(!Constants.SHOULD_BLITZ){
+            blitzDestination = null;
+            return;
+        }
+        // Check if any known locations are present.
+        MapLocation knownEnemyLoc = null;
+        for(int i = 0; i < knownEnemyTowerLocs.length; i++){
+            if(knownEnemyTowerLocs[i] != null){
+                knownEnemyLoc = knownEnemyTowerLocs[i];
+                if(knownEnemyTowerLocs[i].equals(blitzDestination)){
+                    blitzDestinationIsKnownLoc = true;
+                    Util.addToIndicatorString("BDKT");
+                    return;
+                }
+            }
+        }
+        if(knownEnemyLoc != null){
+            blitzDestination = knownEnemyLoc;
+            blitzDestinationIsKnownLoc = true;
+            Util.addToIndicatorString("BDKT");
+            return;
+        }
+
+        // Check if any potential locations are present.
+        MapLocation potEnemyLoc = null;
+        for (int i = 0; i < potentialEnemyTowersLocs.length; i++) {
+            if(potentialEnemyTowersLocs[i] != null){
+                potEnemyLoc = potentialEnemyTowersLocs[i];
+                if (potentialEnemyTowersLocs[i].equals(blitzDestination)) {
+                    blitzDestinationIsKnownLoc = false;
+                    Util.addToIndicatorString("BDKF");
+                    return;
+                }
+            }
+        }
+        if(potEnemyLoc != null){
+            blitzDestination = potEnemyLoc;
+            blitzDestinationIsKnownLoc = false;
+            Util.addToIndicatorString("BDKF");
+            return;
+        }
+
+        blitzDestination = null;
     }
 
     // Pattern logic.

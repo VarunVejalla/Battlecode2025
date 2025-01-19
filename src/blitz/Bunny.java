@@ -41,11 +41,39 @@ public abstract class Bunny extends Robot {
     boolean symmetryUpdate = false;
     SymmetryType[] possibleSymmetries = {SymmetryType.HORIZONTAL, SymmetryType.VERTICAL, SymmetryType.ROTATIONAL};
 
+    int knownSpawnTowersIdx = 0;
+    MapLocation[] knownSpawnTowers = new MapLocation[5];
+    MapLocation[] knownEnemyTowerLocs = new MapLocation[10];
+    MapLocation[] potentialEnemyTowersLocs = new MapLocation[20];
+    SymmetryType[] potentialEnemyTowersSymmetries = new SymmetryType[20];
+    int potentialEnemyTowersIdx = 0;
+
     public Bunny(RobotController rc) throws GameActionException {
         super(rc);
         MarkingUtils.bunny = this;
         MarkingUtils.rc = rc;
         destination = Util.getRandomMapLocation();
+
+        nearbyFriendlies = rc.senseNearbyRobots(GameConstants.VISION_RADIUS_SQUARED, myTeam);
+        for(RobotInfo info : nearbyFriendlies){
+            Util.log("Friendly: " + info);
+            if(info.getTeam() == myTeam && Util.isTower(info.getType()) && knownSpawnTowersIdx < knownSpawnTowers.length){
+                knownSpawnTowers[knownSpawnTowersIdx] = info.getLocation();
+                knownSpawnTowersIdx++;
+
+                for(SymmetryType symmetry : possibleSymmetries) {
+                    if (symmetry == null) {
+                        continue;
+                    }
+                    if(potentialEnemyTowersIdx < potentialEnemyTowersLocs.length){
+                        MapLocation potentialEnemyLoc = Util.applySymmetry(info.getLocation(), symmetry);
+                        potentialEnemyTowersSymmetries[potentialEnemyTowersIdx] = symmetry;
+                        potentialEnemyTowersLocs[potentialEnemyTowersIdx] = potentialEnemyLoc;
+                        potentialEnemyTowersIdx++;
+                    }
+                }
+            }
+        }
     }
 
     public void run() throws GameActionException {
@@ -160,6 +188,18 @@ public abstract class Bunny extends Robot {
         updateKnownRuinsAndSymmetries();
     }
 
+    public void removePotentialEnemyLocsWithSymmetry(SymmetryType symmetryType) {
+        for(int i = 0; i < potentialEnemyTowersIdx; i++){
+            if(potentialEnemyTowersLocs[i] == null){
+                continue;
+            }
+            if(potentialEnemyTowersSymmetries[i] == symmetryType){
+                potentialEnemyTowersLocs[i] = null;
+                potentialEnemyTowersSymmetries[i] = null;
+            }
+        }
+    }
+
     public void updateKnownRuinsAndSymmetries() throws GameActionException {
         // TODO: Should optimize this by only searching new squares based on previous move.
         Direction lastMoveDir = null;
@@ -193,6 +233,7 @@ public abstract class Bunny extends Robot {
 
                     // If there's no ruin in the symmetry sector (in which case its -1, -1), or there's no smth, the symmetry is invalid.
                     if(!knownRuinsBySector[symmetrySectorIdx].equals(symmetryLoc)){
+                        removePotentialEnemyLocsWithSymmetry(symmetry);
                         possibleSymmetries[i] = null;
                     }
                 }
@@ -218,6 +259,7 @@ public abstract class Bunny extends Robot {
 
                     // If there's a ruin in the symmetry sector, the symmetry is invalid.
                     if(!knownRuinsBySector[symmetrySectorIdx].equals(noRuinLoc)){
+                        removePotentialEnemyLocsWithSymmetry(symmetry);
                         possibleSymmetries[i] = null;
                     }
                 }
@@ -269,6 +311,55 @@ public abstract class Bunny extends Robot {
 
             comms.sendMessages(bot);
             addInKnownTowerIfNotAlreadyIn(bot.getLocation(), TowerType.from(bot.getType()));
+        }
+    }
+
+    public void updateEnemyTowerLocs() throws GameActionException {
+        // Clear existing slots
+        for(int i = 0; i < knownEnemyTowerLocs.length; i++){
+            if(knownEnemyTowerLocs[i] != null && rc.canSenseLocation(knownEnemyTowerLocs[i])){
+                RobotInfo info = rc.senseRobotAtLocation(knownEnemyTowerLocs[i]);
+                if(info == null || info.getTeam() != oppTeam || !info.getType().isTowerType()){
+                    knownEnemyTowerLocs[i] = null;
+                }
+            }
+        }
+
+        for(int i = 0; i < potentialEnemyTowersIdx; i++){
+            if(potentialEnemyTowersLocs[i] == null){
+                continue;
+            }
+            if(rc.canSenseLocation(potentialEnemyTowersLocs[i])){
+                Util.addToIndicatorString("RS" + potentialEnemyTowersLocs[i]);
+                RobotInfo info = rc.senseRobotAtLocation(potentialEnemyTowersLocs[i]);
+                if(info == null || info.getTeam() != oppTeam || !info.getType().isTowerType()){
+                    potentialEnemyTowersLocs[i] = null;
+                    potentialEnemyTowersSymmetries[i] = null;
+                }
+            }
+        }
+
+        // Add in any new opponents spotted.
+        for(RobotInfo info : nearbyOpponents){
+            if(info.getType().isTowerType()){
+                MapLocation enemyTowerLoc = info.getLocation();
+                boolean alreadyIn = false;
+                int nullIdx = -1;
+                for(int i = 0; i < knownEnemyTowerLocs.length; i++){
+                    if(knownEnemyTowerLocs[i] == null){
+                        if(nullIdx == -1){
+                            nullIdx = i;
+                        }
+                        continue;
+                    }
+                    if(enemyTowerLoc.equals(knownEnemyTowerLocs[i])){
+                        alreadyIn = true;
+                    }
+                }
+                if(!alreadyIn && nullIdx != -1){
+                    knownEnemyTowerLocs[nullIdx] = enemyTowerLoc;
+                }
+            }
         }
     }
 
@@ -374,24 +465,6 @@ public abstract class Bunny extends Robot {
         // TODO: make this a more intelligent decision based on factors like:
         // - how much paint the tower im getting it from has
         return rc.getPaint() >= rc.getType().paintCapacity * 0.8;
-    }
-
-
-    /**
-     * Finds a ruin that is not claimed by your team.
-     */
-    public MapInfo findUnmarkedRuin() throws GameActionException {
-        // MapInfo[] nearbyTiles = rc.senseNearbyMapInfos();
-        for (MapInfo tile : nearbyMapInfos) {
-            if (rc.canSenseLocation(tile.getMapLocation()) && tile.hasRuin()) {
-                RobotInfo robotAtRuin = rc.senseRobotAtLocation(tile.getMapLocation());
-                // We want a ruin either unoccupied or not controlled by our team
-                if (robotAtRuin == null || robotAtRuin.team != rc.getTeam()) {
-                    return tile;
-                }
-            }
-        }
-        return null;
     }
 
     /**
