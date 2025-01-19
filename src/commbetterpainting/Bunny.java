@@ -96,7 +96,6 @@ public abstract class Bunny extends Robot {
     /**
      * Evalute the sectors that are neighboring your current sector and move towards the best one.
      */
-    // TODO: There are bugs in this method. This needs to be checked and not used yet.
     public void macroMove(int dist_to_best_sector) throws GameActionException {
         int bestScore = 0;
         int bestSector = -1;
