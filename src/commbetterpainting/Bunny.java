@@ -54,11 +54,11 @@ public abstract class Bunny extends Robot {
         scanSurroundings();
         checkForUpgrades();
 
-        if(tryingToReplenish) {
-            Util.addToIndicatorString("REP");
-        }
-        if(rc.getRoundNum() > 270) rc.resign();
-        if(rc.getRoundNum() == 260) comms.describeWorld();
+//        if(tryingToReplenish) {
+//            Util.addToIndicatorString("REP");
+//        }
+//        if(rc.getRoundNum() > 270) rc.resign();
+//        if(rc.getRoundNum() == 260) comms.describeWorld();
     }
 
     public void checkForUpgrades() throws GameActionException {
