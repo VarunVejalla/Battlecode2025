@@ -14,6 +14,14 @@ enum TowerType {
         }
         return DefenseTower;
     }
+
+    public String toString(){
+        return switch (this) {
+            case PaintTower -> "PT";
+            case MoneyTower -> "MT";
+            case DefenseTower -> "DT";
+        };
+    }
 }
 
 enum SymmetryType {

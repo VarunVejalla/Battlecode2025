@@ -73,6 +73,9 @@ public class Soldier extends Bunny {
                 Util.logBytecode("Running attack logic");
             }
             else {
+                if(Constants.BLOCK_OFF_ENEMY_RUINS) {
+                    blockEnemyRuins();
+                }
                 // 3. If not attacking, run pattern painting logic.
                 if (metric < Constants.RUIN_SEARCHING_THRESHOLD) {
                     buildPatternHardExplore();
@@ -91,6 +94,46 @@ public class Soldier extends Bunny {
         // 6. End of Turn Logic
         // Perform any shared cleanup or post-turn logic
         sharedEndFunction();
+    }
+
+    public void blockEnemyRuins() throws GameActionException {
+        MapLocation[] nearbyRuins = rc.senseNearbyRuins(GameConstants.VISION_RADIUS_SQUARED);
+        for(MapLocation nearbyRuin : nearbyRuins){
+            // Only care about unfinished ruins here.
+            if(rc.senseRobotAtLocation(nearbyRuin) != null){
+                continue;
+            }
+
+            MapLocation closestEmpty = null;
+            int closestDistance = Integer.MAX_VALUE;
+            boolean isEnemyRuin = false;
+            boolean isBlockedOff = false;
+            for(int x = nearbyRuin.x - 2; x <= nearbyRuin.x + 2; x++) {
+                for(int y = nearbyRuin.y - 2; y <= nearbyRuin.y + 2; y++) {
+                    MapLocation loc = new MapLocation(x, y);
+                    if(!rc.canSenseLocation(loc)){
+                        continue;
+                    }
+                    PaintType paintType = rc.senseMapInfo(loc).getPaint();
+                    if(paintType.isEnemy()) {
+                        isEnemyRuin = true;
+                    } else if(paintType.isAlly()){
+                        isBlockedOff = true;
+                    } else if(myLoc.distanceSquaredTo(loc) < closestDistance) {
+                        closestEmpty = loc;
+                        closestDistance = myLoc.distanceSquaredTo(loc);
+                    }
+                }
+            }
+            if(isEnemyRuin && !isBlockedOff && closestEmpty != null){
+                Util.addToIndicatorString("BLK" + closestEmpty);
+                if(rc.canAttack(closestEmpty)){
+                    rc.attack(closestEmpty);
+                } else {
+                    nav.goToFuzzy(closestEmpty, 0);
+                }
+            }
+        }
     }
 
     public boolean checkIfIShouldStartReplenishing() throws GameActionException {
@@ -368,6 +411,7 @@ public class Soldier extends Bunny {
         boolean[][] pattern = rc.getTowerPattern(currRuinType);
         // TODO: Srikar, do you want the last argument to be true or false here?
         PatternUtils.workOnRuin(index, pattern, paintEmpty);
+        Util.addToIndicatorString("RT" + TowerType.from(currRuinType).toString());
         if (rc.canCompleteTowerPattern(currRuinType, nearbyMapInfos[index].getMapLocation())) {
             rc.completeTowerPattern(currRuinType, nearbyMapInfos[index].getMapLocation());
         }
