@@ -54,6 +54,11 @@ public abstract class Bunny extends Robot {
         scanSurroundings();
         checkForUpgrades();
 
+        if(tryingToReplenish) {
+            Util.addToIndicatorString("REP");
+        }
+        if(rc.getRoundNum() > 270) rc.resign();
+        if(rc.getRoundNum() == 260) comms.describeWorld();
     }
 
     public void checkForUpgrades() throws GameActionException {
@@ -95,7 +100,7 @@ public abstract class Bunny extends Robot {
     public void macroMove(int dist_to_best_sector) throws GameActionException {
         int bestScore = 0;
         int bestSector = -1;
-        int[] neighborSectorIndexes = comms.getSectorAndNeighbors(myLoc);
+        int[] neighborSectorIndexes = comms.getSectorAndNeighbors(myLoc, 1);
         int sectorScore;
 
         for (int neighorSectorIndex : neighborSectorIndexes) {
@@ -304,7 +309,24 @@ public abstract class Bunny extends Robot {
         if(homebase == null){
             homebase = nearestAlliedTowerLoc;
         }
-        if(homebase == null) return;
+        // In the case they're both null, search through comms
+        if(homebase == null) {
+            // TODO if theres a money tower go there too
+//            int[] neighborSectorIndexes = comms.getSectorAndNeighbors(myLoc, 2);
+//            for(int sectorIndex : neighborSectorIndexes){
+//                int encodedSector = comms.myWorld[sectorIndex];
+//                int tower = (encodedSector >> 1) & 0b111;
+//                // If there's a friendly paint tower, go there
+//                if(tower == 2) {
+//                    homebase = comms.getSectorCenter(sectorIndex);
+//                    break;
+//                }
+//            }
+//            if(homebase == null) {
+//                return;
+//            }
+            return;
+        }
 
         if(rc.getLocation().distanceSquaredTo(homebase) > 9) {
             nav.goToBug(homebase, 0);

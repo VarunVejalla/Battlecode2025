@@ -15,4 +15,5 @@ public class Constants {
     public static final int ROUNDS_TO_IGNORE_PAINTED_RUINS = 40;
 
     public static final double RUIN_SEARCHING_THRESHOLD = 2;
+    public static final int DEBUG_BOT_ID = 10152;
 }

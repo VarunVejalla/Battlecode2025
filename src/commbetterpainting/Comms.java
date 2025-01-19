@@ -104,15 +104,15 @@ public class Comms {
      * Returns an array containing the index of the sector that contains the given MapLocation
      * as well as the indices of its neighboring sectors.
      */
-    public int[] getSectorAndNeighbors(MapLocation loc) {
+    public int[] getSectorAndNeighbors(MapLocation loc, int sectorsAway) {
         int col = loc.x / 5;
         int row = loc.y / 5;
 
         // Precompute bounds to avoid repeated checks
-        int minRow = Math.max(0, row - 1);
-        int maxRow = Math.min(sectorCols - 1, row + 1);
-        int minCol = Math.max(0, col - 1);
-        int maxCol = Math.min(sectorRows - 1, col + 1);
+        int minRow = Math.max(0, row - sectorsAway);
+        int maxRow = Math.min(sectorCols - 1, row + sectorsAway);
+        int minCol = Math.max(0, col - sectorsAway);
+        int maxCol = Math.min(sectorRows - 1, col + sectorsAway);
 
         // Validate bounds
         if (maxRow < minRow || maxCol < minCol) {
@@ -203,8 +203,12 @@ public class Comms {
     }
 
     public void describeWorld() {
+        Util.log("\n -------------------------------- \n");
+        Util.log("My World: \n");
         for (int sectorIndex = 0; sectorIndex < sectorCount; sectorIndex++) {
             if (myWorld[sectorIndex] == 0) continue;
+            Util.log("Sector Center: " + getSectorCenter(sectorIndex));
+            Util.log(Util.getSectorDescription(myWorld[sectorIndex]) + "\n\n");
         }
     }
 }
