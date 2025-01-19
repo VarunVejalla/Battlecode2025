@@ -22,6 +22,7 @@ public class Robot {
     int minMoneyTowers;
     int estimatedIncomePerRound;
     int roundSpawn;
+    MapLocation spawnLoc;
 
     /**
      * Array containing all the possible movement directions.
@@ -51,6 +52,7 @@ public class Robot {
         this.myLoc = rc.getLocation();
         currentNumTotalChips = rc.getChips();
         currentNumTotalTowers = rc.getNumberTowers();
+        spawnLoc = rc.getLocation();
     }
 
     public void run() throws GameActionException {

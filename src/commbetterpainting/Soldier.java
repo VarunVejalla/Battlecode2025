@@ -21,6 +21,7 @@ public class Soldier extends Bunny {
     int[] roundPaintedRuinsBySector = new int[144];
     MapLocation rotationalDestination;
 
+
     public Soldier(RobotController rc) throws GameActionException {
         super(rc);
         invalidPotentialLocs = new boolean[3600];
@@ -29,8 +30,9 @@ public class Soldier extends Bunny {
         double metric = getMetric();
 
         if (metric < Constants.RUIN_SEARCHING_THRESHOLD && rc.getRoundNum() < 100) {
-            destination = Util.getRotationalReflection(myLoc);
+            destination = Util.getRotationalReflection(spawnLoc);
         }
+
     }
 
     public void run() throws GameActionException {
@@ -53,7 +55,7 @@ public class Soldier extends Bunny {
 
         // TODO: is this needed?
         if (!tryingToReplenish && (rc.getNumberTowers() <= 3 && rc.getRoundNum() < 100)) {
-            destination = Util.getRotationalReflection(myLoc);
+            destination = Util.getRotationalReflection(spawnLoc);
         }
 
 
