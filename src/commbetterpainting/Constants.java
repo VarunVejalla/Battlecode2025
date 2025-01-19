@@ -16,5 +16,6 @@ public class Constants {
     public static final boolean BLOCK_OFF_ENEMY_RUINS = false;
 
     public static final double RUIN_SEARCHING_THRESHOLD = 2;
+    public static final double PATTERN_SEARCHING_THRESHOLD = 2.5;
     public static final int DEBUG_BOT_ID = 10152;
 }
