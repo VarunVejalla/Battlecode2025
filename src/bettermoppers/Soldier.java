@@ -1,7 +1,6 @@
-package blitz;
+package bettermoppers;
 
 import battlecode.common.*;
-import scala.Int;
 
 enum Responsibility {
     SELF_RESPONSIBLE, UNASSIGNED
@@ -12,7 +11,6 @@ public class Soldier extends Bunny {
     public static final int[] spiralOutwardIndices = {34,25,33,35,43,24,26,42,44,16,32,36,52,15,17,23,27,41,45,51,53,14,18,50,54,8,31,37,60,7,9,22,28,40,46,59,61,6,10,13,19,49,55,58,62,2,30,38,66,1,3,21,29,39,47,65,67,5,11,57,63,0,4,12,20,48,56,64,68};
     public static final int[] invSpiralOutwardIndices = {61,49,45,50,62,57,37,29,25,30,38,58,63,39,21,13,9,14,22,40,64,51,31,15,5,1,6,16,32,52,46,26,10,2,0,3,11,27,47,53,33,17,7,4,8,18,34,54,65,41,23,19,12,20,24,42,66,59,43,35,28,36,44,60,67,55,48,56,68};
 
-    // Construction related variables
     MapLocation potentialResourceCenterLoc = null;
     boolean[] potentialRCCornersChecked = new boolean[4];
     boolean[] invalidPotentialLocs;
@@ -21,10 +19,8 @@ public class Soldier extends Bunny {
     MapLocation currRuinLoc = null;
     Responsibility currRuinResponsibility = Responsibility.UNASSIGNED;
     int[] roundPaintedRuinsBySector = new int[144];
+    MapLocation rotationalDestination;
 
-    // Blitz related variables.
-    boolean blitzDestinationIsKnownLoc = false;
-    MapLocation blitzDestination = null;
 
     public Soldier(RobotController rc) throws GameActionException {
         super(rc);
@@ -32,26 +28,20 @@ public class Soldier extends Bunny {
         PatternUtils.soldier = this;
         PatternUtils.rc = rc;
         double metric = getMetric();
-        updateBlitzDestination();
 
         if (metric < Constants.RUIN_SEARCHING_THRESHOLD && rc.getRoundNum() < 100) {
-            destination = Util.getRotationalReflection(myLoc);
+            destination = Util.getRotationalReflection(spawnLoc);
         }
+
     }
 
     public void run() throws GameActionException {
         super.run(); // Call the shared logic for all bunnies
-        updateEnemyTowerLocs();
-        updateBlitzDestination();
 
         double metric = getMetric();
         if (metric < Constants.RUIN_SEARCHING_THRESHOLD) {
             // we are kamikazes
-            Util.addToIndicatorString("BD " + blitzDestination);
-            if(blitzDestination != null){
-                destination = blitzDestination;
-            }
-            if (destination == null || rc.getLocation().distanceSquaredTo(destination) <= Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION) {
+            if (rc.getLocation().distanceSquaredTo(destination) <= Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION) {
                 destination = Util.getRandomMapLocation();
             }
             if (checkIfIShouldStartReplenishing()) {
@@ -65,8 +55,10 @@ public class Soldier extends Bunny {
 
         // TODO: is this needed?
         if (!tryingToReplenish && (rc.getNumberTowers() <= 3 && rc.getRoundNum() < 100)) {
-            destination = Util.getRotationalReflection(myLoc);
+            destination = Util.getRotationalReflection(spawnLoc);
         }
+
+
 
         // 1. If trying to replenish, go do that.
         // TODO: If nearestAlliedPaintTowerLoc == null, should we explore or smth?
@@ -104,25 +96,43 @@ public class Soldier extends Bunny {
         sharedEndFunction();
     }
 
-    public void updateDestinationIfNeeded() throws GameActionException {
-        if ((nearestAlliedPaintTowerLoc != null || nearestAlliedTowerLoc != null) && (tryingToReplenish || checkIfIShouldStartReplenishing())) {
-            if(nearestAlliedPaintTowerLoc != null){
-                destination = nearestAlliedPaintTowerLoc;
-            } else {
-                destination = nearestAlliedTowerLoc;
+    public void blockEnemyRuins() throws GameActionException {
+        MapLocation[] nearbyRuins = rc.senseNearbyRuins(GameConstants.VISION_RADIUS_SQUARED);
+        for(MapLocation nearbyRuin : nearbyRuins){
+            // Only care about unfinished ruins here.
+            if(rc.senseRobotAtLocation(nearbyRuin) != null){
+                continue;
             }
-            tryingToReplenish = true;
-            Util.addToIndicatorString("REP");
-            return;
-        }
 
-        if(blitzDestination != null){
-            destination = blitzDestination;
-        }
-
-        if (destination == null ||
-                rc.getLocation().distanceSquaredTo(destination) <= Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION) {
-            destination = Util.getRandomMapLocation();
+            MapLocation closestEmpty = null;
+            int closestDistance = Integer.MAX_VALUE;
+            boolean isEnemyRuin = false;
+            boolean isBlockedOff = false;
+            for(int x = nearbyRuin.x - 2; x <= nearbyRuin.x + 2; x++) {
+                for(int y = nearbyRuin.y - 2; y <= nearbyRuin.y + 2; y++) {
+                    MapLocation loc = new MapLocation(x, y);
+                    if(!rc.canSenseLocation(loc)){
+                        continue;
+                    }
+                    PaintType paintType = rc.senseMapInfo(loc).getPaint();
+                    if(paintType.isEnemy()) {
+                        isEnemyRuin = true;
+                    } else if(paintType.isAlly()){
+                        isBlockedOff = true;
+                    } else if(myLoc.distanceSquaredTo(loc) < closestDistance) {
+                        closestEmpty = loc;
+                        closestDistance = myLoc.distanceSquaredTo(loc);
+                    }
+                }
+            }
+            if(isEnemyRuin && !isBlockedOff && closestEmpty != null){
+                Util.addToIndicatorString("BLK" + closestEmpty);
+                if(rc.canAttack(closestEmpty)){
+                    rc.attack(closestEmpty);
+                } else {
+                    nav.goToFuzzy(closestEmpty, 0);
+                }
+            }
         }
     }
 
@@ -208,93 +218,8 @@ public class Soldier extends Bunny {
         }
     }
 
-    public void updateBlitzDestination() throws GameActionException {
-        if(!Constants.SHOULD_BLITZ){
-            blitzDestination = null;
-            return;
-        }
-        // Check if any known locations are present.
-        MapLocation knownEnemyLoc = null;
-        for(int i = 0; i < knownEnemyTowerLocs.length; i++){
-            if(knownEnemyTowerLocs[i] != null){
-                knownEnemyLoc = knownEnemyTowerLocs[i];
-                if(knownEnemyTowerLocs[i].equals(blitzDestination)){
-                    blitzDestinationIsKnownLoc = true;
-                    Util.addToIndicatorString("BDKT");
-                    return;
-                }
-            }
-        }
-        if(knownEnemyLoc != null){
-            blitzDestination = knownEnemyLoc;
-            blitzDestinationIsKnownLoc = true;
-            Util.addToIndicatorString("BDKT");
-            return;
-        }
-
-        // Check if any potential locations are present.
-        MapLocation potEnemyLoc = null;
-        for (int i = 0; i < potentialEnemyTowersLocs.length; i++) {
-            if(potentialEnemyTowersLocs[i] != null){
-                potEnemyLoc = potentialEnemyTowersLocs[i];
-                if (potentialEnemyTowersLocs[i].equals(blitzDestination)) {
-                    blitzDestinationIsKnownLoc = false;
-                    Util.addToIndicatorString("BDKF");
-                    return;
-                }
-            }
-        }
-        if(potEnemyLoc != null){
-            blitzDestination = potEnemyLoc;
-            blitzDestinationIsKnownLoc = false;
-            Util.addToIndicatorString("BDKF");
-            return;
-        }
-
-        blitzDestination = null;
-    }
-
-    public void blockEnemyRuins() throws GameActionException {
-        MapLocation[] nearbyRuins = rc.senseNearbyRuins(GameConstants.VISION_RADIUS_SQUARED);
-        for(MapLocation nearbyRuin : nearbyRuins){
-            // Only care about unfinished ruins here.
-            if(rc.senseRobotAtLocation(nearbyRuin) != null){
-                continue;
-            }
-
-            MapLocation closestEmpty = null;
-            int closestDistance = Integer.MAX_VALUE;
-            boolean isEnemyRuin = false;
-            boolean isBlockedOff = false;
-            for(int x = nearbyRuin.x - 2; x <= nearbyRuin.x + 2; x++) {
-                for(int y = nearbyRuin.y - 2; y <= nearbyRuin.y + 2; y++) {
-                    MapLocation loc = new MapLocation(x, y);
-                    if(!rc.canSenseLocation(loc)){
-                        continue;
-                    }
-                    PaintType paintType = rc.senseMapInfo(loc).getPaint();
-                    if(paintType.isEnemy()) {
-                        isEnemyRuin = true;
-                    } else if(paintType.isAlly()){
-                        isBlockedOff = true;
-                    } else if(myLoc.distanceSquaredTo(loc) < closestDistance) {
-                        closestEmpty = loc;
-                        closestDistance = myLoc.distanceSquaredTo(loc);
-                    }
-                }
-            }
-            if(isEnemyRuin && !isBlockedOff && closestEmpty != null){
-                Util.addToIndicatorString("BLK" + closestEmpty);
-                if(rc.canAttack(closestEmpty)){
-                    rc.attack(closestEmpty);
-                } else {
-                    nav.goToFuzzy(closestEmpty, 0);
-                }
-            }
-        }
-    }
-
     // Pattern logic.
+
     public boolean checkRuinStillValid() throws GameActionException {
         // Check if ruin is invalid.
         if((rc.canSenseLocation(currRuinLoc) && rc.senseRobotAtLocation(currRuinLoc) != null) || PatternUtils.checkEnemyPaintInConsctructionArea(currRuinLoc)){
@@ -486,6 +411,7 @@ public class Soldier extends Bunny {
         boolean[][] pattern = rc.getTowerPattern(currRuinType);
         // TODO: Srikar, do you want the last argument to be true or false here?
         PatternUtils.workOnRuin(index, pattern, paintEmpty);
+        Util.addToIndicatorString("RT" + TowerType.from(currRuinType).toString());
         if (rc.canCompleteTowerPattern(currRuinType, nearbyMapInfos[index].getMapLocation())) {
             rc.completeTowerPattern(currRuinType, nearbyMapInfos[index].getMapLocation());
         }

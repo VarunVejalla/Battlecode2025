@@ -1,4 +1,4 @@
-package commbetterpainting;
+package bettermoppers;
 
 import battlecode.common.*;
 
