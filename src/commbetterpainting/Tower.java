@@ -113,7 +113,7 @@ public class Tower extends Robot {
 
         boolean spawned = false;
 
-        if (getMetric() < 1.4) {
+        if (getMetric() < Constants.TOWER_SPAWNING_THRESHOLD) {
             spawned = tryBuilding(UnitType.SOLDIER, nextLoc);
         } else {
             spawned = tryBuilding(UnitType.SPLASHER, nextLoc);

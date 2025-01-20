@@ -20,6 +20,7 @@ public class Soldier extends Bunny {
     Responsibility currRuinResponsibility = Responsibility.UNASSIGNED;
     int[] roundPaintedRuinsBySector = new int[144];
     MapLocation rotationalDestination;
+    boolean alreadyVisited = false;
 
 
     public Soldier(RobotController rc) throws GameActionException {
@@ -28,6 +29,7 @@ public class Soldier extends Bunny {
         PatternUtils.soldier = this;
         PatternUtils.rc = rc;
         double metric = getMetric();
+        rotationalDestination = Util.getRotationalReflection(spawnLoc);
 
         if (metric < Constants.RUIN_SEARCHING_THRESHOLD && rc.getRoundNum() < 100) {
             destination = Util.getRotationalReflection(spawnLoc);
@@ -38,6 +40,9 @@ public class Soldier extends Bunny {
     public void run() throws GameActionException {
         super.run(); // Call the shared logic for all bunnies
 
+        if (myLoc.isWithinDistanceSquared(rotationalDestination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION)) {
+            alreadyVisited = true;
+        }
 
 
         double metric = getMetric();
@@ -65,7 +70,7 @@ public class Soldier extends Bunny {
         }
 
         // TODO: is this needed?
-        if (!tryingToReplenish && (rc.getNumberTowers() <= 3 && rc.getRoundNum() < 100)) {
+        if (!tryingToReplenish && !alreadyVisited && (rc.getNumberTowers() <= 3 && rc.getRoundNum() < 100)) {
             destination = Util.getRotationalReflection(spawnLoc);
         }
 
@@ -90,6 +95,8 @@ public class Soldier extends Bunny {
                 // 3. If not attacking, run pattern painting logic.
                 if (metric < Constants.RUIN_SEARCHING_THRESHOLD) {
                     buildPatternHardExplore();
+                } else if (metric < Constants.PATTERN_SEARCHING_THRESHOLD) {
+                    buildPatternMediumExplore();
                 } else {
                     buildPattern();
                 }
@@ -644,7 +651,7 @@ public class Soldier extends Bunny {
             Util.logBytecode("Worked on RC");
         }
         else if(potentialResourceCenterLoc != null){
-            PatternUtils.workOnPotentialResourceCenter(false);
+            PatternUtils.workOnPotentialResourceCenter(true);
             Util.logBytecode("Worked on potential");
         } else {
             Util.log("Running default!");

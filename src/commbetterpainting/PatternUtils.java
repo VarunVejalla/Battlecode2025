@@ -379,14 +379,26 @@ public class PatternUtils {
         return false;
     }
 
-    public static UnitType decideRuinUnitType(MapLocation ruinLoc) {
+    public static boolean isDefenseAllowed(MapLocation centerLoc) throws GameActionException {
+        return false;//soldier.mapWidth * 0.375 <= centerLoc.x && centerLoc.x <= soldier.mapWidth*0.625 && soldier.mapHeight * 0.375 <= centerLoc.y && centerLoc.y <= soldier.mapHeight * 0.625;
+    }
+
+    public static UnitType decideRuinUnitType(MapLocation ruinLoc) throws GameActionException {
         // TODO: use map dimensions, number of chips(?), round number, etc (but only globally available information?)
         // ruinLoc isn't globally available, but can we still use it?
+
+
         if (rc.getNumberTowers() < 6) {
+            if (isDefenseAllowed(ruinLoc)) {
+                return UnitType.LEVEL_ONE_DEFENSE_TOWER;
+            }
             return UnitType.LEVEL_ONE_MONEY_TOWER;
         } else if (rc.getNumberTowers()%2 == 0) {
             return UnitType.LEVEL_ONE_PAINT_TOWER;
         } else {
+            if (isDefenseAllowed(ruinLoc)) {
+                return UnitType.LEVEL_ONE_DEFENSE_TOWER;
+            }
             return UnitType.LEVEL_ONE_MONEY_TOWER;
         }
     }
