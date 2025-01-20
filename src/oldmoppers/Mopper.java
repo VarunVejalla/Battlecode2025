@@ -1,4 +1,4 @@
-package bettermoppers;
+package oldmoppers;
 
 import battlecode.common.*;
 
@@ -77,15 +77,39 @@ public class Mopper extends Bunny {
     public void moveLogic() throws GameActionException {
         myLoc = rc.getLocation();
 
-        // Move in the direction
-        int bestSector = getBestSector();
-        if(bestSector != -1) {
-            // Go to the center of that sector.
-            mopperNav(comms.getSectorCenter(bestSector));
+        int bestDistance = Integer.MAX_VALUE;
+        MapLocation bestLocation = null;
+
+        for (MapInfo tile : nearbyMapInfos) {
+            if (tile == null) {
+                continue;
+            }
+            if (tile.getPaint().isEnemy()) {
+
+                int newDistance = Math.max(Math.abs(tile.getMapLocation().x - rc.getLocation().x),
+                        Math.abs(tile.getMapLocation().y - rc.getLocation().y));
+
+                if (newDistance < bestDistance) {
+                    bestDistance = newDistance;
+                    bestLocation = tile.getMapLocation();
+                }
+            }
+        }
+
+        if (bestLocation != null) {
+            mopperNav(bestLocation);
         } else {
-            // Goes to random destination
-            mopperNav(destination);
-            // Go towards the center
+            // Move in the direction
+
+            int bestSector = getBestSector();
+            if(bestSector != -1) {
+                // Go to the center of that sector.
+                mopperNav(comms.getSectorCenter(bestSector));
+            } else {
+                // Goes to random destination
+                mopperNav(destination);
+                // Go towards the center
+            }
         }
     }
 
@@ -197,7 +221,7 @@ public class Mopper extends Bunny {
                 toTarget.rotateRight().rotateRight(),
                 Direction.CENTER
         };
-        generalMopperNav(moveOptions, target, false, 0, 1, 2, 0, 100);
+        generalMopperNav(moveOptions, target, false, -5, 10, 20, 0, 100);
     }
 
     // TODO: Add in heuristic for setting yourself up for a mop swing.
@@ -228,8 +252,8 @@ public class Mopper extends Bunny {
         // On ally paint = 0
 
         // Next to enemy paint = +5 per enemy square
-        // Extra boost for next to ruin
-        // Extra boost for next to resource center
+            // Extra boost for next to ruin
+            // Extra boost for next to resource center
 
         // Next to ally = -2 per ally
         // Next to enemy = +15 per enemy

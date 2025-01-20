@@ -1,4 +1,4 @@
-package bettermoppers;
+package oldmoppers;
 
 import battlecode.common.*;
 
@@ -54,7 +54,6 @@ public class Splasher extends Bunny {
     }
 
     // 2k
-    // TODO: Fix this for painting on regions with ruins
     public void updateOffLimits() throws GameActionException {
         MapLocation myLoc = rc.getLocation();
         for(MapInfo info : nearbyMapInfos) {
@@ -126,13 +125,6 @@ public class Splasher extends Bunny {
                 score = 10 * emptyCount + 50 * enemyCount;
             }
 
-//            // Unit at location.
-            // TODO: Update this to check for adjacency to enemy tower.
-            RobotInfo rob= rc.senseRobotAtLocation(targetLocation);
-            if(rob != null && rob.getType().isTowerType() && rob.getTeam() == oppTeam) {
-                score += 10000;
-            }
-
             if (score > bestScore) {
                 bestScore = score;
                 bestTarget = tile.getMapLocation();
@@ -157,7 +149,7 @@ public class Splasher extends Bunny {
         int deltaY = loc.y - rc.getLocation().y;
 
         index = Util.getMapInfoIndex(deltaX - 2, deltaY);
-        if(index != -1 && nearbyMapInfos[index] != null && !nearbyMapInfos[index].isWall()) {
+        if(index != -1 && nearbyMapInfos[index] != null) {
             switch(nearbyMapInfos[index].getPaint()) {
                 case EMPTY:
                     emptyCount++;
@@ -166,7 +158,7 @@ public class Splasher extends Bunny {
         }
 
         index = Util.getMapInfoIndex(deltaX - 1, deltaY - 1);
-        if(index != -1 && nearbyMapInfos[index] != null && !nearbyMapInfos[index].isWall()) {
+        if(index != -1 && nearbyMapInfos[index] != null) {
             switch(nearbyMapInfos[index].getPaint()) {
                 case EMPTY:
                     emptyCount++;
@@ -180,7 +172,7 @@ public class Splasher extends Bunny {
         }
 
         index = Util.getMapInfoIndex(deltaX - 1, deltaY);
-        if(index != -1 && nearbyMapInfos[index] != null && !nearbyMapInfos[index].isWall()) {
+        if(index != -1 && nearbyMapInfos[index] != null) {
             switch(nearbyMapInfos[index].getPaint()) {
                 case EMPTY:
                     emptyCount++;
@@ -194,7 +186,7 @@ public class Splasher extends Bunny {
         }
 
         index = Util.getMapInfoIndex(deltaX - 1, deltaY + 1);
-        if(index != -1 && nearbyMapInfos[index] != null && !nearbyMapInfos[index].isWall()) {
+        if(index != -1 && nearbyMapInfos[index] != null) {
             switch(nearbyMapInfos[index].getPaint()) {
                 case EMPTY:
                     emptyCount++;
@@ -208,7 +200,7 @@ public class Splasher extends Bunny {
         }
 
         index = Util.getMapInfoIndex(deltaX, deltaY - 2);
-        if(index != -1 && nearbyMapInfos[index] != null && !nearbyMapInfos[index].isWall()) {
+        if(index != -1 && nearbyMapInfos[index] != null) {
             switch(nearbyMapInfos[index].getPaint()) {
                 case EMPTY:
                     emptyCount++;
@@ -217,7 +209,7 @@ public class Splasher extends Bunny {
         }
 
         index = Util.getMapInfoIndex(deltaX, deltaY - 1);
-        if(index != -1 && nearbyMapInfos[index] != null && !nearbyMapInfos[index].isWall()) {
+        if(index != -1 && nearbyMapInfos[index] != null) {
             switch(nearbyMapInfos[index].getPaint()) {
                 case EMPTY:
                     emptyCount++;
@@ -231,7 +223,7 @@ public class Splasher extends Bunny {
         }
 
         index = Util.getMapInfoIndex(deltaX, deltaY);
-        if(index != -1 && nearbyMapInfos[index] != null && !nearbyMapInfos[index].isWall()) {
+        if(index != -1 && nearbyMapInfos[index] != null) {
             switch(nearbyMapInfos[index].getPaint()) {
                 case EMPTY:
                     emptyCount++;
@@ -246,7 +238,7 @@ public class Splasher extends Bunny {
         }
 
         index = Util.getMapInfoIndex(deltaX, deltaY + 1);
-        if(index != -1 && nearbyMapInfos[index] != null && !nearbyMapInfos[index].isWall()) {
+        if(index != -1 && nearbyMapInfos[index] != null) {
             switch(nearbyMapInfos[index].getPaint()) {
                 case EMPTY:
                     emptyCount++;
@@ -260,7 +252,7 @@ public class Splasher extends Bunny {
         }
 
         index = Util.getMapInfoIndex(deltaX, deltaY + 2);
-        if(index != -1 && nearbyMapInfos[index] != null && !nearbyMapInfos[index].isWall()) {
+        if(index != -1 && nearbyMapInfos[index] != null) {
             switch(nearbyMapInfos[index].getPaint()) {
                 case EMPTY:
                     emptyCount++;
@@ -269,7 +261,7 @@ public class Splasher extends Bunny {
         }
 
         index = Util.getMapInfoIndex(deltaX + 1, deltaY - 1);
-        if(index != -1 && nearbyMapInfos[index] != null && !nearbyMapInfos[index].isWall()) {
+        if(index != -1 && nearbyMapInfos[index] != null) {
             switch(nearbyMapInfos[index].getPaint()) {
                 case EMPTY:
                     emptyCount++;
@@ -283,7 +275,7 @@ public class Splasher extends Bunny {
         }
 
         index = Util.getMapInfoIndex(deltaX + 1, deltaY);
-        if(index != -1 && nearbyMapInfos[index] != null && !nearbyMapInfos[index].isWall()) {
+        if(index != -1 && nearbyMapInfos[index] != null) {
             switch(nearbyMapInfos[index].getPaint()) {
                 case EMPTY:
                     emptyCount++;
@@ -297,7 +289,7 @@ public class Splasher extends Bunny {
         }
 
         index = Util.getMapInfoIndex(deltaX + 1, deltaY + 1);
-        if(index != -1 && nearbyMapInfos[index] != null && !nearbyMapInfos[index].isWall()) {
+        if(index != -1 && nearbyMapInfos[index] != null) {
             switch(nearbyMapInfos[index].getPaint()) {
                 case EMPTY:
                     emptyCount++;
@@ -311,7 +303,7 @@ public class Splasher extends Bunny {
         }
 
         index = Util.getMapInfoIndex(deltaX + 2, deltaY);
-        if(index != -1 && nearbyMapInfos[index] != null && !nearbyMapInfos[index].isWall()) {
+        if(index != -1 && nearbyMapInfos[index] != null) {
             switch(nearbyMapInfos[index].getPaint()) {
                 case EMPTY:
                     emptyCount++;

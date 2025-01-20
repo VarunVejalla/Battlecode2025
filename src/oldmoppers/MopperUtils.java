@@ -1,4 +1,4 @@
-package bettermoppers;
+package oldmoppers;
 
 public class MopperUtils {
     public static void updateHeuristicAdjacents(int[] heuristics, int index, int diff){

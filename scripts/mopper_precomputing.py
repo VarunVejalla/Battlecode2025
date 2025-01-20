@@ -21,6 +21,22 @@ for i, (x, y) in enumerate(zip(shift_dx, shift_dy)):
     output.write("\t\tbreak;\n")
 output.write("}")
 
+output = open("scripts/mopper_precomputing_boolean.txt", "w+")
+output.write("switch(index){\n")
+for i, (x, y) in enumerate(zip(shift_dx, shift_dy)):
+    output.write(f"\tcase {i}:\n")
+    for dx in range(-1, 2):
+        for dy in range(-1, 2):
+            if dx == 0 and dy == 0:
+                continue
+            newx, newy = x + dx, y + dy
+            if (newx, newy) not in mapping:
+                continue
+            newidx = mapping[(newx, newy)]
+            output.write(f"\t\theuristics[{newidx}] = true;\n")
+    output.write("\t\tbreak;\n")
+output.write("}")
+
 output = open("scripts/mopper_precomputing_dist9.txt", "w+")
 output.write("switch(index){\n")
 for i, (x, y) in enumerate(zip(shift_dx, shift_dy)):

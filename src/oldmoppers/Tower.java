@@ -1,4 +1,4 @@
-package bettermoppers;
+package oldmoppers;
 
 import battlecode.common.*;
 
@@ -43,6 +43,12 @@ public class Tower extends Robot {
         } else if (!isSaving()) {
             midGameBots();
         }
+
+//        if (rc.getRoundNum() < Constants.SPAWN_OPENING_BOTS_ROUNDS) {
+//            openingBots();
+//        } else if (rc.getMoney() > Constants.SPAWN_BOTS_MIDGAME_COST_THRESHOLD) {
+//            midGameBots();
+//        }
 
         // Read incoming messages
         Message[] messages = rc.readMessages(-1);
@@ -100,20 +106,23 @@ public class Tower extends Robot {
         tryBuilding(UnitType.MOPPER, nextLoc);
     }
 
+    public void openingBots() throws GameActionException {
+        Direction dir = directions[rng.nextInt(directions.length)];
+        MapLocation nextLoc = rc.getLocation().add(dir);
+
+        if (rc.canBuildRobot(UnitType.SOLDIER, nextLoc)) {
+            rc.buildRobot(UnitType.SOLDIER, nextLoc);
+        }
+    }
+
     public void midGameBots() throws GameActionException {
         Direction dir = directions[rng.nextInt(directions.length)];
         MapLocation nextLoc = rc.getLocation().add(dir);
 
-        boolean spawned = false;
-
-        if (getMetric() < Constants.TOWER_SPAWNING_THRESHOLD) {
-            spawned = tryBuilding(UnitType.SOLDIER, nextLoc);
+        if (getMetric() < 1.4) {
+            tryBuilding(UnitType.SOLDIER, nextLoc);
         } else {
-            spawned = tryBuilding(UnitType.SPLASHER, nextLoc);
-        }
-
-        if (!spawned && rc.getChips() >= UnitType.MOPPER.moneyCost && !Util.isPaintTower(rc.getType())) {
-            tryBuilding(UnitType.MOPPER, nextLoc);
+            tryBuilding(UnitType.SPLASHER, nextLoc);
         }
 
 //        int robotType = rng.nextInt(3); // yes splashers

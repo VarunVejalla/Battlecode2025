@@ -1,4 +1,4 @@
-package bettermoppers;
+package oldmoppers;
 
 import battlecode.common.*;
 
@@ -114,6 +114,7 @@ public abstract class Bunny extends Robot {
             nav.goToBug(destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
             // Go towards the center
         }
+
     }
 
     public int getBestSector() throws GameActionException {
@@ -123,11 +124,8 @@ public abstract class Bunny extends Robot {
         int sectorScore;
 
         for (int neighorSectorIndex : neighborSectorIndexes) {
-            if(neighorSectorIndex == comms.getSectorIndex(myLoc)){
-                continue;
-            }
             sectorScore = evaluateSector(comms.myWorld[neighorSectorIndex]);
-            if (sectorScore > bestScore) {
+            if(sectorScore > bestScore) {
                 bestScore = sectorScore;
                 bestSector = neighorSectorIndex;
             }
