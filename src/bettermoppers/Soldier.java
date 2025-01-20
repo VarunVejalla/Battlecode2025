@@ -54,7 +54,7 @@ public class Soldier extends Bunny {
         }
 
         // TODO: is this needed?
-        if (!tryingToReplenish && (rc.getNumberTowers() <= 3 && rc.getRoundNum() < 100)) {
+        if (!tryingToReplenish && (rc.getNumberTowers() <= 3 && rc.getRoundNum() < 100) && rc.getLocation().distanceSquaredTo(destination) <= Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION) {
             destination = Util.getRotationalReflection(spawnLoc);
         }
 
