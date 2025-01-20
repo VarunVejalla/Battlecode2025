@@ -96,7 +96,7 @@ public class PatternUtils {
 
             // TODO: this could be optimized to not look at squares that are not part of the grid
             // since we are not paintint outside the ruin in this function
-            byte[] ordering = ExcessConstants.orderFillingRuinCall(13*dx + dy + 84);
+            byte[] ordering = ExcessConstants.orderFillingInwardsRuinCall(13*dx + dy + 84);
 
             for (byte attackIndex : ordering) {
                 if (attackIndex == index) {
@@ -170,7 +170,7 @@ public class PatternUtils {
             byte dx = shift_dx[index];
             byte dy = shift_dy[index];
 
-            byte[] ordering = ExcessConstants.orderFillingRuinCall(13*dx + dy + 84);
+            byte[] ordering = ExcessConstants.orderFillingInwardsRuinCall(13*dx + dy + 84);
 
             for (byte attackIndex : ordering) {
                 if (attackIndex == index) {
@@ -244,7 +244,7 @@ public class PatternUtils {
         boolean isPaintReady = rc.isActionReady() && rc.getPaint() >= UnitType.SOLDIER.attackCost;
 
         if (isPaintReady) {
-            byte[] ordering = ExcessConstants.orderFillingResourceCall(13*dx + dy + 84);
+            byte[] ordering = ExcessConstants.orderFillingInwardsResourceCall(13*dx + dy + 84);
             MapLocation attackSquare;
             for (short attackIndex : ordering) {
                 if (soldier.nearbyMapInfos[attackIndex] == null || soldier.nearbyMapInfos[attackIndex].hasRuin() || soldier.nearbyMapInfos[attackIndex].isWall() || !rc.canAttack(soldier.nearbyMapInfos[attackIndex].getMapLocation())) {
@@ -316,7 +316,7 @@ public class PatternUtils {
 
 
         // Then just try default painting, but DONT OVERRIDE ANY EXISTING PAINT.
-        byte[] ordering = ExcessConstants.orderFillingResourceCall(13*dx + dy + 84);
+        byte[] ordering = ExcessConstants.orderFillingInwardsResourceCall(13*dx + dy + 84);
         MapLocation attackSquare;
         for (short attackIndex : ordering) {
             if (soldier.nearbyMapInfos[attackIndex] == null || soldier.nearbyMapInfos[attackIndex].hasRuin() || soldier.nearbyMapInfos[attackIndex].isWall() || !rc.canAttack(soldier.nearbyMapInfos[attackIndex].getMapLocation())) {

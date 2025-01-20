@@ -37,16 +37,12 @@ public class Tower extends Robot {
         if (rc.getRoundNum() < 50 && rc.getNumberTowers() <= 3) {
             if (numTotalSpawned < 2) {
                 soldierSpawning();
+            } else if(numTotalSpawned < 3){
+                mopperSpawning();
             }
         } else if (!isSaving()) {
             midGameBots();
         }
-
-//        if (rc.getRoundNum() < Constants.SPAWN_OPENING_BOTS_ROUNDS) {
-//            openingBots();
-//        } else if (rc.getMoney() > Constants.SPAWN_BOTS_MIDGAME_COST_THRESHOLD) {
-//            midGameBots();
-//        }
 
         // Read incoming messages
         Message[] messages = rc.readMessages(-1);
@@ -98,13 +94,10 @@ public class Tower extends Robot {
         tryBuilding(UnitType.SOLDIER, nextLoc);
     }
 
-    public void openingBots() throws GameActionException {
+    public void mopperSpawning() throws GameActionException {
         Direction dir = directions[rng.nextInt(directions.length)];
         MapLocation nextLoc = rc.getLocation().add(dir);
-
-        if (rc.canBuildRobot(UnitType.SOLDIER, nextLoc)) {
-            rc.buildRobot(UnitType.SOLDIER, nextLoc);
-        }
+        tryBuilding(UnitType.MOPPER, nextLoc);
     }
 
     public void midGameBots() throws GameActionException {

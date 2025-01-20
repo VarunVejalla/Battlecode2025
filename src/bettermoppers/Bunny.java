@@ -105,19 +105,7 @@ public abstract class Bunny extends Robot {
      * Evalute the sectors that are neighboring your current sector and move towards the best one.
      */
     public void macroMove(int dist_to_best_sector) throws GameActionException {
-        int bestScore = 0;
-        int bestSector = -1;
-        int[] neighborSectorIndexes = comms.getSectorAndNeighbors(myLoc, 1);
-        int sectorScore;
-
-        for (int neighorSectorIndex : neighborSectorIndexes) {
-            sectorScore = evaluateSector(comms.myWorld[neighorSectorIndex]);
-            if(sectorScore > bestScore) {
-                bestScore = sectorScore;
-                bestSector = neighorSectorIndex;
-            }
-        }
-
+        int bestSector = getBestSector();
         if(bestSector != -1) {
             // Go to the center of that sector.
             nav.goToBug(comms.getSectorCenter(bestSector), dist_to_best_sector);
@@ -126,8 +114,27 @@ public abstract class Bunny extends Robot {
             nav.goToBug(destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
             // Go towards the center
         }
-
     }
+
+    public int getBestSector() throws GameActionException {
+        int bestScore = 0;
+        int bestSector = -1;
+        int[] neighborSectorIndexes = comms.getSectorAndNeighbors(myLoc, 1);
+        int sectorScore;
+
+        for (int neighorSectorIndex : neighborSectorIndexes) {
+            if(neighorSectorIndex == comms.getSectorIndex(myLoc)){
+                continue;
+            }
+            sectorScore = evaluateSector(comms.myWorld[neighorSectorIndex]);
+            if (sectorScore > bestScore) {
+                bestScore = sectorScore;
+                bestSector = neighorSectorIndex;
+            }
+        }
+        return bestSector;
+    }
+
 
     /**
      * Evalute the encoded information about each sector depending on the specific Bunny implementation.
