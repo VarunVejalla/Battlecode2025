@@ -37,6 +37,8 @@ public class Tower extends Robot {
         if (rc.getRoundNum() < 50 && rc.getNumberTowers() <= 3) {
             if (numTotalSpawned < 2) {
                 soldierSpawning();
+            } else if(numTotalSpawned < 3){
+                mopperSpawning();
             }
         } else if (!isSaving()) {
             midGameBots();
@@ -96,6 +98,12 @@ public class Tower extends Robot {
         Direction dir = directions[rng.nextInt(directions.length)];
         MapLocation nextLoc = rc.getLocation().add(dir);
         tryBuilding(UnitType.SOLDIER, nextLoc);
+    }
+
+    public void mopperSpawning() throws GameActionException {
+        Direction dir = directions[rng.nextInt(directions.length)];
+        MapLocation nextLoc = rc.getLocation().add(dir);
+        tryBuilding(UnitType.MOPPER, nextLoc);
     }
 
     public void openingBots() throws GameActionException {
