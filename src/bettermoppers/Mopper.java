@@ -133,111 +133,16 @@ public class Mopper extends Bunny {
                 toTarget.rotateLeft().rotateLeft(),
                 toTarget.rotateRight().rotateRight(),
         };
-
-        Direction bestDir = null;
-        int leastHeuristic = Integer.MAX_VALUE;
-        int leastNumMoves = Integer.MAX_VALUE;
-
-        for (Direction dir : moveOptions) {
-            MapLocation newLoc = myLoc.add(dir);
-
-            if (!rc.canMove(dir) || !rc.canSenseLocation(newLoc) || !rc.sensePassability(newLoc)) {
-                continue;
-            }
-
-            int numMoves = Util.minMovesToReach(newLoc, target);
-            int distanceSquared = newLoc.distanceSquaredTo(target);
-            int distance = (int)Math.sqrt(distanceSquared);
-            MapInfo info = rc.senseMapInfo(newLoc);
-
-            int paintHeuristic = 0;
-            if(info.getPaint() == PaintType.EMPTY){
-                paintHeuristic = 2;
-            } else if(info.getPaint().isEnemy()){
-                paintHeuristic = 4;
-            }
-
-            int numAllies = rc.senseNearbyRobots(newLoc, 2, myTeam).length;
-            int allyHeuristic = numAllies * 1;
-
-            int enemyTowerHeuristic = 0;
-            for(RobotInfo enemyInfo : enemyTowerInfos){
-                if(enemyInfo.getLocation().distanceSquaredTo(newLoc) <= enemyInfo.getType().actionRadiusSquared){
-                    enemyTowerHeuristic += 100;
-                }
-            }
-
-            int heuristic = numMoves + distance + paintHeuristic + allyHeuristic;
-            Util.log("Direction: " + dir + ", heuristic: " + heuristic + ", numMoves: " + numMoves + ", distance: " + distance + ", paintHeuristic: " + paintHeuristic + ", alllyHeuristic: " + allyHeuristic + ", enemyTowerHeuristic: " + enemyTowerHeuristic));
-
-            if (numMoves < leastNumMoves || (numMoves == leastNumMoves && heuristic < leastHeuristic)) {
-                leastNumMoves = numMoves;
-                leastHeuristic = heuristic;
-                bestDir = dir;
-            }
-        }
-
-        Util.log("Best dir: " + bestDir);
-        Util.addToIndicatorString("BD" + bestDir);
-        if(bestDir != null && bestDir != Direction.CENTER){
-            Util.move(bestDir);
-        }
+        generalMopperNav(moveOptions, target, true, 0, 2, 4, 1, 100);
     }
 
 
     public void mopperSafeNav() throws GameActionException {
         Util.addToIndicatorString("SMN");
-
-        Direction bestDir = null;
-        int leastHeuristic = Integer.MAX_VALUE;
-
-        for (Direction dir : Direction.allDirections()) {
-            MapLocation newLoc = myLoc.add(dir);
-
-            if (dir != Direction.CENTER && !rc.canMove(dir)) {
-                continue;
-            }
-
-            if (!rc.canSenseLocation(newLoc) || !rc.sensePassability(newLoc)) {
-                continue;
-            }
-
-            MapInfo info = rc.senseMapInfo(newLoc);
-
-            int paintHeuristic = 0;
-            if(info.getPaint() == PaintType.EMPTY){
-                paintHeuristic = 10;
-            } else if(info.getPaint().isEnemy()){
-                paintHeuristic = 20;
-            }
-
-            int numAllies = rc.senseNearbyRobots(newLoc, 2, myTeam).length;
-            int allyHeuristic = numAllies * 5;
-
-            int enemyTowerHeuristic = 0;
-            for(RobotInfo enemyInfo : enemyTowerInfos){
-                if(enemyInfo.getLocation().distanceSquaredTo(newLoc) <= enemyInfo.getType().actionRadiusSquared){
-                    enemyTowerHeuristic += 100;
-                }
-            }
-
-            int heuristic = paintHeuristic + allyHeuristic + enemyTowerHeuristic;
-            Util.log("Direction: " + dir + ", heuristic: " + heuristic + ", paintHeuristic: " + paintHeuristic + ", alllyHeuristic: " + allyHeuristic + ", enemyTowerHeuristic: " + enemyTowerHeuristic);
-
-            if (heuristic < leastHeuristic) {
-                leastHeuristic = heuristic;
-                bestDir = dir;
-            }
-        }
-
-        Util.log("Best dir: " + bestDir);
-        Util.addToIndicatorString("BD" + bestDir);
-        if(bestDir != null && bestDir != Direction.CENTER){
-            Util.move(bestDir);
-        }
+        generalMopperNav(Direction.allDirections(), null, false, 0, 10, 20, 5, 100);
     }
 
-    public void generalMopperNav(Direction[] moveOptions, MapLocation target, boolean consider_distance, int allyPaintHeuristic, int emptyPaintHeuristic, int enemyPaintHeuristic, int nearbyAllyHeuristic, int nearbyEnemyTowerHeuristic) throws GameActionException {
+    public void generalMopperNav(Direction[] moveOptions, MapLocation target, boolean force_lower_dist, int allyPaintHeuristic, int emptyPaintHeuristic, int enemyPaintHeuristic, int nearbyAllyHeuristic, int nearbyEnemyTowerHeuristic) throws GameActionException {
         Direction bestDir = null;
         int leastNumMoves = Integer.MAX_VALUE;
         int leastHeuristic = Integer.MAX_VALUE;
@@ -255,7 +160,7 @@ public class Mopper extends Bunny {
                 continue;
             }
 
-            if(consider_distance){
+            if(target != null){
                 numMoves = Util.minMovesToReach(newLoc, target);
                 int distanceSquared = newLoc.distanceSquaredTo(target);
                 distance = (int)Math.sqrt(distanceSquared);
@@ -283,10 +188,17 @@ public class Mopper extends Bunny {
             int heuristic = numMoves + distance + paintHeuristic + allyHeuristic + enemyTowerHeuristic;
             Util.log("Direction: " + dir + ", heuristic: " + heuristic + ", numMoves: " + numMoves + ", distance: " + distance + ", paintHeuristic: " + paintHeuristic + ", alllyHeuristic: " + allyHeuristic + ", enemyTowerHeuristic: " + enemyTowerHeuristic);
 
-            if (numMoves < leastNumMoves || (numMoves == leastNumMoves && heuristic < leastHeuristic)) {
-                leastNumMoves = numMoves;
-                leastHeuristic = heuristic;
-                bestDir = dir;
+            if(force_lower_dist){
+                if (numMoves < leastNumMoves || (numMoves == leastNumMoves && heuristic < leastHeuristic)) {
+                    leastNumMoves = numMoves;
+                    leastHeuristic = heuristic;
+                    bestDir = dir;
+                }
+            } else {
+                if (heuristic < leastHeuristic) {
+                    leastHeuristic = heuristic;
+                    bestDir = dir;
+                }
             }
         }
 
@@ -309,57 +221,7 @@ public class Mopper extends Bunny {
                 toTarget.rotateRight().rotateRight(),
                 Direction.CENTER
         };
-
-        Direction bestDir = null;
-        int leastHeuristic = Integer.MAX_VALUE;
-
-        for (Direction dir : moveOptions) {
-            MapLocation newLoc = myLoc.add(dir);
-
-            if (dir != Direction.CENTER && !rc.canMove(dir)) {
-                continue;
-            }
-
-            if (!rc.canSenseLocation(newLoc) || !rc.sensePassability(newLoc)) {
-                continue;
-            }
-
-            int numMoves = Util.minMovesToReach(newLoc, target);
-            int distanceSquared = newLoc.distanceSquaredTo(target);
-            int distance = (int)Math.sqrt(distanceSquared);
-            MapInfo info = rc.senseMapInfo(newLoc);
-
-            int paintHeuristic = -5;
-            if(info.getPaint() == PaintType.EMPTY){
-                paintHeuristic = 10;
-            } else if(info.getPaint().isEnemy()){
-                paintHeuristic = 20;
-            }
-
-            int numAllies = rc.senseNearbyRobots(newLoc, 2, myTeam).length;
-            int allyHeuristic = numAllies * 5;
-
-            int enemyTowerHeuristic = 0;
-            for(RobotInfo enemyInfo : enemyTowerInfos){
-                if(enemyInfo.getLocation().distanceSquaredTo(newLoc) <= enemyInfo.getType().actionRadiusSquared){
-                    enemyTowerHeuristic += 100;
-                }
-            }
-
-            int heuristic = numMoves + distance + paintHeuristic + allyHeuristic + enemyTowerHeuristic;
-            Util.log("Direction: " + dir + ", heuristic: " + heuristic + ", numMoves: " + numMoves + ", distance: " + distance + ", paintHeuristic: " + paintHeuristic + ", alllyHeuristic: " + allyHeuristic + ", enemyTowerHeuristic: " + enemyTowerHeuristic);
-
-            if (heuristic < leastHeuristic) {
-                leastHeuristic = heuristic;
-                bestDir = dir;
-            }
-        }
-
-        Util.log("Best dir: " + bestDir);
-        Util.addToIndicatorString("BD" + bestDir);
-        if(bestDir != null && bestDir != Direction.CENTER){
-            Util.move(bestDir);
-        }
+        generalMopperNav(moveOptions, target, false, -5, 10, 20, 0, 100);
     }
 
     public MapLocation calcHeuristics() throws GameActionException {
@@ -414,12 +276,6 @@ public class Mopper extends Bunny {
             }
         }
 
-        for(int index = 0; index < 69; index++){
-            if(adjacentToEnemyPaint[index]){
-                heuristics[index] += 5;
-            }
-        }
-
         RobotInfo[] infos = rc.senseNearbyRobots(GameConstants.VISION_RADIUS_SQUARED);
         for(RobotInfo info : infos){
             Team infoTeam = info.getTeam();
@@ -443,6 +299,9 @@ public class Mopper extends Bunny {
         for(int index = 0; index < heuristics.length; index++){
             if(nearbyMapInfos[index] == null){
                 continue;
+            }
+            if(adjacentToEnemyPaint[index]){
+                heuristics[index] += 5;
             }
             if(heuristics[index] > bestHeuristic){
                 bestHeuristic = heuristics[index];
