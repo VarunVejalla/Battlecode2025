@@ -1,4 +1,4 @@
-package bettermoppers;
+package oldmoppers;
 
 import battlecode.common.*;
 
@@ -338,6 +338,7 @@ public class Util {
 
     public static void log(String str) {
         if(Constants.MUTE || (rc.getID() != Constants.DEBUG_BOT_ID)){
+//        if(Constants.MUTE || (rc.getType() != UnitType.MOPPER)){
 //        if(Constants.MUTE){
 //        if(true){
             return;

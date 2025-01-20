@@ -1,4 +1,4 @@
-package bettermoppers;
+package oldmoppers;
 
 import battlecode.common.*;
 
@@ -20,7 +20,6 @@ public class Soldier extends Bunny {
     Responsibility currRuinResponsibility = Responsibility.UNASSIGNED;
     int[] roundPaintedRuinsBySector = new int[144];
     MapLocation rotationalDestination;
-    boolean alreadyVisited = false;
 
 
     public Soldier(RobotController rc) throws GameActionException {
@@ -29,7 +28,6 @@ public class Soldier extends Bunny {
         PatternUtils.soldier = this;
         PatternUtils.rc = rc;
         double metric = getMetric();
-        rotationalDestination = Util.getRotationalReflection(spawnLoc);
 
         if (metric < Constants.RUIN_SEARCHING_THRESHOLD && rc.getRoundNum() < 100) {
             destination = Util.getRotationalReflection(spawnLoc);
@@ -40,37 +38,23 @@ public class Soldier extends Bunny {
     public void run() throws GameActionException {
         super.run(); // Call the shared logic for all bunnies
 
-        if (myLoc.isWithinDistanceSquared(rotationalDestination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION)) {
-            alreadyVisited = true;
-        }
-
-
         double metric = getMetric();
         if (metric < Constants.RUIN_SEARCHING_THRESHOLD) {
-
-            if ((nearestAlliedPaintTowerLoc != null || nearestAlliedTowerLoc != null) && (rc.getPaint() < 5)) {
-                if(nearestAlliedPaintTowerLoc != null){
-                    destination = nearestAlliedPaintTowerLoc;
-                } else {
-                    destination = nearestAlliedTowerLoc;
-                }
-                tryingToReplenish = true;
-                Util.addToIndicatorString("REP");
-            } else {
-
-                // we are kamikazes
-                if (rc.getLocation().distanceSquaredTo(destination) <= Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION) {
-                    destination = Util.getRandomMapLocation();
-                }
-                tryReplenish();
-                tryingToReplenish = false;
+            // we are kamikazes
+            if (rc.getLocation().distanceSquaredTo(destination) <= Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION) {
+                destination = Util.getRandomMapLocation();
             }
+            if (checkIfIShouldStartReplenishing()) {
+                // if we're already nearby, might as well
+                tryReplenish();
+            }
+            tryingToReplenish = false;
         } else {
             updateDestinationIfNeeded();
         }
 
         // TODO: is this needed?
-        if (!tryingToReplenish && !alreadyVisited && (rc.getNumberTowers() <= 3 && rc.getRoundNum() < 100)) {
+        if (!tryingToReplenish && (rc.getNumberTowers() <= 3 && rc.getRoundNum() < 100) && rc.getLocation().distanceSquaredTo(destination) <= Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION) {
             destination = Util.getRotationalReflection(spawnLoc);
         }
 
@@ -95,8 +79,6 @@ public class Soldier extends Bunny {
                 // 3. If not attacking, run pattern painting logic.
                 if (metric < Constants.RUIN_SEARCHING_THRESHOLD) {
                     buildPatternHardExplore();
-                } else if (metric < Constants.PATTERN_SEARCHING_THRESHOLD) {
-                    buildPatternMediumExplore();
                 } else {
                     buildPattern();
                 }
@@ -435,7 +417,7 @@ public class Soldier extends Bunny {
         }
     }
 
-    public void buildResourceCenter(boolean paintEmpty) throws GameActionException {
+    public void buildResourceCenter() throws GameActionException {
         if(!rc.canSenseLocation(currResourceCenterLoc)){
             nav.goToBug(currResourceCenterLoc, 0);
             return;
@@ -443,7 +425,7 @@ public class Soldier extends Bunny {
         MapLocation myLoc = rc.getLocation();
 
         boolean[][] resourcePattern = rc.getResourcePattern();
-        PatternUtils.workOnResourcePattern(currResourceCenterLoc.x - myLoc.x, currResourceCenterLoc.y - myLoc.y, resourcePattern, paintEmpty);
+        PatternUtils.workOnResourcePattern(currResourceCenterLoc.x - myLoc.x, currResourceCenterLoc.y - myLoc.y, resourcePattern);
 
         nav.goToFuzzy(currResourceCenterLoc, 0);
         if (rc.canCompleteResourcePattern(currResourceCenterLoc)) {
@@ -499,83 +481,6 @@ public class Soldier extends Bunny {
         if(currRuinLoc != null){
             buildRuin(false);
             Util.logBytecode("Built ruin");
-        } else {
-            Util.log("Running default!");
-            PatternUtils.runDefaultBehavior(false);
-            Util.logBytecode("Default behavior");
-        }
-    }
-
-    public void buildPatternMediumExplore() throws GameActionException {
-        // If we're already building a ruin, check if it's been completed.
-        Util.log("Beginning of method: " + currRuinLoc);
-        Util.addToIndicatorString("R " + currRuinLoc);
-        Util.addToIndicatorString("RC " + currResourceCenterLoc);
-        Util.addToIndicatorString("PRC " + potentialResourceCenterLoc);
-        if(currRuinResponsibility == Responsibility.SELF_RESPONSIBLE){
-            Util.addToIndicatorString("RP");
-        }
-        if(currResourceResponsibility == Responsibility.SELF_RESPONSIBLE){
-            Util.addToIndicatorString("CP");
-        }
-        if(potentialResourceCenterLoc != null){
-            Util.addToIndicatorString(potentialRCCornersChecked[0] + "," + potentialRCCornersChecked[1] + "," + potentialRCCornersChecked[2] + "," + potentialRCCornersChecked[3]);
-        }
-
-        // Check if ruin completed or is unable to be completed.
-        if(currRuinLoc != null){
-            if(checkRuinStillValid()){
-                return;
-            }
-            Util.logBytecode("Checked ruin valid");
-        }
-
-        if(currResourceCenterLoc != null){
-            if(checkResourceCenterStillValid()){
-                return;
-            }
-            Util.logBytecode("Checked resource valid");
-        }
-
-        if(potentialResourceCenterLoc != null){
-            if(checkPotentialResourceCenterLocValid()){
-                return;
-            }
-            Util.logBytecode("Checked potential valid");
-        }
-
-        // If not building ruin, or resource pattern, or validating resource center location, figure out what to do next.
-        if(currRuinLoc == null && currResourceCenterLoc == null && potentialResourceCenterLoc == null){
-            // Find a ruin to build.
-            checkForNewRuinToBuild();
-
-            Util.logBytecode("Check new ruin to build");
-
-            // If none found, find a resource pattern to build.
-            if(currRuinLoc == null && shouldSearchForResourceCenter()) {
-                // 2650 bytecode.
-                int resourceCenterIndex = PatternUtils.getPotentialResourcePatternCenterIndex(nearbyMapInfos);
-                if (resourceCenterIndex != -1) {
-                    potentialResourceCenterLoc = nearbyMapInfos[resourceCenterIndex].getMapLocation();
-                    Util.addToIndicatorString("NRC " + currResourceCenterLoc);
-                }
-                Util.logBytecode("Got optential resource pattern");
-            }
-        }
-
-        // If we're already building a ruin, go with that.
-        if(currRuinLoc != null){
-            buildRuin(false);
-            Util.logBytecode("Built ruin");
-        }
-        // If working on a resource center, continue doing so.
-        else if(currResourceCenterLoc != null){
-            buildResourceCenter(false);
-            Util.logBytecode("Worked on RC");
-        }
-        else if(potentialResourceCenterLoc != null){
-            PatternUtils.workOnPotentialResourceCenter(false);
-            Util.logBytecode("Worked on potential");
         } else {
             Util.log("Running default!");
             PatternUtils.runDefaultBehavior(false);
@@ -647,11 +552,11 @@ public class Soldier extends Bunny {
         }
         // If working on a resource center, continue doing so.
         else if(currResourceCenterLoc != null){
-            buildResourceCenter(true);
+            buildResourceCenter();
             Util.logBytecode("Worked on RC");
         }
         else if(potentialResourceCenterLoc != null){
-            PatternUtils.workOnPotentialResourceCenter(true);
+            PatternUtils.workOnPotentialResourceCenter();
             Util.logBytecode("Worked on potential");
         } else {
             Util.log("Running default!");

@@ -1,4 +1,4 @@
-package bettermoppers;
+package oldmoppers;
 
 import battlecode.common.*;
 
@@ -87,82 +87,6 @@ public class PatternUtils {
         }
     }
 
-    public static void workOnRuinWithoutPaintingOutside(int index, boolean[][] paintPattern) throws GameActionException {
-        boolean isPaintReady = rc.isActionReady() && rc.getPaint() >= UnitType.SOLDIER.attackCost;
-
-        if (isPaintReady) {
-            byte dx = shift_dx[index];
-            byte dy = shift_dy[index];
-
-            // TODO: this could be optimized to not look at squares that are not part of the grid
-            // since we are not paintint outside the ruin in this function
-            byte[] ordering = ExcessConstants.orderFillingRuinCall(13*dx + dy + 84);
-
-            for (byte attackIndex : ordering) {
-                if (attackIndex == index) {
-                    continue;
-                }
-
-                if (soldier.nearbyMapInfos[attackIndex] == null || soldier.nearbyMapInfos[attackIndex].isWall()) {
-                    continue;
-                }
-
-                PaintType currentPaint = soldier.nearbyMapInfos[attackIndex].getPaint();
-                if (currentPaint == PaintType.EMPTY) {
-                    int offsetX = shift_dx[attackIndex] - dx;
-                    int offsetY = shift_dy[attackIndex] - dy;
-                    if (offsetX*offsetX + offsetY*offsetY <= 8) {
-                        rc.attack(soldier.nearbyMapInfos[attackIndex].getMapLocation(), paintPattern[offsetX+2][offsetY+2]);
-                        break;
-                    }
-                } else if (currentPaint.isEnemy()) {
-                    continue;
-                } else {
-                    int offsetX = shift_dx[attackIndex] - dx;
-                    int offsetY = shift_dy[attackIndex] - dy;
-
-                    if (offsetX*offsetX + offsetY*offsetY <= 8 && paintPattern[offsetX+2][offsetY+2] != currentPaint.isSecondary()) {
-                        rc.attack(soldier.nearbyMapInfos[attackIndex].getMapLocation(), paintPattern[offsetX+2][offsetY+2]);
-                        break;
-                    }
-                }
-            }
-        }
-
-        if (rc.isMovementReady()) {
-            int r2 = soldier.myLoc.distanceSquaredTo(soldier.nearbyMapInfos[index].getMapLocation());
-
-            if (r2 == 1) {
-                // try going counter-clockwise around those r^2 = 1 squares
-                Direction direction = soldier.myLoc.directionTo(soldier.nearbyMapInfos[index].getMapLocation());
-
-                if (rc.canMove(direction.rotateRight())) {
-                    Util.move(direction.rotateRight());
-                }
-
-            } else if (r2 == 2) {
-                // diagonally adjacent to center
-                Direction direction = soldier.myLoc.directionTo(soldier.nearbyMapInfos[index].getMapLocation());
-                if (rc.canMove(direction.rotateRight())) {
-                    Util.move(direction.rotateRight());
-                } else if (rc.canMove(direction.rotateLeft())) {
-                    Util.move(direction.rotateLeft());
-                }
-            } else if (r2 == 4) {
-                Direction direction = soldier.myLoc.directionTo(soldier.nearbyMapInfos[index].getMapLocation());
-                if (rc.canMove(direction)) {
-                    Util.move(direction);
-                } else if (rc.canMove(direction.rotateRight())) {
-                    Util.move(direction.rotateRight());
-                } else if (rc.canMove(direction.rotateLeft())) {
-                    Util.move(direction.rotateLeft());
-                }
-            } else {
-                soldier.nav.goToFuzzy(soldier.nearbyMapInfos[index].getMapLocation(), 0);
-            }
-        }
-    }
-
     public static void workOnRuin(int index, boolean[][] paintPattern, boolean paintEmpty) throws GameActionException {
         boolean isPaintReady = rc.isActionReady() && rc.getPaint() >= UnitType.SOLDIER.attackCost;
 
@@ -240,7 +164,7 @@ public class PatternUtils {
         }
     }
 
-    public static void workOnResourcePattern(int dx, int dy, boolean[][] paintPattern, boolean paintOutside) throws GameActionException {
+    public static void workOnResourcePattern(int dx, int dy, boolean[][] paintPattern) throws GameActionException {
         boolean isPaintReady = rc.isActionReady() && rc.getPaint() >= UnitType.SOLDIER.attackCost;
 
         if (isPaintReady) {
@@ -267,7 +191,7 @@ public class PatternUtils {
                         }
                         Util.addToIndicatorString("PNT:" + attackSquare);
                         rc.attack(soldier.nearbyMapInfos[attackIndex].getMapLocation(), paintPattern[offsetX + 2][offsetY + 2]);
-                    } else if (paintOutside) {
+                    } else {
                         Util.addToIndicatorString("PNTR:" + attackSquare);
                         rc.attack(soldier.nearbyMapInfos[attackIndex].getMapLocation(), getDefaultColor(offsetX+dx, offsetY+dy));
                     }
@@ -277,7 +201,7 @@ public class PatternUtils {
         }
     }
 
-    public static void workOnPotentialResourceCenter(boolean paintOutside) throws GameActionException {
+    public static void workOnPotentialResourceCenter() throws GameActionException {
         boolean isPaintReady = rc.isActionReady() && rc.getPaint() >= UnitType.SOLDIER.attackCost;
         if(!isPaintReady){
             return;
@@ -333,13 +257,12 @@ public class PatternUtils {
 
             // this check is needed for when we're near the edges
             if (0 <= attackSquare.x && 0 <= attackSquare.y && attackSquare.x < rc.getMapWidth() && attackSquare.y < rc.getMapHeight()) {
-                if (offsetX * offsetX + offsetY * offsetY <= 8) {
-                    rc.attack(soldier.nearbyMapInfos[attackIndex].getMapLocation(), paintPattern[offsetX + 2][offsetY + 2]);
-                    Util.addToIndicatorString("PRNT:" + attackSquare);
-                    return;
-                } else if (paintOutside){
-                    rc.attack(soldier.nearbyMapInfos[attackIndex].getMapLocation(), getDefaultColor(soldier.nearbyMapInfos[attackIndex].getMapLocation()));
+                if (offsetX * offsetX + offsetY * offsetY > 8) {
+                    continue;
                 }
+                rc.attack(soldier.nearbyMapInfos[attackIndex].getMapLocation(), paintPattern[offsetX + 2][offsetY + 2]);
+                Util.addToIndicatorString("PRNT:" + attackSquare);
+                return;
             }
         }
     }
@@ -379,26 +302,14 @@ public class PatternUtils {
         return false;
     }
 
-    public static boolean isDefenseAllowed(MapLocation centerLoc) throws GameActionException {
-        return false;//soldier.mapWidth * 0.375 <= centerLoc.x && centerLoc.x <= soldier.mapWidth*0.625 && soldier.mapHeight * 0.375 <= centerLoc.y && centerLoc.y <= soldier.mapHeight * 0.625;
-    }
-
-    public static UnitType decideRuinUnitType(MapLocation ruinLoc) throws GameActionException {
+    public static UnitType decideRuinUnitType(MapLocation ruinLoc) {
         // TODO: use map dimensions, number of chips(?), round number, etc (but only globally available information?)
         // ruinLoc isn't globally available, but can we still use it?
-
-
         if (rc.getNumberTowers() < 6) {
-            if (isDefenseAllowed(ruinLoc)) {
-                return UnitType.LEVEL_ONE_DEFENSE_TOWER;
-            }
             return UnitType.LEVEL_ONE_MONEY_TOWER;
         } else if (rc.getNumberTowers()%2 == 0) {
             return UnitType.LEVEL_ONE_PAINT_TOWER;
         } else {
-            if (isDefenseAllowed(ruinLoc)) {
-                return UnitType.LEVEL_ONE_DEFENSE_TOWER;
-            }
             return UnitType.LEVEL_ONE_MONEY_TOWER;
         }
     }

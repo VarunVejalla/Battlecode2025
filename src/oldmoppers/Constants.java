@@ -1,4 +1,4 @@
-package bettermoppers;
+package oldmoppers;
 
 public class Constants {
 
@@ -15,8 +15,6 @@ public class Constants {
     public static final int ROUNDS_TO_IGNORE_PAINTED_RUINS = 40;
     public static final boolean BLOCK_OFF_ENEMY_RUINS = false;
 
-    public static final double TOWER_SPAWNING_THRESHOLD = 1.4;
-    public static final double RUIN_SEARCHING_THRESHOLD = 2.0;
-    public static final double PATTERN_SEARCHING_THRESHOLD = 2.0;
-    public static final int DEBUG_BOT_ID = 10152;
+    public static final double RUIN_SEARCHING_THRESHOLD = 2;
+    public static final int DEBUG_BOT_ID = 13778;
 }

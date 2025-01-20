@@ -1,4 +1,4 @@
-package bettermoppers;
+package oldmoppers;
 
 import battlecode.common.*;
 
@@ -105,6 +105,19 @@ public abstract class Bunny extends Robot {
      * Evalute the sectors that are neighboring your current sector and move towards the best one.
      */
     public void macroMove(int dist_to_best_sector) throws GameActionException {
+        int bestSector = getBestSector();
+        if(bestSector != -1) {
+            // Go to the center of that sector.
+            nav.goToBug(comms.getSectorCenter(bestSector), dist_to_best_sector);
+        } else {
+            // Goes to random destination
+            nav.goToBug(destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
+            // Go towards the center
+        }
+
+    }
+
+    public int getBestSector() throws GameActionException {
         int bestScore = 0;
         int bestSector = -1;
         int[] neighborSectorIndexes = comms.getSectorAndNeighbors(myLoc, 1);
@@ -117,17 +130,9 @@ public abstract class Bunny extends Robot {
                 bestSector = neighorSectorIndex;
             }
         }
-
-        if(bestSector != -1) {
-            // Go to the center of that sector.
-            nav.goToBug(comms.getSectorCenter(bestSector), dist_to_best_sector);
-        } else {
-            // Goes to random destination
-            nav.goToBug(destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
-            // Go towards the center
-        }
-
+        return bestSector;
     }
+
 
     /**
      * Evalute the encoded information about each sector depending on the specific Bunny implementation.
