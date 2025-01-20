@@ -2,11 +2,10 @@ package bettermoppers;
 
 import battlecode.common.*;
 
-import java.util.regex.Pattern;
-
 public class Mopper extends Bunny {
-    RobotInfo[] actionableOpponents;
-    MapInfo[] actionableTiles;
+    boolean enemyPaintNearby = false;
+    boolean enemyNearby = false;
+    RobotInfo[] enemyTowerInfos;
     public Mopper(RobotController rc) throws GameActionException {
         super(rc);
     }
@@ -16,21 +15,40 @@ public class Mopper extends Bunny {
 
         updateDestinationIfNeeded();
 
-        actionableOpponents = rc.senseNearbyRobots(2, rc.getTeam().opponent());
-        actionableTiles = rc.senseNearbyMapInfos(2);
+        enemyNearby = false;
+        enemyPaintNearby = false;
+
+        RobotInfo[] enemyInfos = rc.senseNearbyRobots(GameConstants.VISION_RADIUS_SQUARED, oppTeam);
+        int numEnemyTowerInfos = 0;
+        for(int i = 0; i < enemyInfos.length; i++){
+            if(enemyInfos[i].getType().isTowerType()){
+                enemyInfos[numEnemyTowerInfos] = enemyInfos[i];
+                numEnemyTowerInfos++;
+            }
+        }
+        enemyTowerInfos = new RobotInfo[numEnemyTowerInfos];
+        for(int i = 0; i < numEnemyTowerInfos; i++){
+            enemyTowerInfos[i] = enemyInfos[i];
+        }
+
+        Util.logBytecode("Before calcing heuristics");
+        MapLocation heuristicLocation = calcHeuristics();
+        Util.logBytecode("After calcing heuristics");
 
         Util.log("Location at beginning of round: " + rc.getLocation());
-        Util.logBytecode("Before calcing heuristics");
-        calcHeuristics();
-        Util.logBytecode("After calcing heuristics");
-        if (rc.isActionReady()) {
-            Util.addToIndicatorString("DBA");
-            doBestAction();
-            Util.log("Location after best action: " + rc.getLocation());
-        }
-        if (canMove()) {
+        if(enemyNearby || enemyPaintNearby) {
+            if (rc.isActionReady()) {
+                forceMopperMove(heuristicLocation);
+                Util.log("Location after force nav: " + rc.getLocation());
+                Util.addToIndicatorString("DBA");
+                doBestAction();
+            } else {
+                mopperSafeNav();
+                Util.log("Location after safe nav: " + rc.getLocation());
+            }
+        } else {
             moveLogic();
-            Util.log("Location after movement: " + rc.getLocation());
+            Util.log("Location after move logic: " + rc.getLocation());
         }
 
         sharedEndFunction();
@@ -96,6 +114,7 @@ public class Mopper extends Bunny {
     }
 
     public MapLocation getTileToMop() throws GameActionException {
+        MapInfo[] actionableTiles = rc.senseNearbyMapInfos(2);
         for (MapInfo tile : actionableTiles) {
             if (tile.getPaint().isEnemy() && rc.canAttack(tile.getMapLocation())) {
                 return tile.getMapLocation();
@@ -103,6 +122,181 @@ public class Mopper extends Bunny {
         }
         return null;
     }
+
+    public void forceMopperMove(MapLocation target) throws GameActionException {
+        Util.addToIndicatorString("FMN" + target);
+        Direction toTarget = myLoc.directionTo(target);
+        Direction[] moveOptions = {
+                toTarget,
+                toTarget.rotateLeft(),
+                toTarget.rotateRight(),
+                toTarget.rotateLeft().rotateLeft(),
+                toTarget.rotateRight().rotateRight(),
+        };
+
+        Direction bestDir = null;
+        int leastHeuristic = Integer.MAX_VALUE;
+        int leastNumMoves = Integer.MAX_VALUE;
+
+        for (Direction dir : moveOptions) {
+            MapLocation newLoc = myLoc.add(dir);
+
+            if (!rc.canMove(dir) || !rc.canSenseLocation(newLoc) || !rc.sensePassability(newLoc)) {
+                continue;
+            }
+
+            int numMoves = Util.minMovesToReach(newLoc, target);
+            int distanceSquared = newLoc.distanceSquaredTo(target);
+            int distance = (int)Math.sqrt(distanceSquared);
+            MapInfo info = rc.senseMapInfo(newLoc);
+
+            int paintHeuristic = 0;
+            if(info.getPaint() == PaintType.EMPTY){
+                paintHeuristic = 2;
+            } else if(info.getPaint().isEnemy()){
+                paintHeuristic = 4;
+            }
+
+            int numAllies = rc.senseNearbyRobots(newLoc, 2, myTeam).length;
+            int allyHeuristic = numAllies * 1;
+
+            int enemyTowerHeuristic = 0;
+            for(RobotInfo enemyInfo : enemyTowerInfos){
+                if(enemyInfo.getLocation().distanceSquaredTo(newLoc) <= enemyInfo.getType().actionRadiusSquared){
+                    enemyTowerHeuristic += 100;
+                }
+            }
+
+            int heuristic = numMoves + distance + paintHeuristic + allyHeuristic;
+            Util.log("Direction: " + dir + ", heuristic: " + heuristic + ", numMoves: " + numMoves + ", distance: " + distance + ", paintHeuristic: " + paintHeuristic + ", alllyHeuristic: " + allyHeuristic + ", enemyTowerHeuristic: " + enemyTowerHeuristic));
+
+            if (numMoves < leastNumMoves || (numMoves == leastNumMoves && heuristic < leastHeuristic)) {
+                leastNumMoves = numMoves;
+                leastHeuristic = heuristic;
+                bestDir = dir;
+            }
+        }
+
+        Util.log("Best dir: " + bestDir);
+        Util.addToIndicatorString("BD" + bestDir);
+        if(bestDir != null && bestDir != Direction.CENTER){
+            Util.move(bestDir);
+        }
+    }
+
+
+    public void mopperSafeNav() throws GameActionException {
+        Util.addToIndicatorString("SMN");
+
+        Direction bestDir = null;
+        int leastHeuristic = Integer.MAX_VALUE;
+
+        for (Direction dir : Direction.allDirections()) {
+            MapLocation newLoc = myLoc.add(dir);
+
+            if (dir != Direction.CENTER && !rc.canMove(dir)) {
+                continue;
+            }
+
+            if (!rc.canSenseLocation(newLoc) || !rc.sensePassability(newLoc)) {
+                continue;
+            }
+
+            MapInfo info = rc.senseMapInfo(newLoc);
+
+            int paintHeuristic = 0;
+            if(info.getPaint() == PaintType.EMPTY){
+                paintHeuristic = 10;
+            } else if(info.getPaint().isEnemy()){
+                paintHeuristic = 20;
+            }
+
+            int numAllies = rc.senseNearbyRobots(newLoc, 2, myTeam).length;
+            int allyHeuristic = numAllies * 5;
+
+            int enemyTowerHeuristic = 0;
+            for(RobotInfo enemyInfo : enemyTowerInfos){
+                if(enemyInfo.getLocation().distanceSquaredTo(newLoc) <= enemyInfo.getType().actionRadiusSquared){
+                    enemyTowerHeuristic += 100;
+                }
+            }
+
+            int heuristic = paintHeuristic + allyHeuristic + enemyTowerHeuristic;
+            Util.log("Direction: " + dir + ", heuristic: " + heuristic + ", paintHeuristic: " + paintHeuristic + ", alllyHeuristic: " + allyHeuristic + ", enemyTowerHeuristic: " + enemyTowerHeuristic);
+
+            if (heuristic < leastHeuristic) {
+                leastHeuristic = heuristic;
+                bestDir = dir;
+            }
+        }
+
+        Util.log("Best dir: " + bestDir);
+        Util.addToIndicatorString("BD" + bestDir);
+        if(bestDir != null && bestDir != Direction.CENTER){
+            Util.move(bestDir);
+        }
+    }
+
+    public void generalMopperNav(Direction[] moveOptions, MapLocation target, boolean consider_distance, int allyPaintHeuristic, int emptyPaintHeuristic, int enemyPaintHeuristic, int nearbyAllyHeuristic, int nearbyEnemyTowerHeuristic) throws GameActionException {
+        Direction bestDir = null;
+        int leastNumMoves = Integer.MAX_VALUE;
+        int leastHeuristic = Integer.MAX_VALUE;
+
+        int numMoves = 0;
+        int distance = 0;
+        for (Direction dir : moveOptions) {
+            MapLocation newLoc = myLoc.add(dir);
+
+            if (dir != Direction.CENTER && !rc.canMove(dir)) {
+                continue;
+            }
+
+            if (!rc.canSenseLocation(newLoc) || !rc.sensePassability(newLoc)) {
+                continue;
+            }
+
+            if(consider_distance){
+                numMoves = Util.minMovesToReach(newLoc, target);
+                int distanceSquared = newLoc.distanceSquaredTo(target);
+                distance = (int)Math.sqrt(distanceSquared);
+            }
+
+            MapInfo info = rc.senseMapInfo(newLoc);
+
+            int paintHeuristic = allyPaintHeuristic;
+            if(info.getPaint() == PaintType.EMPTY){
+                paintHeuristic = emptyPaintHeuristic;
+            } else if(info.getPaint().isEnemy()){
+                paintHeuristic = enemyPaintHeuristic;
+            }
+
+            int numAllies = rc.senseNearbyRobots(newLoc, 2, myTeam).length;
+            int allyHeuristic = numAllies * nearbyAllyHeuristic;
+
+            int enemyTowerHeuristic = 0;
+            for(RobotInfo enemyInfo : enemyTowerInfos){
+                if(enemyInfo.getLocation().distanceSquaredTo(newLoc) <= enemyInfo.getType().actionRadiusSquared){
+                    enemyTowerHeuristic += nearbyEnemyTowerHeuristic;
+                }
+            }
+
+            int heuristic = numMoves + distance + paintHeuristic + allyHeuristic + enemyTowerHeuristic;
+            Util.log("Direction: " + dir + ", heuristic: " + heuristic + ", numMoves: " + numMoves + ", distance: " + distance + ", paintHeuristic: " + paintHeuristic + ", alllyHeuristic: " + allyHeuristic + ", enemyTowerHeuristic: " + enemyTowerHeuristic);
+
+            if (numMoves < leastNumMoves || (numMoves == leastNumMoves && heuristic < leastHeuristic)) {
+                leastNumMoves = numMoves;
+                leastHeuristic = heuristic;
+                bestDir = dir;
+            }
+        }
+
+        Util.log("Best dir: " + bestDir);
+        Util.addToIndicatorString("BD" + bestDir);
+        if(bestDir != null && bestDir != Direction.CENTER){
+            Util.move(bestDir);
+        }
+    }
+
 
     public void mopperNav(MapLocation target) throws GameActionException {
         Util.addToIndicatorString("MN" + target);
@@ -142,17 +336,18 @@ public class Mopper extends Bunny {
                 paintHeuristic = 20;
             }
 
-            int numAllies = 0;
-            RobotInfo[] adjAllies = rc.senseNearbyRobots(newLoc, 2, myTeam);
-            for(RobotInfo ally : adjAllies){
-                if(!Util.isTower(ally.getType())){
-                    numAllies++;
-                }
-            }
+            int numAllies = rc.senseNearbyRobots(newLoc, 2, myTeam).length;
             int allyHeuristic = numAllies * 5;
 
-            int heuristic = numMoves + distance + paintHeuristic + allyHeuristic;
-            Util.log("Direction: " + dir + ", heuristic: " + heuristic + ", numMoves: " + numMoves + ", distance: " + distance + ", paintHeuristic: " + paintHeuristic + ", alllyHeuristic: " + allyHeuristic);
+            int enemyTowerHeuristic = 0;
+            for(RobotInfo enemyInfo : enemyTowerInfos){
+                if(enemyInfo.getLocation().distanceSquaredTo(newLoc) <= enemyInfo.getType().actionRadiusSquared){
+                    enemyTowerHeuristic += 100;
+                }
+            }
+
+            int heuristic = numMoves + distance + paintHeuristic + allyHeuristic + enemyTowerHeuristic;
+            Util.log("Direction: " + dir + ", heuristic: " + heuristic + ", numMoves: " + numMoves + ", distance: " + distance + ", paintHeuristic: " + paintHeuristic + ", alllyHeuristic: " + allyHeuristic + ", enemyTowerHeuristic: " + enemyTowerHeuristic);
 
             if (heuristic < leastHeuristic) {
                 leastHeuristic = heuristic;
@@ -167,8 +362,9 @@ public class Mopper extends Bunny {
         }
     }
 
-    public void calcHeuristics() throws GameActionException {
+    public MapLocation calcHeuristics() throws GameActionException {
         int[] heuristics = new int[69];
+        boolean[] adjacentToEnemyPaint = new boolean[69];
 //        int[] importantSquare = new int[69];
 //
         MapLocation myLoc = rc.getLocation();
@@ -200,20 +396,28 @@ public class Mopper extends Bunny {
         // Next to enemy = +15 per enemy
 
         for(int index = 0; index < 69; index++){
-                MapInfo info = nearbyMapInfos[index];
-                if(info == null){
-                    continue;
-                }
-                switch(info.getPaint()){
-                    case PaintType.EMPTY:
-                        heuristics[index] -= 2;
-                        break;
-                    case PaintType.ENEMY_PRIMARY:
-                    case PaintType.ENEMY_SECONDARY:
-                        heuristics[index] -= 4;
-                        MopperUtils.updateHeuristicAdjacents(heuristics, index, 5);
-                        break;
-                }
+            MapInfo info = nearbyMapInfos[index];
+            if(info == null){
+                continue;
+            }
+            switch(info.getPaint()){
+                case PaintType.EMPTY:
+                    heuristics[index] -= 2;
+                    break;
+                case PaintType.ENEMY_PRIMARY:
+                case PaintType.ENEMY_SECONDARY:
+                    enemyPaintNearby = true;
+                    heuristics[index] -= 4;
+//                        MopperUtils.updateHeuristicAdjacents(heuristics, index, 5);
+                    MopperUtils.updateHeuristicAdjacentsBoolean(adjacentToEnemyPaint, index);
+                    break;
+            }
+        }
+
+        for(int index = 0; index < 69; index++){
+            if(adjacentToEnemyPaint[index]){
+                heuristics[index] += 5;
+            }
         }
 
         RobotInfo[] infos = rc.senseNearbyRobots(GameConstants.VISION_RADIUS_SQUARED);
@@ -223,10 +427,12 @@ public class Mopper extends Bunny {
             int index = Util.getMapInfoIndex(infoLoc.x - myLoc.x, infoLoc.y - myLoc.y);
             if(info.getType().isTowerType() && infoTeam == oppTeam){
                 MopperUtils.updateHeuristicDist9(heuristics, index, -100);
+                enemyNearby = true;
             } else {
                 int plus = -2;
                 if(info.getTeam() == oppTeam){
                     plus = 15;
+                    enemyNearby = true;
                 }
                 MopperUtils.updateHeuristicAdjacents(heuristics, index, plus);
             }
@@ -245,11 +451,14 @@ public class Mopper extends Bunny {
         }
         MapLocation bestLoc = nearbyMapInfos[bestIndex].getMapLocation();
         Util.addToIndicatorString("BL" + bestLoc);
+        return bestLoc;
     }
 
     public void doBestAction() throws GameActionException {
+        RobotInfo[] actionableOpponents = rc.senseNearbyRobots(2, rc.getTeam().opponent());
         if (actionableOpponents.length == 0) {
             MapLocation tileToMop = getTileToMop();
+            Util.addToIndicatorString("TE1" + tileToMop);
             if (tileToMop != null) {
                 rc.attack(tileToMop);
             }
@@ -285,11 +494,14 @@ public class Mopper extends Bunny {
         }
 
         if (bestIndividualTargetOnPaint != null) {
+            Util.addToIndicatorString("BTP" + bestIndividualTargetOnPaint);
             rc.attack(bestIndividualTargetOnPaint);
         } else if (bestIndividualTargetOnEmpty != null) {
+            Util.addToIndicatorString("BTE" + bestIndividualTargetOnEmpty);
             rc.attack(bestIndividualTargetOnEmpty);
         } else {
             MapLocation tileToMop = getTileToMop();
+            Util.addToIndicatorString("TE2" + tileToMop);
             if (tileToMop != null) {
                 rc.attack(tileToMop);
             }

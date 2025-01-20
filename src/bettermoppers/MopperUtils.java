@@ -611,6 +611,613 @@ public class MopperUtils {
         }
     }
 
+    public static void updateHeuristicAdjacentsBoolean(boolean[] heuristics, int index){
+        switch(index){
+            case 0:
+                heuristics[1] = true;
+                heuristics[5] = true;
+                heuristics[6] = true;
+                heuristics[7] = true;
+                break;
+            case 1:
+                heuristics[0] = true;
+                heuristics[2] = true;
+                heuristics[6] = true;
+                heuristics[7] = true;
+                heuristics[8] = true;
+                break;
+            case 2:
+                heuristics[1] = true;
+                heuristics[3] = true;
+                heuristics[7] = true;
+                heuristics[8] = true;
+                heuristics[9] = true;
+                break;
+            case 3:
+                heuristics[2] = true;
+                heuristics[4] = true;
+                heuristics[8] = true;
+                heuristics[9] = true;
+                heuristics[10] = true;
+                break;
+            case 4:
+                heuristics[3] = true;
+                heuristics[9] = true;
+                heuristics[10] = true;
+                heuristics[11] = true;
+                break;
+            case 5:
+                heuristics[0] = true;
+                heuristics[6] = true;
+                heuristics[12] = true;
+                heuristics[13] = true;
+                heuristics[14] = true;
+                break;
+            case 6:
+                heuristics[0] = true;
+                heuristics[1] = true;
+                heuristics[5] = true;
+                heuristics[7] = true;
+                heuristics[13] = true;
+                heuristics[14] = true;
+                heuristics[15] = true;
+                break;
+            case 7:
+                heuristics[0] = true;
+                heuristics[1] = true;
+                heuristics[2] = true;
+                heuristics[6] = true;
+                heuristics[8] = true;
+                heuristics[14] = true;
+                heuristics[15] = true;
+                heuristics[16] = true;
+                break;
+            case 8:
+                heuristics[1] = true;
+                heuristics[2] = true;
+                heuristics[3] = true;
+                heuristics[7] = true;
+                heuristics[9] = true;
+                heuristics[15] = true;
+                heuristics[16] = true;
+                heuristics[17] = true;
+                break;
+            case 9:
+                heuristics[2] = true;
+                heuristics[3] = true;
+                heuristics[4] = true;
+                heuristics[8] = true;
+                heuristics[10] = true;
+                heuristics[16] = true;
+                heuristics[17] = true;
+                heuristics[18] = true;
+                break;
+            case 10:
+                heuristics[3] = true;
+                heuristics[4] = true;
+                heuristics[9] = true;
+                heuristics[11] = true;
+                heuristics[17] = true;
+                heuristics[18] = true;
+                heuristics[19] = true;
+                break;
+            case 11:
+                heuristics[4] = true;
+                heuristics[10] = true;
+                heuristics[18] = true;
+                heuristics[19] = true;
+                heuristics[20] = true;
+                break;
+            case 12:
+                heuristics[5] = true;
+                heuristics[13] = true;
+                heuristics[21] = true;
+                heuristics[22] = true;
+                break;
+            case 13:
+                heuristics[5] = true;
+                heuristics[6] = true;
+                heuristics[12] = true;
+                heuristics[14] = true;
+                heuristics[21] = true;
+                heuristics[22] = true;
+                heuristics[23] = true;
+                break;
+            case 14:
+                heuristics[5] = true;
+                heuristics[6] = true;
+                heuristics[7] = true;
+                heuristics[13] = true;
+                heuristics[15] = true;
+                heuristics[22] = true;
+                heuristics[23] = true;
+                heuristics[24] = true;
+                break;
+            case 15:
+                heuristics[6] = true;
+                heuristics[7] = true;
+                heuristics[8] = true;
+                heuristics[14] = true;
+                heuristics[16] = true;
+                heuristics[23] = true;
+                heuristics[24] = true;
+                heuristics[25] = true;
+                break;
+            case 16:
+                heuristics[7] = true;
+                heuristics[8] = true;
+                heuristics[9] = true;
+                heuristics[15] = true;
+                heuristics[17] = true;
+                heuristics[24] = true;
+                heuristics[25] = true;
+                heuristics[26] = true;
+                break;
+            case 17:
+                heuristics[8] = true;
+                heuristics[9] = true;
+                heuristics[10] = true;
+                heuristics[16] = true;
+                heuristics[18] = true;
+                heuristics[25] = true;
+                heuristics[26] = true;
+                heuristics[27] = true;
+                break;
+            case 18:
+                heuristics[9] = true;
+                heuristics[10] = true;
+                heuristics[11] = true;
+                heuristics[17] = true;
+                heuristics[19] = true;
+                heuristics[26] = true;
+                heuristics[27] = true;
+                heuristics[28] = true;
+                break;
+            case 19:
+                heuristics[10] = true;
+                heuristics[11] = true;
+                heuristics[18] = true;
+                heuristics[20] = true;
+                heuristics[27] = true;
+                heuristics[28] = true;
+                heuristics[29] = true;
+                break;
+            case 20:
+                heuristics[11] = true;
+                heuristics[19] = true;
+                heuristics[28] = true;
+                heuristics[29] = true;
+                break;
+            case 21:
+                heuristics[12] = true;
+                heuristics[13] = true;
+                heuristics[22] = true;
+                heuristics[30] = true;
+                heuristics[31] = true;
+                break;
+            case 22:
+                heuristics[12] = true;
+                heuristics[13] = true;
+                heuristics[14] = true;
+                heuristics[21] = true;
+                heuristics[23] = true;
+                heuristics[30] = true;
+                heuristics[31] = true;
+                heuristics[32] = true;
+                break;
+            case 23:
+                heuristics[13] = true;
+                heuristics[14] = true;
+                heuristics[15] = true;
+                heuristics[22] = true;
+                heuristics[24] = true;
+                heuristics[31] = true;
+                heuristics[32] = true;
+                heuristics[33] = true;
+                break;
+            case 24:
+                heuristics[14] = true;
+                heuristics[15] = true;
+                heuristics[16] = true;
+                heuristics[23] = true;
+                heuristics[25] = true;
+                heuristics[32] = true;
+                heuristics[33] = true;
+                heuristics[34] = true;
+                break;
+            case 25:
+                heuristics[15] = true;
+                heuristics[16] = true;
+                heuristics[17] = true;
+                heuristics[24] = true;
+                heuristics[26] = true;
+                heuristics[33] = true;
+                heuristics[34] = true;
+                heuristics[35] = true;
+                break;
+            case 26:
+                heuristics[16] = true;
+                heuristics[17] = true;
+                heuristics[18] = true;
+                heuristics[25] = true;
+                heuristics[27] = true;
+                heuristics[34] = true;
+                heuristics[35] = true;
+                heuristics[36] = true;
+                break;
+            case 27:
+                heuristics[17] = true;
+                heuristics[18] = true;
+                heuristics[19] = true;
+                heuristics[26] = true;
+                heuristics[28] = true;
+                heuristics[35] = true;
+                heuristics[36] = true;
+                heuristics[37] = true;
+                break;
+            case 28:
+                heuristics[18] = true;
+                heuristics[19] = true;
+                heuristics[20] = true;
+                heuristics[27] = true;
+                heuristics[29] = true;
+                heuristics[36] = true;
+                heuristics[37] = true;
+                heuristics[38] = true;
+                break;
+            case 29:
+                heuristics[19] = true;
+                heuristics[20] = true;
+                heuristics[28] = true;
+                heuristics[37] = true;
+                heuristics[38] = true;
+                break;
+            case 30:
+                heuristics[21] = true;
+                heuristics[22] = true;
+                heuristics[31] = true;
+                heuristics[39] = true;
+                heuristics[40] = true;
+                break;
+            case 31:
+                heuristics[21] = true;
+                heuristics[22] = true;
+                heuristics[23] = true;
+                heuristics[30] = true;
+                heuristics[32] = true;
+                heuristics[39] = true;
+                heuristics[40] = true;
+                heuristics[41] = true;
+                break;
+            case 32:
+                heuristics[22] = true;
+                heuristics[23] = true;
+                heuristics[24] = true;
+                heuristics[31] = true;
+                heuristics[33] = true;
+                heuristics[40] = true;
+                heuristics[41] = true;
+                heuristics[42] = true;
+                break;
+            case 33:
+                heuristics[23] = true;
+                heuristics[24] = true;
+                heuristics[25] = true;
+                heuristics[32] = true;
+                heuristics[34] = true;
+                heuristics[41] = true;
+                heuristics[42] = true;
+                heuristics[43] = true;
+                break;
+            case 34:
+                heuristics[24] = true;
+                heuristics[25] = true;
+                heuristics[26] = true;
+                heuristics[33] = true;
+                heuristics[35] = true;
+                heuristics[42] = true;
+                heuristics[43] = true;
+                heuristics[44] = true;
+                break;
+            case 35:
+                heuristics[25] = true;
+                heuristics[26] = true;
+                heuristics[27] = true;
+                heuristics[34] = true;
+                heuristics[36] = true;
+                heuristics[43] = true;
+                heuristics[44] = true;
+                heuristics[45] = true;
+                break;
+            case 36:
+                heuristics[26] = true;
+                heuristics[27] = true;
+                heuristics[28] = true;
+                heuristics[35] = true;
+                heuristics[37] = true;
+                heuristics[44] = true;
+                heuristics[45] = true;
+                heuristics[46] = true;
+                break;
+            case 37:
+                heuristics[27] = true;
+                heuristics[28] = true;
+                heuristics[29] = true;
+                heuristics[36] = true;
+                heuristics[38] = true;
+                heuristics[45] = true;
+                heuristics[46] = true;
+                heuristics[47] = true;
+                break;
+            case 38:
+                heuristics[28] = true;
+                heuristics[29] = true;
+                heuristics[37] = true;
+                heuristics[46] = true;
+                heuristics[47] = true;
+                break;
+            case 39:
+                heuristics[30] = true;
+                heuristics[31] = true;
+                heuristics[40] = true;
+                heuristics[48] = true;
+                heuristics[49] = true;
+                break;
+            case 40:
+                heuristics[30] = true;
+                heuristics[31] = true;
+                heuristics[32] = true;
+                heuristics[39] = true;
+                heuristics[41] = true;
+                heuristics[48] = true;
+                heuristics[49] = true;
+                heuristics[50] = true;
+                break;
+            case 41:
+                heuristics[31] = true;
+                heuristics[32] = true;
+                heuristics[33] = true;
+                heuristics[40] = true;
+                heuristics[42] = true;
+                heuristics[49] = true;
+                heuristics[50] = true;
+                heuristics[51] = true;
+                break;
+            case 42:
+                heuristics[32] = true;
+                heuristics[33] = true;
+                heuristics[34] = true;
+                heuristics[41] = true;
+                heuristics[43] = true;
+                heuristics[50] = true;
+                heuristics[51] = true;
+                heuristics[52] = true;
+                break;
+            case 43:
+                heuristics[33] = true;
+                heuristics[34] = true;
+                heuristics[35] = true;
+                heuristics[42] = true;
+                heuristics[44] = true;
+                heuristics[51] = true;
+                heuristics[52] = true;
+                heuristics[53] = true;
+                break;
+            case 44:
+                heuristics[34] = true;
+                heuristics[35] = true;
+                heuristics[36] = true;
+                heuristics[43] = true;
+                heuristics[45] = true;
+                heuristics[52] = true;
+                heuristics[53] = true;
+                heuristics[54] = true;
+                break;
+            case 45:
+                heuristics[35] = true;
+                heuristics[36] = true;
+                heuristics[37] = true;
+                heuristics[44] = true;
+                heuristics[46] = true;
+                heuristics[53] = true;
+                heuristics[54] = true;
+                heuristics[55] = true;
+                break;
+            case 46:
+                heuristics[36] = true;
+                heuristics[37] = true;
+                heuristics[38] = true;
+                heuristics[45] = true;
+                heuristics[47] = true;
+                heuristics[54] = true;
+                heuristics[55] = true;
+                heuristics[56] = true;
+                break;
+            case 47:
+                heuristics[37] = true;
+                heuristics[38] = true;
+                heuristics[46] = true;
+                heuristics[55] = true;
+                heuristics[56] = true;
+                break;
+            case 48:
+                heuristics[39] = true;
+                heuristics[40] = true;
+                heuristics[49] = true;
+                heuristics[57] = true;
+                break;
+            case 49:
+                heuristics[39] = true;
+                heuristics[40] = true;
+                heuristics[41] = true;
+                heuristics[48] = true;
+                heuristics[50] = true;
+                heuristics[57] = true;
+                heuristics[58] = true;
+                break;
+            case 50:
+                heuristics[40] = true;
+                heuristics[41] = true;
+                heuristics[42] = true;
+                heuristics[49] = true;
+                heuristics[51] = true;
+                heuristics[57] = true;
+                heuristics[58] = true;
+                heuristics[59] = true;
+                break;
+            case 51:
+                heuristics[41] = true;
+                heuristics[42] = true;
+                heuristics[43] = true;
+                heuristics[50] = true;
+                heuristics[52] = true;
+                heuristics[58] = true;
+                heuristics[59] = true;
+                heuristics[60] = true;
+                break;
+            case 52:
+                heuristics[42] = true;
+                heuristics[43] = true;
+                heuristics[44] = true;
+                heuristics[51] = true;
+                heuristics[53] = true;
+                heuristics[59] = true;
+                heuristics[60] = true;
+                heuristics[61] = true;
+                break;
+            case 53:
+                heuristics[43] = true;
+                heuristics[44] = true;
+                heuristics[45] = true;
+                heuristics[52] = true;
+                heuristics[54] = true;
+                heuristics[60] = true;
+                heuristics[61] = true;
+                heuristics[62] = true;
+                break;
+            case 54:
+                heuristics[44] = true;
+                heuristics[45] = true;
+                heuristics[46] = true;
+                heuristics[53] = true;
+                heuristics[55] = true;
+                heuristics[61] = true;
+                heuristics[62] = true;
+                heuristics[63] = true;
+                break;
+            case 55:
+                heuristics[45] = true;
+                heuristics[46] = true;
+                heuristics[47] = true;
+                heuristics[54] = true;
+                heuristics[56] = true;
+                heuristics[62] = true;
+                heuristics[63] = true;
+                break;
+            case 56:
+                heuristics[46] = true;
+                heuristics[47] = true;
+                heuristics[55] = true;
+                heuristics[63] = true;
+                break;
+            case 57:
+                heuristics[48] = true;
+                heuristics[49] = true;
+                heuristics[50] = true;
+                heuristics[58] = true;
+                heuristics[64] = true;
+                break;
+            case 58:
+                heuristics[49] = true;
+                heuristics[50] = true;
+                heuristics[51] = true;
+                heuristics[57] = true;
+                heuristics[59] = true;
+                heuristics[64] = true;
+                heuristics[65] = true;
+                break;
+            case 59:
+                heuristics[50] = true;
+                heuristics[51] = true;
+                heuristics[52] = true;
+                heuristics[58] = true;
+                heuristics[60] = true;
+                heuristics[64] = true;
+                heuristics[65] = true;
+                heuristics[66] = true;
+                break;
+            case 60:
+                heuristics[51] = true;
+                heuristics[52] = true;
+                heuristics[53] = true;
+                heuristics[59] = true;
+                heuristics[61] = true;
+                heuristics[65] = true;
+                heuristics[66] = true;
+                heuristics[67] = true;
+                break;
+            case 61:
+                heuristics[52] = true;
+                heuristics[53] = true;
+                heuristics[54] = true;
+                heuristics[60] = true;
+                heuristics[62] = true;
+                heuristics[66] = true;
+                heuristics[67] = true;
+                heuristics[68] = true;
+                break;
+            case 62:
+                heuristics[53] = true;
+                heuristics[54] = true;
+                heuristics[55] = true;
+                heuristics[61] = true;
+                heuristics[63] = true;
+                heuristics[67] = true;
+                heuristics[68] = true;
+                break;
+            case 63:
+                heuristics[54] = true;
+                heuristics[55] = true;
+                heuristics[56] = true;
+                heuristics[62] = true;
+                heuristics[68] = true;
+                break;
+            case 64:
+                heuristics[57] = true;
+                heuristics[58] = true;
+                heuristics[59] = true;
+                heuristics[65] = true;
+                break;
+            case 65:
+                heuristics[58] = true;
+                heuristics[59] = true;
+                heuristics[60] = true;
+                heuristics[64] = true;
+                heuristics[66] = true;
+                break;
+            case 66:
+                heuristics[59] = true;
+                heuristics[60] = true;
+                heuristics[61] = true;
+                heuristics[65] = true;
+                heuristics[67] = true;
+                break;
+            case 67:
+                heuristics[60] = true;
+                heuristics[61] = true;
+                heuristics[62] = true;
+                heuristics[66] = true;
+                heuristics[68] = true;
+                break;
+            case 68:
+                heuristics[61] = true;
+                heuristics[62] = true;
+                heuristics[63] = true;
+                heuristics[67] = true;
+                break;
+        }
+    }
+
     public static void updateHeuristicDist9(int[] heuristics, int index, int diff) {
         switch(index){
             case 0:
