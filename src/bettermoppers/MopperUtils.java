@@ -1,8 +1,5 @@
 package bettermoppers;
 
-import battlecode.common.*;
-import commbetterpainting.Soldier;
-
 public class MopperUtils {
     public static void updateHeuristicAdjacents(int[] heuristics, int index, int diff){
         switch(index){
