@@ -111,10 +111,16 @@ public class Tower extends Robot {
         Direction dir = directions[rng.nextInt(directions.length)];
         MapLocation nextLoc = rc.getLocation().add(dir);
 
+        boolean spawned = false;
+
         if (getMetric() < 1.4) {
-            tryBuilding(UnitType.SOLDIER, nextLoc);
+            spawned = tryBuilding(UnitType.SOLDIER, nextLoc);
         } else {
-            tryBuilding(UnitType.SPLASHER, nextLoc);
+            spawned = tryBuilding(UnitType.SPLASHER, nextLoc);
+        }
+
+        if (!spawned && rc.getChips() >= UnitType.MOPPER.moneyCost && !Util.isPaintTower(rc.getType())) {
+            tryBuilding(UnitType.MOPPER, nextLoc);
         }
 
 //        int robotType = rng.nextInt(3); // yes splashers
