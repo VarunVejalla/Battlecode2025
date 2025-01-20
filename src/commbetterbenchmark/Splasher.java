@@ -125,6 +125,12 @@ public class Splasher extends Bunny {
                 score = 10 * emptyCount + 50 * enemyCount;
             }
 
+//            // Unit at location.
+            RobotInfo rob= rc.senseRobotAtLocation(targetLocation);
+            if(rob != null && rob.getType().isTowerType() && rob.getTeam() == oppTeam) {
+                score += 10000;
+            }
+
             if (score > bestScore) {
                 bestScore = score;
                 bestTarget = tile.getMapLocation();
