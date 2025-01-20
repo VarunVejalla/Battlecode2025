@@ -1,4 +1,4 @@
-package commspawning;
+package thebiggestcommie;
 
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
@@ -9,14 +9,6 @@ public class Comms {
     public final int MAP_UPDATE_REQUEST_CODE = 0xFFFF;
     public final int MAP2_UPDATE_REQUEST_CODE = 0xFFFE; // Used for larger maps.
     public final int MAX_MAP_SECTORS_SENT_PER_ROUND = 80;
-
-    int[] unbuiltRuins = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
-    int[] enemyTowers = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
-    int[] friendlyTowers = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
-
-    int unbuiltRuinIndex = 0;
-    int enemyTowerIndex = 0;
-    int friendlyTowerIndex = 0;
 
 
     RobotController rc;
@@ -112,15 +104,15 @@ public class Comms {
      * Returns an array containing the index of the sector that contains the given MapLocation
      * as well as the indices of its neighboring sectors.
      */
-    public int[] getSectorAndNeighbors(MapLocation loc) {
+    public int[] getSectorAndNeighbors(MapLocation loc, int sectorsAway) {
         int col = loc.x / 5;
         int row = loc.y / 5;
 
         // Precompute bounds to avoid repeated checks
-        int minRow = Math.max(0, row - 1);
-        int maxRow = Math.min(sectorCols - 1, row + 1);
-        int minCol = Math.max(0, col - 1);
-        int maxCol = Math.min(sectorRows - 1, col + 1);
+        int minRow = Math.max(0, row - sectorsAway);
+        int maxRow = Math.min(sectorCols - 1, row + sectorsAway);
+        int minCol = Math.max(0, col - sectorsAway);
+        int maxCol = Math.min(sectorRows - 1, col + sectorsAway);
 
         // Validate bounds
         if (maxRow < minRow || maxCol < minCol) {
@@ -211,80 +203,12 @@ public class Comms {
     }
 
     public void describeWorld() {
-        for (int sectorIndex = 0; sectorIndex < sectorCount; sectorIndex++) {
-            if (myWorld[sectorIndex] == 0) continue;
-        }
-    }
-
-    public void updateTowerKnowledge(int sectorIndex) {
-        // This causes the bytecode to exceed sometimes but it's okay.
-        int ruinCondition = (myWorld[sectorIndex] >> 1) & 0b111;
-
-        switch(ruinCondition){
-            case 0:
-                return;
-            case 1:
-                unbuiltRuins[unbuiltRuinIndex] = sectorIndex;
-                unbuiltRuinIndex++;
-                return;
-            case 2,3,4:
-                friendlyTowers[friendlyTowerIndex] = sectorIndex;
-                friendlyTowerIndex++;
-                return;
-            case 5, 6, 7:
-                enemyTowers[enemyTowerIndex] = sectorIndex;
-                enemyTowerIndex++;
-                return;
-        }
-    }
-
-    public void describeWorldConcise() {
         Util.log("\n -------------------------------- \n");
         Util.log("My World: \n");
-        Util.log("Unbuilt ruins");
-        for (int unbuiltRuin : unbuiltRuins) {
-            if(unbuiltRuin == -1) break;
-            System.out.print(getSectorCenter(unbuiltRuin).toString() + " ");
-        }
-        System.out.println(); System.out.println();
-
-        Util.log("Friendly Towers");
-        for (int friendlyTower : friendlyTowers) {
-            if(friendlyTower == -1) break;
-            System.out.print(getSectorCenter(friendlyTower).toString() + " ");
-        }
-        System.out.println(); System.out.println();
-
-        Util.log("Enemy Towers");
-        for (int enemyTower : enemyTowers) {
-            if(enemyTower == -1) break;
-            System.out.print(getSectorCenter(enemyTower).toString() + " ");
-        }
-        System.out.println(); System.out.println();
-    }
-
-    public void updateKnowledge() {
-        enemyTowerIndex = 0;
-        unbuiltRuinIndex = 0;
-        friendlyTowerIndex = 0;
-
-        for (int i=0; i<sectorCount; i++) {
-            ScanResult sr = decodeSector(myWorld[i]);
-            // Enemy
-            if(sr.towerType >= 5) {
-                enemyTowers[enemyTowerIndex] = i;
-                enemyTowerIndex++;
-            }
-            // Unbuilt ruin
-            if(sr.towerType == 1) {
-                unbuiltRuins[unbuiltRuinIndex] = i;
-                unbuiltRuinIndex++;
-            }
-            // Friendly Towers
-            if(sr.towerType >= 2 && sr.towerType <= 4) {
-                friendlyTowers[friendlyTowerIndex] = i;
-                friendlyTowerIndex++;
-            }
+        for (int sectorIndex = 0; sectorIndex < sectorCount; sectorIndex++) {
+            if (myWorld[sectorIndex] == 0) continue;
+            Util.log("Sector Center: " + getSectorCenter(sectorIndex));
+            Util.log(Util.getSectorDescription(myWorld[sectorIndex]) + "\n\n");
         }
     }
 }

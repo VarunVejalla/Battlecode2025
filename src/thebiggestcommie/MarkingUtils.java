@@ -1,4 +1,4 @@
-package commspawning;
+package thebiggestcommie;
 
 import battlecode.common.*;
 
@@ -111,8 +111,8 @@ public class MarkingUtils {
         MapInfo[] possibleCenters = rc.senseNearbyMapInfos(8);
 
         for (MapInfo center : possibleCenters) {
-            if (center.getPaint().isAlly() && !center.getPaint().isSecondary() &&
-                    rc.canCompleteResourcePattern(center.getMapLocation())) {
+            if (center.getPaint() == PaintType.ALLY_SECONDARY &&
+                rc.canCompleteResourcePattern(center.getMapLocation())) {
                 rc.completeResourcePattern(center.getMapLocation());
             }
         }

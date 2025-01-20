@@ -1,4 +1,4 @@
-package commspawning;
+package thebiggestcommie;
 
 /**
  * Basic datastructure to hold scan results that will be used to populate comms

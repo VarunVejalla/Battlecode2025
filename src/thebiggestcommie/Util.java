@@ -1,4 +1,4 @@
-package commspawning;
+package thebiggestcommie;
 
 import battlecode.common.*;
 
@@ -18,6 +18,35 @@ public class Util {
             return true;
         }
         return false;
+    }
+
+    public static MapLocation getRotationalReflection(MapLocation location) {
+        double vx = rc.getMapWidth()/2.0 - location.x;
+        double vy = rc.getMapHeight()/2.0 - location.y;
+
+        double t = Double.MAX_VALUE;
+
+        if (vx > 0) {
+            t = Math.min(t, (rc.getMapWidth()-2-location.x)/vx);
+        }
+        if (vx < 0) {
+            t = Math.min(t, (1-location.x)/vx);
+        }
+        if (vy > 0) {
+            t = Math.min(t, (rc.getMapHeight()-2-location.y)/vy);
+        }
+        if (vy < 0) {
+            t = Math.min(t, (1-location.y)/vy);
+        }
+        return new MapLocation((int)(location.x + vx * t), (int)(location.y + vy * t));
+    }
+
+    public static MapLocation getVerticalReflection(MapLocation current) {
+        return new MapLocation(current.x, rc.getMapHeight()-1-current.y);
+    }
+
+    public static MapLocation getHorizontalReflection(MapLocation current) {
+        return new MapLocation(rc.getMapWidth()-1-current.x, current.y);
     }
 
     public static MapInfo[] getFilledInMapInfo(MapInfo[] nearbyMapInfo) {
@@ -308,8 +337,9 @@ public class Util {
     }
 
     public static void log(String str) {
-        if(Constants.MUTE || (rc.getID() != Constants.DEBUG_ROBOT_ID)){
+        if(Constants.MUTE || (rc.getID() != Constants.DEBUG_BOT_ID)){
 //        if(Constants.MUTE){
+//        if(true){
             return;
         }
         System.out.println(str);

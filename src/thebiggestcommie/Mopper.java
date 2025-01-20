@@ -1,4 +1,4 @@
-package commspawning;
+package thebiggestcommie;
 
 import battlecode.common.*;
 
@@ -11,6 +11,9 @@ public class Mopper extends Bunny {
 
     public void run() throws GameActionException {
         super.run();
+
+        updateDestinationIfNeeded();
+
         actionableOpponents = rc.senseNearbyRobots(2, rc.getTeam().opponent());
         actionableTiles = rc.senseNearbyMapInfos(2);
 
@@ -26,6 +29,10 @@ public class Mopper extends Bunny {
         }
 
         sharedEndFunction();
+    }
+
+    public boolean checkIfIShouldStartReplenishing() throws GameActionException {
+        return rc.getPaint() <= Constants.PAINT_THRESHOLD_TO_REPLENISH;
     }
 
     /**

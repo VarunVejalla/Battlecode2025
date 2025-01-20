@@ -1,4 +1,4 @@
-package commspawning;
+package thebiggestcommie;
 
 public class ExcessConstants {
     // ~200 bytecode.

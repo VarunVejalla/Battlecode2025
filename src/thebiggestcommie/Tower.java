@@ -1,4 +1,4 @@
-package commspawning;
+package thebiggestcommie;
 
 import battlecode.common.*;
 
@@ -6,83 +6,131 @@ public class Tower extends Robot {
 
     TowerComms comms = new TowerComms(rc, this, this);
     MapInfo[] nearbyMapInfos;
-//    RobotInfo[] friendliesToComm = null;
-    RobotInfo[] friendliesToPaint = null;
-    Direction dirToCenter;
-    RobotInfo replenishingRobot = null;
+    RobotInfo[] friendliesToComm = null;
+    int numTotalSpawned = 0;
+    int myTowerNumber;
+    int numRoundsLessThanN = 5;
+
+    int chipThreshold = 1100;
+
+    UnitType lastSpawnedUnitType;
 
 
     public Tower(RobotController rc) throws GameActionException {
         super(rc);
-        dirToCenter = rc.getLocation().directionTo(new MapLocation(rc.getMapWidth() / 2, rc.getMapHeight() / 2));
+        myTowerNumber = currentNumTotalTowers;
     }
 
     public void run() throws GameActionException {
         super.run();
-//        Util.log("TOWER");
+        Util.log("TOWER");
         Util.addToIndicatorString("RUN");
         scanSurroundings();
-
-        comms.updateKnowledge();
         runAttack();
 
-        if (rc.getRoundNum() < Constants.SPAWN_OPENING_BOTS_ROUNDS) {
-            openingBots();
-        } else if (rc.getMoney() > Constants.SPAWN_BOTS_MIDGAME_COST_THRESHOLD) {
+        if (rc.getChips() < chipThreshold) {
+            numRoundsLessThanN++;
+        } else {
+            numRoundsLessThanN = 0;
+        }
+
+        if (rc.getRoundNum() < 50 && rc.getNumberTowers() <= 3) {
+            if (numTotalSpawned < 2) {
+                soldierSpawning();
+            }
+        } else if (!isSaving()) {
             midGameBots();
         }
+
+//        if (rc.getRoundNum() < Constants.SPAWN_OPENING_BOTS_ROUNDS) {
+//            openingBots();
+//        } else if (rc.getMoney() > Constants.SPAWN_BOTS_MIDGAME_COST_THRESHOLD) {
+//            midGameBots();
+//        }
 
         // Read incoming messages
         Message[] messages = rc.readMessages(-1);
         for (Message m : messages) {
-            if(m.getBytes() != 65535) {
-                Util.log("Tower received message: '#" + m.getSenderID() + " " + m.getBytes());
-            }
-        }
-
-        if(rc.getRoundNum() == 236 && rc.getID() == Constants.DEBUG_ROBOT_ID) {
-            comms.describeWorldConcise();
+             Util.log("Tower received message: '#" + m.getSenderID() + " " + m.getBytes());
         }
 
     }
 
+    public boolean tryBuilding(UnitType unitType, MapLocation location) throws GameActionException {
+        if (rc.canBuildRobot(unitType, location)) {
+            numTotalSpawned++;
+            rc.buildRobot(unitType, location);
+            return true;
+        }
+        return false;
+    }
+
+    public boolean isSaving() {
+        if (rc.getRoundNum() < 50 && rc.getNumberTowers() <= 3) {
+            return true;
+        }
+        if (numRoundsLessThanN >= 4) {
+            return true;
+        }
+
+        if (rc.getChips() >= chipThreshold) {
+            return false;
+        } else if (rc.getNumberTowers() >= 25) {
+            return false;
+        } else if (rc.getNumberTowers() <= 1) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     public void scanSurroundings() throws GameActionException {
         nearbyMapInfos = rc.senseNearbyMapInfos();
-//        friendliesToComm = rc.senseNearbyRobots(GameConstants.MESSAGE_RADIUS_SQUARED, rc.getTeam());
-        friendliesToPaint = rc.senseNearbyRobots(GameConstants.PAINT_TRANSFER_RADIUS_SQUARED, rc.getTeam());
+        friendliesToComm = rc.senseNearbyRobots(GameConstants.MESSAGE_RADIUS_SQUARED, rc.getTeam());
 
         // processMessages
         comms.processSectorMessages();
     }
 
-
+    public void soldierSpawning() throws GameActionException {
+        Direction dir = directions[rng.nextInt(directions.length)];
+        MapLocation nextLoc = rc.getLocation().add(dir);
+        tryBuilding(UnitType.SOLDIER, nextLoc);
+    }
 
     public void openingBots() throws GameActionException {
         Direction dir = directions[rng.nextInt(directions.length)];
         MapLocation nextLoc = rc.getLocation().add(dir);
 
-        if(rc.getRoundNum() % 3 == 0) {
-            if (rc.canBuildRobot(UnitType.SOLDIER, nextLoc)) {
-                rc.buildRobot(UnitType.SOLDIER, nextLoc);
-            }
-        } else {
-            if (rc.canBuildRobot(UnitType.SOLDIER, nextLoc)) {
-                rc.buildRobot(UnitType.SOLDIER, nextLoc);
-            }
+        if (rc.canBuildRobot(UnitType.SOLDIER, nextLoc)) {
+            rc.buildRobot(UnitType.SOLDIER, nextLoc);
         }
     }
 
     public void midGameBots() throws GameActionException {
         Direction dir = directions[rng.nextInt(directions.length)];
         MapLocation nextLoc = rc.getLocation().add(dir);
-        int robotType = rng.nextInt(3); // yes splashers
-        if (robotType == 0 && rc.canBuildRobot(UnitType.SOLDIER, nextLoc)) {
-            rc.buildRobot(UnitType.SOLDIER, nextLoc);
-        } else if (robotType == 1 && rc.canBuildRobot(UnitType.MOPPER, nextLoc)) {
-            rc.buildRobot(UnitType.MOPPER, nextLoc);
-        } else if (robotType == 2 && rc.canBuildRobot(UnitType.SPLASHER, nextLoc)) {
-            rc.buildRobot(UnitType.SPLASHER, nextLoc);
+
+        boolean spawned = false;
+
+        if (getMetric() < Constants.TOWER_SPAWNING_THRESHOLD) {
+            spawned = tryBuilding(UnitType.SOLDIER, nextLoc);
+        } else {
+            spawned = tryBuilding(UnitType.SPLASHER, nextLoc);
         }
+
+        if (!spawned && rc.getChips() >= UnitType.MOPPER.moneyCost && !Util.isPaintTower(rc.getType())) {
+            tryBuilding(UnitType.MOPPER, nextLoc);
+        }
+
+//        int robotType = rng.nextInt(3); // yes splashers
+//        if (robotType == 0) {
+//            tryBuilding(UnitType.SOLDIER, nextLoc);
+//        } else if (robotType == 1) {
+//            tryBuilding(UnitType.MOPPER, nextLoc);
+//        } else if (robotType == 2) {
+//            tryBuilding(UnitType.SPLASHER, nextLoc);
+//        }
     }
 
     public void endGameBots() throws GameActionException {
@@ -125,16 +173,15 @@ public class Tower extends Robot {
      * Attack any enemies in your vision radius
      */
     public void runAttack() throws GameActionException {
-
         // run AoE attack
         if (rc.canAttack(null)) {
             rc.attack(null);
         }
 
         // see if there's an enemy to attack
-        Util.addToIndicatorString("RA; ");
+        Util.addToIndicatorString("RA");
         MapLocation target = findBestAttackTarget();
-//        Util.log("TGT: " + target);
+        Util.log("TGT: " + target);
         Util.addToIndicatorString("TGT: " + target);
 
         if (target != null && rc.canAttack(target)) {

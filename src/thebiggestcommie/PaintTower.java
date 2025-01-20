@@ -1,4 +1,4 @@
-package commspawning;
+package thebiggestcommie;
 
 import battlecode.common.GameActionException;
 import battlecode.common.RobotController;

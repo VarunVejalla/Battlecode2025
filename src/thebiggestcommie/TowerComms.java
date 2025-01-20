@@ -1,4 +1,4 @@
-package commspawning;
+package thebiggestcommie;
 
 import battlecode.common.GameActionException;
 import battlecode.common.Message;
@@ -117,32 +117,6 @@ public class TowerComms extends Comms {
         sendMap(robotID, MAX_MAP_SECTORS_SENT_PER_ROUND, sectorCount);
     }
 
-
-    public void describeWorldConcise() {
-        Util.log("\n -------------------------------- \n");
-        Util.log("My World: \n");
-        Util.log("Unbuilt ruins");
-        for (int unbuiltRuin : unbuiltRuins) {
-            if(unbuiltRuin == -1) break;
-            System.out.print(getSectorCenter(unbuiltRuin).toString() + " (Round number: "+ roundLastSeen[unbuiltRuin]+")  ");
-        }
-        Util.log("\n");
-
-        Util.log("Friendly Towers");
-        for (int friendlyTower : friendlyTowers) {
-            if(friendlyTower == -1) break;
-            System.out.print(getSectorCenter(friendlyTower).toString() + " (Round number: "+ roundLastSeen[friendlyTower]+")  ");
-        }
-        Util.log("\n");
-
-        Util.log("Enemy Towers");
-        for (int enemyTower : enemyTowers) {
-            if(enemyTower == -1) break;
-            System.out.print(getSectorCenter(enemyTower).toString() + " (Round number: "+ roundLastSeen[enemyTower]+")  ");
-        }
-        Util.log("");
-        Util.log("\n ------------------------------- \n");
-    }
 
 
 }
