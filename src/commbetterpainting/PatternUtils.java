@@ -387,6 +387,17 @@ public class PatternUtils {
         // TODO: use map dimensions, number of chips(?), round number, etc (but only globally available information?)
         // ruinLoc isn't globally available, but can we still use it?
 
+//        if (rc.getNumberTowers() <= 3 || soldier.estimatedChipsPerRound <= Math.max(rc.getNumberTowers() * 20 * 0.5, 100)) {
+//            return UnitType.LEVEL_ONE_MONEY_TOWER;
+//        } else {
+//            return UnitType.LEVEL_ONE_PAINT_TOWER;
+//        }
+
+//        if (rc.getNumberTowers() >= 4 && rc.getChips() >= 1200) {
+//            // it should be based on chip gain, not on just number of chips
+//            return UnitType.LEVEL_ONE_PAINT_TOWER;
+//        }
+
 
         if (rc.getNumberTowers() < 6) {
             if (isDefenseAllowed(ruinLoc)) {

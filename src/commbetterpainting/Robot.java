@@ -20,7 +20,7 @@ public class Robot {
     int currentNumTotalChips;
     int currentNumTotalTowers;
     int minMoneyTowers;
-    int estimatedIncomePerRound;
+    int estimatedChipsPerRound;
     int roundSpawn;
     MapLocation spawnLoc;
 
@@ -50,14 +50,24 @@ public class Robot {
         rng = new Random(42); // seed the random number generator with the id of the bot
         roundSpawn = rc.getRoundNum();
         this.myLoc = rc.getLocation();
-        currentNumTotalChips = rc.getChips();
-        currentNumTotalTowers = rc.getNumberTowers();
+        previousNumTotalChips = rc.getChips();
+        previousNumTotalTowers = rc.getNumberTowers();
         spawnLoc = rc.getLocation();
+        estimatedChipsPerRound = 0;
     }
 
     public void run() throws GameActionException {
+
         currentNumTotalChips = rc.getChips();
         currentNumTotalTowers = rc.getNumberTowers();
+
+        // TODO: this is a stupid way of doing it because resource patterns could go down. improve this
+        if (previousNumTotalTowers >= currentNumTotalTowers) {
+            estimatedChipsPerRound = Math.max(estimatedChipsPerRound, 1000*(previousNumTotalTowers - currentNumTotalTowers) + currentNumTotalChips - previousNumTotalChips);
+        } else {
+            estimatedChipsPerRound = 0;
+        }
+
         indicatorString = "";
         myLoc = rc.getLocation();
 
