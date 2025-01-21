@@ -64,7 +64,7 @@ public class PatternUtils {
     }
 
     public static void runDefaultBehavior(boolean paint) throws GameActionException {
-        Util.addToIndicatorString("DFL;");
+        Util.addToIndicatorString("DFL");
         // move destination to be on the line connecting what it currently is to right outside any overlap with vision radius
         boolean isPaintReady = paint && rc.isActionReady() && rc.getPaint() >= UnitType.SOLDIER.attackCost;
         if (isPaintReady) {
@@ -479,7 +479,7 @@ public class PatternUtils {
         soldier.potentialRCCornersChecked = new boolean[4];
     }
 
-    // TODO: Script to unroll created, but varun's gonna change some code so wait until that's done.
+    // NOTE: Script to unroll created, but varun's gonna change some code so wait until that's done.
     public static int getPotentialResourcePatternCenterIndex(MapInfo[] nearbyMapInfos) throws GameActionException {
         long validBitstring = -1;
         long unfinishedBitstring = 0;

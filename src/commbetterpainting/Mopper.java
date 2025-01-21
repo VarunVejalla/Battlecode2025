@@ -55,8 +55,6 @@ public class Mopper extends Bunny {
         MarkingUtils.tryResourcePatternCompletion();
 
         Util.logBytecode("Tried completion");
-
-        sharedEndFunction();
     }
 
     public boolean checkIfIShouldStartReplenishing() throws GameActionException {

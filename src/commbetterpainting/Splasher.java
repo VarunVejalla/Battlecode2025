@@ -48,9 +48,6 @@ public class Splasher extends Bunny {
         MarkingUtils.tryResourcePatternCompletion();
 
         Util.logBytecode("Tried completion");
-
-        // 4. End of Turn Logic
-        sharedEndFunction();
     }
 
 

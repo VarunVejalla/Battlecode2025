@@ -35,8 +35,6 @@ public class MarkingUtils {
 
         // Mark tower pattern on the ruin if in range
         if (ruinLoc.distanceSquaredTo(rc.getLocation()) <= Constants.MAX_RUIN_DISTANCE_SQUARED) {
-            // TODO: Possibly pick the tower type you want to build (not sure if we need to
-            // Mark to build the kind of tower that is the opposite of the nearest allied tower.
             if(bunny.nearestAlliedTowerType == TowerType.PaintTower) {
                 rc.markTowerPattern(UnitType.LEVEL_ONE_MONEY_TOWER, ruinLoc);
             }

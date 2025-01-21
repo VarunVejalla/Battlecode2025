@@ -360,7 +360,7 @@ public class Soldier extends Bunny {
         // Criteria for valid
         // 1. no towers / ruins in 5x5 area.
         // 2. no uncreated ruins in vision
-        // 3. no resource pattern centers in vision?? TODO: Make this smarter by allowing it if it overlaps.
+        // 3. no resource pattern centers that don't overlap
         for(MapInfo info : nearbyMapInfos){
             if(info == null) continue;
             MapLocation infoLoc = info.getMapLocation();

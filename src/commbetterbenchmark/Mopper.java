@@ -200,7 +200,6 @@ public class Mopper extends Bunny {
         generalMopperNav(moveOptions, target, false, 0, 1, 2, 0, 100);
     }
 
-    // TODO: Add in heuristic for setting yourself up for a mop swing.
     public MapLocation calcHeuristics() throws GameActionException {
         int[] heuristics = new int[69];
         boolean[] adjacentToEnemyPaint = new boolean[69];
@@ -290,7 +289,6 @@ public class Mopper extends Bunny {
         return bestLoc;
     }
 
-    // TODO: Check for mop swing.
     public void doBestAction() throws GameActionException {
         RobotInfo[] actionableOpponents = rc.senseNearbyRobots(2, rc.getTeam().opponent());
         if (actionableOpponents.length == 0) {
