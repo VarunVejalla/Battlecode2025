@@ -341,7 +341,11 @@ public class Splasher extends Bunny {
 //            tileScore++;
 //        }
 
+        // Uncomment the code below to have soldiers move to the next unexplored sector.
+//        return 1-(encodedSector & 1);
         return tileScore;
+
+//        return sr.enemyPaintLevel + sr.emptyPaintLevel;
     }
 
     /**

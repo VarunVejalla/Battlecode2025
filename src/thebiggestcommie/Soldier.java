@@ -675,23 +675,26 @@ public class Soldier extends Bunny {
 //        if(sr.towerType >= 5) {
 //            sectorScore += 10000;
 //        }
-
-        // If the region is mostly empty and there's an unbuilt ruin, go there first.
-        if(sr.emptyPaintLevel >= 2 && sr.towerType == 1) {
-            sectorScore += 1000;
-        }
+//
+//        // If the region is mostly empty and there's an unbuilt ruin, go there first.
+//        if(sr.emptyPaintLevel >= 2 && sr.towerType == 1) {
+//            sectorScore += 1000;
+//        }
 
         // Prefer regions with 5-12 empty cells.
-        if(sr.emptyPaintLevel == 2) {
-            sectorScore += 500;
-        }
+//        if(sr.emptyPaintLevel == 2) {
+//            sectorScore += 500;
+//        }
 
         // Avoid regions with enemy cells.
-        if(sr.enemyPaintLevel >= 1) {
-            sectorScore -= 500;
-        }
+//        if(sr.enemyPaintLevel >= 1) {
+//            sectorScore -= 500;
+//        }
 
-        return sectorScore;
+        return 1-(encodedSector & 1);
+
+
+//        return sectorScore;
 
     }
 }

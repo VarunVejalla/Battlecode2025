@@ -84,6 +84,8 @@ public class PatternUtils {
         if (rc.isMovementReady()) {
             Util.addToIndicatorString("DEST " + soldier.destination  + ";");
             soldier.nav.goToBug(soldier.destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
+            // Uncomment the code below to have soldiers move to the next unexplored sector.
+            //            soldier.macroMove(Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
         }
     }
 
