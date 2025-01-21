@@ -288,34 +288,7 @@ public class PatternUtils {
         int dx = soldier.potentialResourceCenterLoc.x - myLoc.x;
         int dy = soldier.potentialResourceCenterLoc.y - myLoc.y;
 
-        // First try painting the corners we have left to explore.
-//
-//        // Find the index of the closest unchecked corner.
-//        // Check if we've already looked at all 4 corners.
-//        int closestUnchecked = 0;
-//        int closestDist = Integer.MAX_VALUE;
-//        int cornersLeftToCheck = 0;
-//        for(int i = 0; i < potentialRCCornersChecked.length; i++){
-//            if(!potentialRCCornersChecked[i]){
-//                cornersLeftToCheck++;
-//                int dist = rc.getLocation().distanceSquaredTo(getPotentialRCCornerLoc(i));
-//                if(dist < closestDist){
-//                    closestDist = dist;
-//                    closestUnchecked = i;
-//                }
-//            }
-//        }
-//        if(cornersLeftToCheck == 0){
-//            PatternUtils.markPotentialRCValid();
-//            PatternUtils.setPotentialRCAsRC();
-//            return false;
-//        }
-//
-//
-//        for()
-
-
-        // Then just try default painting, but DONT OVERRIDE ANY EXISTING PAINT.
+        // Just try default painting, but DONT OVERRIDE ANY EXISTING PAINT.
         byte[] ordering = ExcessConstants.orderFillingResourceCall(13*dx + dy + 84);
         MapLocation attackSquare;
         for (short attackIndex : ordering) {
