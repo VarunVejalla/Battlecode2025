@@ -371,6 +371,7 @@ public class PatternUtils {
 //            return UnitType.LEVEL_ONE_PAINT_TOWER;
 //        }
 
+//        return UnitType.LEVEL_ONE_MONEY_TOWER;
 
         if (rc.getNumberTowers() < 6) {
             if (isDefenseAllowed(ruinLoc)) {

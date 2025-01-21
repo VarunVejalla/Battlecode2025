@@ -49,6 +49,28 @@ public class Util {
         return new MapLocation(rc.getMapWidth()-1-current.x, current.y);
     }
 
+    public static int getPatternDifference(boolean[][] pattern) throws GameActionException {
+        int paintsNeeded = 0;
+        for(int x = robot.myLoc.x - 2; x <= robot.myLoc.x + 2; x++) {
+            for(int y = robot.myLoc.y - 2; y <= robot.myLoc.y + 2; y++) {
+                if(x == robot.myLoc.x && y == robot.myLoc.y) {
+                    continue;
+                }
+                MapLocation loc = new MapLocation(x, y);
+                boolean shouldBeSecondary = pattern[x - robot.myLoc.x + 2][y - robot.myLoc.y + 2];
+                PaintType paint = rc.senseMapInfo(loc).getPaint();
+                if (paint.isEnemy()) {
+                    return -1;
+                } else if (shouldBeSecondary && paint != PaintType.ALLY_SECONDARY){
+                    paintsNeeded++;
+                } else if (!shouldBeSecondary && paint != PaintType.ALLY_PRIMARY){
+                    paintsNeeded++;
+                }
+            }
+        }
+        return paintsNeeded;
+    }
+
     public static MapInfo[] getFilledInMapInfo(MapInfo[] nearbyMapInfo) {
         // assuming that we are the center of the nearbyMapInfo, and we are still at the center
         if (nearbyMapInfo.length == 69) {
