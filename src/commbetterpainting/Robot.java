@@ -19,8 +19,9 @@ public class Robot {
     int previousNumTotalTowers;
     int currentNumTotalChips;
     int currentNumTotalTowers;
-    int minMoneyTowers;
     int estimatedChipsPerRound;
+    int currentPaint;
+    int previousPaint;
     int roundSpawn;
     MapLocation spawnLoc;
 
@@ -57,31 +58,22 @@ public class Robot {
     }
 
     public void run() throws GameActionException {
-
-        currentNumTotalChips = rc.getChips();
-        currentNumTotalTowers = rc.getNumberTowers();
-
-        // TODO: this is a stupid way of doing it because resource patterns could go down. improve this
-        if (previousNumTotalTowers >= currentNumTotalTowers) {
-            estimatedChipsPerRound = Math.max(estimatedChipsPerRound, 1000*(previousNumTotalTowers - currentNumTotalTowers) + currentNumTotalChips - previousNumTotalChips);
-        } else {
-            estimatedChipsPerRound = 0;
-        }
-
         indicatorString = "";
         myLoc = rc.getLocation();
+        currentNumTotalChips = rc.getChips();
+        currentNumTotalTowers = rc.getNumberTowers();
+        currentPaint = rc.getPaint();
 
+        // TODO: this is a stupid way of doing it because resource patterns could go down. improve this
         int deltaChips = currentNumTotalChips - previousNumTotalChips;
-        if (currentNumTotalTowers >= previousNumTotalTowers) {
-            if (deltaChips/20 > minMoneyTowers) {
-                minMoneyTowers = deltaChips/20;
-            }
-        } else {
-            minMoneyTowers -= previousNumTotalTowers - currentNumTotalTowers;
-            if (minMoneyTowers < 0) {
-                minMoneyTowers = 0;
-            }
+        if(currentNumTotalTowers > previousNumTotalTowers){
+            deltaChips += 1000 * (currentNumTotalTowers - previousNumTotalTowers);
         }
+        if (deltaChips > 0) {
+            estimatedChipsPerRound = deltaChips;
+        }
+
+        Util.addToIndicatorString("CPR: " + estimatedChipsPerRound);
     }
 
     public double getMetric() {
@@ -95,5 +87,6 @@ public class Robot {
         rc.setIndicatorString(indicatorString);
         previousNumTotalChips = rc.getChips();
         previousNumTotalTowers = rc.getNumberTowers();
+        previousPaint = rc.getPaint();
     }
 }

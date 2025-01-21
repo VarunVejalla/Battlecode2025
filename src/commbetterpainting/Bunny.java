@@ -175,8 +175,6 @@ public abstract class Bunny extends Robot {
     }
 
     public void updateKnownRuinsAndSymmetries() throws GameActionException {
-        // TODO: Should optimize this by only searching new squares based on previous move.
-//        for(MapInfo info : nearbyMapInfos){
         Direction lastMoveDir = null;
         if(prevUpdateLoc != null){
             lastMoveDir = prevUpdateLoc.directionTo(rc.getLocation());
@@ -291,8 +289,6 @@ public abstract class Bunny extends Robot {
      * surroundings
      */
     public void setNearestAlliedTowers() throws GameActionException {
-        // TODO: Current behavior may cause paint tower to switch between two constantly while tryna navigate to it.
-        // TODO: If that happens, then we needa hold a consistent nearestAlliedPaintTowerLoc, so the code below might help.
         int maxDist = Integer.MAX_VALUE;
         int maxPaintDist = Integer.MAX_VALUE;
         nearestAlliedPaintTowerLoc = null;
