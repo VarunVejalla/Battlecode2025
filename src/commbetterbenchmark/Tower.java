@@ -15,6 +15,10 @@ public class Tower extends Robot {
 
     UnitType lastSpawnedUnitType;
 
+    int spawnedSoldiers = 0;
+    int spawnedMoppers = 0;
+    int spawnedSplashers = 0;
+
 
     public Tower(RobotController rc) throws GameActionException {
         super(rc);
@@ -60,6 +64,18 @@ public class Tower extends Robot {
         if (rc.canBuildRobot(unitType, location)) {
             numTotalSpawned++;
             rc.buildRobot(unitType, location);
+
+            lastSpawnedUnitType = unitType;
+
+            if (unitType == UnitType.SOLDIER) {
+                spawnedSoldiers += 1;
+            } else if (unitType == UnitType.MOPPER) {
+                spawnedMoppers += 1;
+            } else if (unitType == UnitType.SPLASHER) {
+                spawnedSplashers += 1;
+            }
+
+
             return true;
         }
         return false;
@@ -69,7 +85,7 @@ public class Tower extends Robot {
         if (rc.getRoundNum() < 50 && rc.getNumberTowers() <= 3) {
             return true;
         }
-        if (numRoundsLessThanN >= 4) {
+        if (numRoundsLessThanN >= 2) {
             return true;
         }
 
@@ -113,15 +129,44 @@ public class Tower extends Robot {
 
         boolean spawned = false;
 
-        if (getMetric() < 1.4) {
+        if (getMetric() < Constants.TOWER_SPAWNING_THRESHOLD) {
+//            if (Util.isPaintTower(rc.getType())) {
+//                spawned = tryBuilding(UnitType.SOLDIER, nextLoc);
+//            } else {
+//                if (lastSpawnedUnitType == UnitType.SOLDIER) {
+//                    spawned = tryBuilding(UnitType.SPLASHER, nextLoc);
+//                } else {
+//                    spawned = tryBuilding(UnitType.SOLDIER, nextLoc);
+//                }
+//
+//                if (!spawned && rc.getChips() >= UnitType.MOPPER.moneyCost && rc.getPaint() < UnitType.SOLDIER.paintCost && !Util.isPaintTower(rc.getType())) {
+//                    tryBuilding(UnitType.MOPPER, nextLoc);
+//                }
+//            }
             spawned = tryBuilding(UnitType.SOLDIER, nextLoc);
         } else {
             spawned = tryBuilding(UnitType.SPLASHER, nextLoc);
+//            spawned = tryBuilding(UnitType.SPLASHER, nextLoc);
+//            if (Util.isPaintTower(rc.getType())) {
+//                spawned = tryBuilding(UnitType.SPLASHER, nextLoc);
+//            } else {
+//                if (lastSpawnedUnitType != UnitType.SPLASHER) {
+//                    spawned = tryBuilding(UnitType.SPLASHER, nextLoc);
+//                } else {
+//                    spawned = tryBuilding(UnitType.MOPPER, nextLoc);
+//                }
+//
+//                if (!spawned && rc.getChips() >= UnitType.MOPPER.moneyCost && rc.getPaint() < UnitType.SPLASHER.paintCost && !Util.isPaintTower(rc.getType())) {
+//                    tryBuilding(UnitType.MOPPER, nextLoc);
+//                }
+//            }
         }
 
-        if (!spawned && rc.getChips() >= UnitType.MOPPER.moneyCost && !Util.isPaintTower(rc.getType())) {
+        if (!spawned && rc.getChips() >= UnitType.MOPPER.moneyCost && rc.getPaint() < UnitType.SOLDIER.paintCost && !Util.isPaintTower(rc.getType())) {
             tryBuilding(UnitType.MOPPER, nextLoc);
         }
+
+
 
 //        int robotType = rng.nextInt(3); // yes splashers
 //        if (robotType == 0) {
