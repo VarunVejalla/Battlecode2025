@@ -51,6 +51,11 @@ public class Mopper extends Bunny {
             Util.log("Location after move logic: " + rc.getLocation());
         }
 
+        MarkingUtils.tryRuinPatternCompletion();
+        MarkingUtils.tryResourcePatternCompletion();
+
+        Util.logBytecode("Tried completion");
+
         sharedEndFunction();
     }
 
