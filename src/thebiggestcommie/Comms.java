@@ -209,7 +209,7 @@ public class Comms {
         for (int sectorIndex = 0; sectorIndex < sectorCount; sectorIndex++) {
             if (myWorld[sectorIndex] == 0) continue;
             Util.log("Sector Center: " + getSectorCenter(sectorIndex));
-            Util.log(Util.getSectorDescription(myWorld[sectorIndex]) + "\n\n");
+            Util.log(Util.getSectorDescription(myWorld[sectorIndex]));
         }
     }
 }

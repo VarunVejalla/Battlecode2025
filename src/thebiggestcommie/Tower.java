@@ -50,9 +50,14 @@ public class Tower extends Robot {
 
         // Read incoming messages
         Message[] messages = rc.readMessages(-1);
-        for (Message m : messages) {
-             Util.log("Tower received message: '#" + m.getSenderID() + " " + m.getBytes());
+//        for (Message m : messages) {
+//             Util.log("Tower received message: '#" + m.getSenderID() + " " + m.getBytes());
+//        }
+
+        if(rc.getRoundNum() == 350 && rc.getID() == 11498) {
+            comms.describeWorld();
         }
+
 
     }
 
