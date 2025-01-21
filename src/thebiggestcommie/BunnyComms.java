@@ -15,8 +15,9 @@ public class BunnyComms extends Comms {
 
     public final boolean isLargeMap = sectorCount >= MAX_MAP_SECTORS_SENT_PER_ROUND;
 
-    // -1 is used to represent empty messages.
-    public int[] messageBuffer = {-1,-1,-1,-1,-1}; // Buffer fills up at 5 sectors. Hardcoded for bytecode.
+    // null is used to represent empty messages.
+    // Buffer fills up at 10 sectors.
+    public ScanResult[] messageBuffer = {null,null,null,null,null,null,null,null,null,null};
     public int messageBufferIndex = 0; // Stores the first invalid index.
     public int messagesTransmitted = 0;
 
@@ -30,10 +31,10 @@ public class BunnyComms extends Comms {
         this.bunny = bunny;
     }
 
-    public void updateBunnyBuffer(int roundNum, int sectorID, int msg) throws GameActionException {
-        assert roundNum <= 2001;
-        assert sectorID < 144;
-        messageBuffer[messageBufferIndex] = (roundNum << 16) + (sectorID << 8) + msg;
+    public void updateBunnyBuffer(ScanResult sr) throws GameActionException {
+        assert sr.roundNum <= 2001;
+        assert sr.sectorID < 144;
+        messageBuffer[messageBufferIndex] = sr;
         messageBufferIndex++;
         messageBufferIndex %= messageBuffer.length;
     }
@@ -60,6 +61,27 @@ public class BunnyComms extends Comms {
         // Otherwise, big map is not needed this round.
     }
 
+    /**
+     *  Given a scanned sector of information to update, create a message to send. Only send tower related updates.
+     */
+
+    public int createBufferMessage(ScanResult sr) throws GameActionException {
+        // If the information is more than 160 rounds old, throw it away.
+        if(rc.getRoundNum() - sr.roundNum >= 160) {
+            return -1;
+        }
+        // Encode the age using 0-15 for 0 - 159 rounds ago. This is 4 bits.
+        int age = (rc.getRoundNum() - sr.roundNum) / 10;
+
+        // SectorID is 8 bits.
+        int sectorID = sr.sectorID;
+
+        // Info is the last 4 bits of the encoded sector.
+        int info = encodeSector(sr) & 0xFF;
+
+        // Combine for 16 bit message.
+        return (age << 12) + (sectorID << 4) + info;
+    }
 
     /**
      * Bunny sends a tower the next entry in its buffer.
@@ -67,12 +89,36 @@ public class BunnyComms extends Comms {
     public void sendBufferUpdateMessage(RobotInfo tower) throws GameActionException {
         // Send messages until messagesTransmitted is the size of the buffer.
         // You can only send one message per round. If there's no messages left in the buffer, request a map!
-        if(messagesTransmitted < messageBuffer.length && messageBuffer[messagesTransmitted] != -1) {
+        if(!rc.canSendMessage(tower.getLocation())) return;
+        if(messagesTransmitted < messageBuffer.length && messageBuffer[messagesTransmitted] != null) {
             // Send the next message in the buffer.
-            if(rc.canSendMessage(tower.getLocation())) {
-                rc.sendMessage(tower.getLocation(), messageBuffer[messagesTransmitted]);
-                messagesTransmitted++;
+            int messageToSend;
+            int message1 = createBufferMessage(messageBuffer[messagesTransmitted]);
+            if(message1 != -1) {
+                messageToSend = message1;
+            } else {
+                messageToSend = NULL_MESSAGE;
             }
+            messageToSend = messageToSend << 16;
+            messagesTransmitted++;
+
+            // If the next sector is in the buffer, just append the message.
+
+            if(messagesTransmitted < messageBuffer.length && messageBuffer[messagesTransmitted] != null) {
+                int message2 = createBufferMessage(messageBuffer[messagesTransmitted]);
+                if(message2 != -1) {
+                    messageToSend += message2;
+                }
+                else {
+                    messageToSend += NULL_MESSAGE;
+                }
+            } else {
+                messageToSend += NULL_MESSAGE;
+            }
+            messagesTransmitted++;
+
+            // If the next message falls out of the buffer, append the null message.
+            rc.sendMessage(tower.getLocation(), messageToSend);
         }
         else {
             // Buffer transfer is complete and cooldown is reset.
@@ -153,13 +199,17 @@ public class BunnyComms extends Comms {
 
         // Checking bunny world
         if(sectorIndex != -1) {
-            ScanResult sr = scanSector(sectorIndex);
+            ScanResult sr = scanSector(sectorIndex, rc.getRoundNum());
 
             int encodedSector = encodeSector(sr);
-
+            assert encodedSector <= 0xFF;
             // If this encoding is different from the known encoding, add the message to the buffer.
             if(encodedSector != myWorld[sectorIndex]) {
-                updateBunnyBuffer(rc.getRoundNum(), sectorIndex, encodedSector);
+
+                // Only add it to the buffer if the tower state change.
+                if((encodedSector & 0xF0) == (myWorld[sectorIndex] & 0xF0)) {
+                    updateBunnyBuffer(sr);
+                }
 
                 // update comms.myWorld with this new information
                 myWorld[sectorIndex] = encodedSector;
@@ -173,7 +223,7 @@ public class BunnyComms extends Comms {
     /**
      * Scans a sector and returns the scan result containing tower type, enemy paint count, and empty paint count.
      */
-    public ScanResult scanSector(int sectorIndex) throws GameActionException {
+    public ScanResult scanSector(int sectorIndex, int roundNum) throws GameActionException {
         int towerType = 0; // Default value
         int enemyPaintCount = 0;
         int emptyPaintCount = 0;
@@ -211,8 +261,8 @@ public class BunnyComms extends Comms {
             }
         }
 
-        return new ScanResult(towerType,
+        return new ScanResult(sectorIndex, towerType,
                 convertTileCounts(enemyPaintCount),
-                convertTileCounts(emptyPaintCount));
+                convertTileCounts(emptyPaintCount), roundNum);
     }
 }

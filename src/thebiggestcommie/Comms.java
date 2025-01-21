@@ -9,7 +9,7 @@ public class Comms {
     public final int MAP_UPDATE_REQUEST_CODE = 0xFFFF;
     public final int MAP2_UPDATE_REQUEST_CODE = 0xFFFE; // Used for larger maps.
     public final int MAX_MAP_SECTORS_SENT_PER_ROUND = 80;
-
+    public final int NULL_MESSAGE = 0x0FF0;
 
     RobotController rc;
     int[] myWorld;
@@ -75,7 +75,8 @@ public class Comms {
         int emptyCount = (encodedSector >> 4) & 0b11;
         int enemyPaintCount = (encodedSector >> 6) & 0b11;
 
-        return new ScanResult(ruinCondition, enemyPaintCount, emptyCount);
+        // Put in a fake sector and a fake round number.
+        return new ScanResult(-1, ruinCondition, enemyPaintCount, emptyCount, -1);
     }
 
     /**

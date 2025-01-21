@@ -23,7 +23,7 @@ public class Tower extends Robot {
 
     public void run() throws GameActionException {
         super.run();
-        Util.log("TOWER");
+//        Util.log("TOWER");
         Util.addToIndicatorString("RUN");
         scanSurroundings();
         runAttack();
@@ -181,7 +181,7 @@ public class Tower extends Robot {
         // see if there's an enemy to attack
         Util.addToIndicatorString("RA");
         MapLocation target = findBestAttackTarget();
-        Util.log("TGT: " + target);
+//        Util.log("TGT: " + target);
         Util.addToIndicatorString("TGT: " + target);
 
         if (target != null && rc.canAttack(target)) {

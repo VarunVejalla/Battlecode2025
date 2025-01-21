@@ -15,6 +15,18 @@ public class TowerComms extends Comms {
         roundLastSeen = new int[sectorCount];
     }
 
+    public void decryptSectorMessage(int message) {
+        int roundNum = rc.getRoundNum()-(message >> 12)*10;
+        int sectorID = (message & 0xFFF) >> 4;
+        int info = message & 0xF;
+
+        // If the last time I saw this sector is older, update my world.
+        if (roundLastSeen[sectorID] < roundNum) {
+            myWorld[sectorID] = (myWorld[sectorID] & 0xF0) + info;
+            roundLastSeen[sectorID] = roundNum;
+        }
+    }
+
     /**
      * Processes incoming messages and updates the map representation.
      */
@@ -29,7 +41,6 @@ public class TowerComms extends Comms {
 
         boolean hasSentMap = false;
         for (Message message : messages) {
-
             if (message.getBytes() == MAP_UPDATE_REQUEST_CODE) {
                 // Util.log("Received a map request: " + message);
                 if(!hasSentMap){
@@ -48,24 +59,20 @@ public class TowerComms extends Comms {
 
             // Otherwise, it's potential new sector info.
             else {
-                // Decode the sector message.
-                int roundNum = message.getBytes() >> 16;
-                int sectorID = (message.getBytes() & 0xFFFF) >> 8;
-                int msg = message.getBytes() & 0xFF;
+                int message1 = message.getBytes() >> 16;
+                int message2 = message.getBytes() & 0xFFFF;
 
-                // Util.log("Received a sector update from robot: " + message.getSenderID() + "\n");
-                // Util.log("Contents: " + roundNum + ", " + sectorID + ", " + msg + "\n");
-                // Util.log("Sector Center: " + getSectorCenter(sectorID));
-                // Util.log("-------------------------------------");
-                // Util.log(Util.getSectorDescription(sectorID));
-
-                // If the last time I saw this sector is older, update my world.
-                if (roundLastSeen[sectorID] < roundNum) {
-                    myWorld[sectorID] = msg;
-                    roundLastSeen[sectorID] = roundNum;
+                // Decode the first message.
+                if(message1 != NULL_MESSAGE) {
+                    decryptSectorMessage(message1);
                 }
-                // Util.logArray("Tower world", myWorld);
-                // Util.logArray("Last Round Seen", roundLastSeen);
+
+                // Decode the second message.
+                if(message2 != NULL_MESSAGE) {
+                    decryptSectorMessage(message2);
+                }
+
+
             }
 
         }

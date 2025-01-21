@@ -671,6 +671,11 @@ public class Soldier extends Bunny {
         ScanResult sr = comms.decodeSector(encodedSector);
         int sectorScore = 0;
 
+//        // If there's an enemy tower, definitely go there first.
+//        if(sr.towerType >= 5) {
+//            sectorScore += 10000;
+//        }
+
         // If the region is mostly empty and there's an unbuilt ruin, go there first.
         if(sr.emptyPaintLevel >= 2 && sr.towerType == 1) {
             sectorScore += 1000;
