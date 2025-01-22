@@ -357,35 +357,9 @@ public class PatternUtils {
     }
 
     public static UnitType decideRuinUnitType(MapLocation ruinLoc) throws GameActionException {
-        // TODO: use map dimensions, number of chips(?), round number, etc (but only globally available information?)
-        // ruinLoc isn't globally available, but can we still use it?
-
-//        if (rc.getNumberTowers() <= 3 || soldier.estimatedChipsPerRound <= Math.max(rc.getNumberTowers() * 20 * 0.5, 100)) {
-//            return UnitType.LEVEL_ONE_MONEY_TOWER;
-//        } else {
-//            return UnitType.LEVEL_ONE_PAINT_TOWER;
-//        }
-
-//        if (rc.getNumberTowers() >= 4 && rc.getChips() >= 1200) {
-//            // it should be based on chip gain, not on just number of chips
-//            return UnitType.LEVEL_ONE_PAINT_TOWER;
-//        }
-
-//        return UnitType.LEVEL_ONE_MONEY_TOWER;
-
-        if (rc.getNumberTowers() < 6) {
-            if (isDefenseAllowed(ruinLoc)) {
-                return UnitType.LEVEL_ONE_DEFENSE_TOWER;
-            }
+        // TODO: Come back and add defense towers.
+        // Always build money towers.
             return UnitType.LEVEL_ONE_MONEY_TOWER;
-        } else if (rc.getNumberTowers()%2 == 0) {
-            return UnitType.LEVEL_ONE_PAINT_TOWER;
-        } else {
-            if (isDefenseAllowed(ruinLoc)) {
-                return UnitType.LEVEL_ONE_DEFENSE_TOWER;
-            }
-            return UnitType.LEVEL_ONE_MONEY_TOWER;
-        }
     }
 
     public static boolean checkRuinCompleted(MapLocation ruinLoc, UnitType ruinType) throws GameActionException {
