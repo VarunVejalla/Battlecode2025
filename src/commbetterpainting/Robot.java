@@ -64,7 +64,6 @@ public class Robot {
         currentNumTotalTowers = rc.getNumberTowers();
         currentPaint = rc.getPaint();
 
-        // TODO: this is a stupid way of doing it because resource patterns could go down. improve this
         int deltaChips = currentNumTotalChips - previousNumTotalChips;
         if(currentNumTotalTowers > previousNumTotalTowers){
             deltaChips += 1000 * (currentNumTotalTowers - previousNumTotalTowers);

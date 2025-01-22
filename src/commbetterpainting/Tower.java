@@ -58,8 +58,6 @@ public class Tower extends Robot {
              Util.log("Tower received message: '#" + m.getSenderID() + " " + m.getBytes());
         }
 
-        sharedEndFunction();
-
 //        if (rc.getPaint() < 100 && rc.getChips() > 1500 && rc.getType() == UnitType.LEVEL_ONE_MONEY_TOWER) {
 //            RobotInfo[] nearbyFriends = rc.senseNearbyRobots(8, myTeam);
 //            int paintsNeeded = Util.getPatternDifference(rc.getTowerPattern(UnitType.LEVEL_ONE_MONEY_TOWER));
@@ -77,8 +75,6 @@ public class Tower extends Robot {
 //                }
 //            }
 //        }
-
-
     }
 
     public boolean tryBuilding(UnitType unitType, MapLocation location) throws GameActionException {

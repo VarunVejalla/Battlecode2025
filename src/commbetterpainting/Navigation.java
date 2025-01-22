@@ -196,8 +196,7 @@ public class Navigation {
             }
             int allyHeuristic = numAllies * 5;
 
-            Util.addToIndicatorString("D" + distance + "," + paintHeuristic + "," + allyHeuristic + ";");
-            Util.log("D" + dir + "," + distance + "," + paintHeuristic + "," + allyHeuristic + ";");
+            Util.log("D: " + dir + "," + distance + "," + paintHeuristic + "," + allyHeuristic);
 
             int heuristic = numMoves + distance + paintHeuristic + allyHeuristic;
 
