@@ -18,7 +18,7 @@ public class PaintTower extends Tower {
         if(currentPaint > previousPaint && !replenishingRobotsNearby) {
             paintPerRound = currentPaint - previousPaint;
         }
-        estimatedRC = (paintPerRound - 5) / 3;
+        estimatedRC = (paintPerRound - rc.getType().paintPerTurn) / 3;
         Util.addToIndicatorString("ERC: " + estimatedRC);
 
         int numMoneyTowers = estimatedChipsPerRound / (20 + 3 * estimatedRC);
