@@ -129,7 +129,26 @@ public class Mopper extends Bunny {
                 Direction.WEST,
                 Direction.NORTHWEST
         };
-        generalMopperNav(directions, null, false, 0, 10, 20, 5, 100);
+        RobotInfo[] infos = rc.senseNearbyRobots(8, oppTeam);
+        MapLocation targetLoc = null;
+        int minDist = Integer.MAX_VALUE;
+        // Chase down the closest enemy troop.
+        for(RobotInfo info : infos){
+            if(info.getType().isTowerType()){
+                continue;
+            }
+            int dist = rc.getLocation().distanceSquaredTo(info.getLocation());
+            if(dist < minDist){
+                targetLoc = info.getLocation();
+                minDist = dist;
+            }
+        }
+        if(targetLoc == null){
+            generalMopperNav(directions, null, false, 0, 10, 20, 5, 100);
+        }
+        else {
+            generalMopperNav(directions, targetLoc, true, 0, 10, 20, 5, 100);
+        }
     }
 
     public void generalMopperNav(Direction[] moveOptions, MapLocation target, boolean force_lower_dist, int allyPaintHeuristic, int emptyPaintHeuristic, int enemyPaintHeuristic, int nearbyAllyHeuristic, int nearbyEnemyTowerHeuristic) throws GameActionException {
@@ -319,6 +338,8 @@ public class Mopper extends Bunny {
         int lowestEnemyPaintOnPaint = Integer.MAX_VALUE;
         MapLocation bestIndividualTargetOnEmpty = null;
         int lowestEnemyPaintOnEmpty = Integer.MAX_VALUE;
+        MapLocation bestZeroEnemyPaintTarget = null;
+        int closestZeroEnemyPaint = Integer.MAX_VALUE;
 
         int westDirectionMetric = 0;
         int eastDirectionMetric = 0;
@@ -331,10 +352,19 @@ public class Mopper extends Bunny {
         int dx, dy;
 
         for (RobotInfo opponent : actionableOpponents) {
-            if (opponent.getType().isTowerType() || opponent.getPaintAmount() == 0) {
+            if (opponent.getType().isTowerType()) {
                 continue;
             }
             individualPaint = opponent.getPaintAmount();
+            if(individualPaint == 0){
+                int dist = rc.getLocation().distanceSquaredTo(opponent.getLocation());
+                if(dist < closestZeroEnemyPaint){
+                    bestZeroEnemyPaintTarget = opponent.getLocation();
+                    closestZeroEnemyPaint = dist;
+                    continue;
+                }
+            }
+
             dx = opponent.getLocation().x-myLoc.x;
             dy = opponent.getLocation().y-myLoc.y;
 
@@ -375,6 +405,9 @@ public class Mopper extends Bunny {
         } else if (bestIndividualTargetOnEmpty != null) {
             Util.addToIndicatorString("BTE " + bestIndividualTargetOnEmpty);
             rc.attack(bestIndividualTargetOnEmpty);
+        } else if (bestZeroEnemyPaintTarget != null) {
+            Util.addToIndicatorString("BZT " + bestZeroEnemyPaintTarget);
+            rc.attack(bestZeroEnemyPaintTarget);
         } else {
             Direction bestDir = Direction.EAST;
             int bestMetric = eastDirectionMetric;
