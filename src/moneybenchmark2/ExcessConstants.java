@@ -1,4 +1,4 @@
-package betternav;
+package moneybenchmark2;
 
 public class ExcessConstants {
     // ~200 bytecode.

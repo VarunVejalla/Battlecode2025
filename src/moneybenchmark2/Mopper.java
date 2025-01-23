@@ -1,4 +1,4 @@
-package betternav;
+package moneybenchmark2;
 
 import battlecode.common.*;
 
@@ -293,16 +293,15 @@ public class Mopper extends Bunny {
         return bestLoc;
     }
 
-    // TODO: Check for mop swing.
     public void doBestAction() throws GameActionException {
-        RobotInfo[] actionableOpponents = rc.senseNearbyRobots(2, rc.getTeam().opponent());
+        RobotInfo[] actionableOpponents = rc.senseNearbyRobots(7, rc.getTeam().opponent());
         if (actionableOpponents.length == 0) {
             MapLocation tileToMop = getTileToMop();
             Util.addToIndicatorString("TE1" + tileToMop);
             if (tileToMop != null) {
                 rc.attack(tileToMop);
+                return;
             }
-            return;
         }
 
         MapLocation bestIndividualTargetOnPaint = null;
@@ -310,12 +309,38 @@ public class Mopper extends Bunny {
         MapLocation bestIndividualTargetOnEmpty = null;
         int lowestEnemyPaintOnEmpty = Integer.MAX_VALUE;
 
+        int westDirectionMetric = 0;
+        int eastDirectionMetric = 0;
+        int southDirectionMetric = 0;
+        int northDirectionMetric = 0;
+
+        myLoc = rc.getLocation();
+
+        int individualPaint;
+        int dx, dy;
+
         for (RobotInfo opponent : actionableOpponents) {
-            if (opponent.getType().isTowerType()) {
+            if (opponent.getType().isTowerType() || opponent.getPaintAmount() == 0) {
                 continue;
             }
-            int individualPaint = opponent.getPaintAmount();
-            if (individualPaint >= lowestEnemyPaintOnPaint || individualPaint >= lowestEnemyPaintOnEmpty
+            individualPaint = opponent.getPaintAmount();
+            dx = opponent.getLocation().x-myLoc.x;
+            dy = opponent.getLocation().y-myLoc.y;
+
+            if (dy > 0 && (-1 <= dx && dx <= 1)) {
+                northDirectionMetric += Math.min(5, opponent.getPaintAmount());
+            }
+            if (dy < 0 && (-1 <= dx && dx <= 1)) {
+                southDirectionMetric += Math.min(5, opponent.getPaintAmount());
+            }
+            if (dx > 0 && (-1 <= dy && dy <= 1)) {
+                eastDirectionMetric += Math.min(5, opponent.getPaintAmount());
+            }
+            if (dx < 0 && (-1 <= dy && dy <= 1)) {
+                westDirectionMetric += Math.min(5, opponent.getPaintAmount());
+            }
+
+            if ((individualPaint >= lowestEnemyPaintOnPaint && individualPaint >= lowestEnemyPaintOnEmpty)
                     || !rc.canAttack(opponent.getLocation())) {
                 continue;
             }
@@ -336,14 +361,36 @@ public class Mopper extends Bunny {
         if (bestIndividualTargetOnPaint != null) {
             Util.addToIndicatorString("BTP" + bestIndividualTargetOnPaint);
             rc.attack(bestIndividualTargetOnPaint);
-        } else if (bestIndividualTargetOnEmpty != null) {
+            return;
+        } else if (rc.getPaint() <= 95 && bestIndividualTargetOnEmpty != null) {
             Util.addToIndicatorString("BTE" + bestIndividualTargetOnEmpty);
             rc.attack(bestIndividualTargetOnEmpty);
+            return;
         } else {
-            MapLocation tileToMop = getTileToMop();
-            Util.addToIndicatorString("TE2" + tileToMop);
-            if (tileToMop != null) {
-                rc.attack(tileToMop);
+            Direction bestDir = Direction.EAST;
+            int bestMetric = eastDirectionMetric;
+            if (westDirectionMetric > bestMetric) {
+                bestMetric = westDirectionMetric;
+                bestDir = Direction.WEST;
+            }
+            if (northDirectionMetric > bestMetric) {
+                bestMetric = northDirectionMetric;
+                bestDir = Direction.NORTH;
+            }
+            if (southDirectionMetric > bestMetric) {
+                bestMetric = southDirectionMetric;
+                bestDir = Direction.SOUTH;
+            }
+
+            if (bestMetric > 0 && rc.canMopSwing(bestDir)) {
+                rc.mopSwing(bestDir);
+            } else {
+                MapLocation tileToMop = getTileToMop();
+                Util.addToIndicatorString("TE2" + tileToMop);
+                if (tileToMop != null) {
+                    rc.attack(tileToMop);
+                    return;
+                }
             }
         }
     }

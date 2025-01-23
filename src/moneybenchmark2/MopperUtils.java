@@ -1,4 +1,4 @@
-package betternav;
+package moneybenchmark2;
 
 public class MopperUtils {
     public static void updateHeuristicAdjacents(int[] heuristics, int index, int diff){

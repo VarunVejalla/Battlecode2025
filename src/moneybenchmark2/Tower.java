@@ -1,4 +1,4 @@
-package betternav;
+package moneybenchmark2;
 
 import battlecode.common.*;
 
@@ -23,6 +23,7 @@ public class Tower extends Robot {
     int spawnedSoldiers = 0;
     int spawnedMoppers = 0;
     int spawnedSplashers = 0;
+    RobotInfo[] enemiesInVision = null;
 
 
     public Tower(RobotController rc) throws GameActionException {
@@ -37,10 +38,28 @@ public class Tower extends Robot {
         scanSurroundings();
         runAttack();
 
+        enemiesInVision = rc.senseNearbyRobots(-1, oppTeam);
+
         if (rc.getChips() < chipThreshold) {
             numRoundsLessThanN++;
         } else {
             numRoundsLessThanN = 0;
+        }
+
+        if (enemiesInVision.length > 0 && !isSaving()) {
+            boolean considerSpawningMopper = false;
+            for (RobotInfo enemy : enemiesInVision) {
+                if (enemy.getPaintAmount() > 0) {
+                    considerSpawningMopper = true;
+                    break;
+                }
+            }
+
+            if (considerSpawningMopper && (spawnedMoppers == 0 || (spawnedMoppers == 1 && rc.getHealth() < 700) || (spawnedMoppers == 2 && rc.getHealth() < 300))) {
+                Direction dir = directions[rng.nextInt(directions.length)];
+                MapLocation nextLoc = rc.getLocation().add(dir);
+                tryBuilding(UnitType.MOPPER, nextLoc);
+            }
         }
 
         if (rc.getRoundNum() < 50 && rc.getNumberTowers() <= 3) {

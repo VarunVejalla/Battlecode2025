@@ -293,10 +293,7 @@ public class Mopper extends Bunny {
         return bestLoc;
     }
 
-    // TODO: Check for mop swing.
     public void doBestAction() throws GameActionException {
-
-
         RobotInfo[] actionableOpponents = rc.senseNearbyRobots(7, rc.getTeam().opponent());
         if (actionableOpponents.length == 0) {
             MapLocation tileToMop = getTileToMop();

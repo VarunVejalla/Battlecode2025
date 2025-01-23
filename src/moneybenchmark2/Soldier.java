@@ -1,4 +1,4 @@
-package betternav;
+package moneybenchmark2;
 
 import battlecode.common.*;
 
@@ -46,8 +46,8 @@ public class Soldier extends Bunny {
 
 
         double metric = getMetric();
-        tryReplenish();
         if (metric < Constants.RUIN_SEARCHING_THRESHOLD) {
+
             if ((nearestAlliedPaintTowerLoc != null || nearestAlliedTowerLoc != null) && (rc.getPaint() < 5)) {
                 if(nearestAlliedPaintTowerLoc != null){
                     destination = nearestAlliedPaintTowerLoc;
@@ -62,6 +62,7 @@ public class Soldier extends Bunny {
                 if (rc.getLocation().distanceSquaredTo(destination) <= Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION) {
                     destination = Util.getRandomMapLocation();
                 }
+                tryReplenish();
                 tryingToReplenish = false;
             }
         } else {
@@ -72,6 +73,8 @@ public class Soldier extends Bunny {
         if (!tryingToReplenish && !alreadyVisited && (rc.getNumberTowers() <= 3 && rc.getRoundNum() < 100)) {
             destination = Util.getRotationalReflection(spawnLoc);
         }
+
+
 
         // 1. If trying to replenish, go do that.
         // TODO: If nearestAlliedPaintTowerLoc == null, should we explore or smth?
@@ -280,7 +283,7 @@ public class Soldier extends Bunny {
             return false;
         }
 
-        boolean patternCompleted = PatternUtils.checkPatternCompleted(currResourceCenterLoc, rc.getResourcePattern());
+        boolean patternCompleted = PatternUtils.checkPatternCompleted(currResourceCenterLoc, rc.getResourcePattern(), true);
         if(patternCompleted) {
             // If i'm assigned to this resource pattern, just stay near it.
             if (currResourceResponsibility == Responsibility.SELF_RESPONSIBLE) {

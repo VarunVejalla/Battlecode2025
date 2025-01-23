@@ -1,4 +1,4 @@
-package betternav;
+package moneybenchmark2;
 
 /**
  * Basic datastructure to hold scan results that will be used to populate comms

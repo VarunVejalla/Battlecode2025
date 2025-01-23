@@ -1,4 +1,4 @@
-package betternav;
+package moneybenchmark2;
 
 import battlecode.common.GameActionException;
 import battlecode.common.Message;
