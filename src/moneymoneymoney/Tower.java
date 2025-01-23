@@ -39,6 +39,14 @@ public class Tower extends Robot {
         runAttack();
 
         enemiesInVision = rc.senseNearbyRobots(-1, oppTeam);
+        RobotInfo[] friendliesInVision = rc.senseNearbyRobots(-1, myTeam);
+
+        int moppersInVision = 0;
+        for(int i = 0; i < friendliesInVision.length; i++) {
+            if(friendliesInVision[i].getType() == UnitType.MOPPER){
+                moppersInVision++;
+            }
+        }
 
         if (rc.getChips() < chipThreshold) {
             numRoundsLessThanN++;
@@ -46,20 +54,19 @@ public class Tower extends Robot {
             numRoundsLessThanN = 0;
         }
 
-        if (enemiesInVision.length > 0 && !isSaving()) {
-            boolean considerSpawningMopper = false;
-            for (RobotInfo enemy : enemiesInVision) {
-                if (enemy.getPaintAmount() > 0) {
-                    considerSpawningMopper = true;
-                    break;
-                }
+        // Defensive moppers. TODO: Make sure the moppers can see the enemies.
+        int dangerousEnemies = 0;
+        for (RobotInfo enemy : enemiesInVision) {
+            if (enemy.getPaintAmount() > 0) {
+                dangerousEnemies++;
+                break;
             }
+        }
 
-            if (considerSpawningMopper && (spawnedMoppers == 0 || (spawnedMoppers == 1 && rc.getHealth() < 700) || (spawnedMoppers == 2 && rc.getHealth() < 300))) {
-                Direction dir = directions[rng.nextInt(directions.length)];
-                MapLocation nextLoc = rc.getLocation().add(dir);
-                tryBuilding(UnitType.MOPPER, nextLoc);
-            }
+        if (dangerousEnemies > moppersInVision * 2) {
+            Direction dir = directions[rng.nextInt(directions.length)];
+            MapLocation nextLoc = rc.getLocation().add(dir);
+            tryBuilding(UnitType.MOPPER, nextLoc);
         }
 
         if (rc.getRoundNum() < 50 && rc.getNumberTowers() <= 3) {
