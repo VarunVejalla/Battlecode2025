@@ -4,11 +4,14 @@ import battlecode.common.*;
 
 public class BunnyComms extends Comms {
 
-    public final int MAP_COOLDOWN = 50;
-    public final int MAP2_COOLDOWN = 50; // Used for larger maps
+    public final int MAP_COOLDOWN = 50; // 50
+    public final int MAP2_COOLDOWN = 50; // 50 Used for larger maps
 
-    public int lastMapUpdate = -(MAP_COOLDOWN + 1);
-    public int lastMap2Update = -(MAP2_COOLDOWN + 1); // used for larger maps.
+//    public int lastMapUpdate = -(MAP_COOLDOWN + 1);
+//    public int lastMap2Update = -(MAP2_COOLDOWN + 1); // used for larger maps.
+    public int lastMapUpdate = 2000;
+    public int lastMap2Update = 2000; // used for larger maps.
+
 
     public final int BUFFER_COOLDOWN = 20;
     public int lastBufferUpdate = -(BUFFER_COOLDOWN + 1);
