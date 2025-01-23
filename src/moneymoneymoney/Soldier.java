@@ -21,7 +21,7 @@ public class Soldier extends Bunny {
     int[] roundPaintedRuinsBySector = new int[144];
     MapLocation rotationalDestination;
     boolean alreadyVisited = false;
-
+    RobotInfo attackInfo = null;
 
     public Soldier(RobotController rc) throws GameActionException {
         super(rc);
@@ -183,7 +183,7 @@ public class Soldier extends Bunny {
             }
         }
 
-        return rc.getPaint() - needToComplete * rc.getType().attackCost <= Constants.PAINT_THRESHOLD_TO_REPLENISH_WHEN_WORKING;
+        return rc.getPaint() - needToComplete * rc.getType().attackCost < Constants.PAINT_THRESHOLD_TO_REPLENISH_WHEN_WORKING;
     }
 
     // Attacking logic.
@@ -191,14 +191,19 @@ public class Soldier extends Bunny {
     public RobotInfo getAttackTarget() throws GameActionException {
         // Get location of tower to attack.
         RobotInfo attackInfo = null;
-        int minDist = Integer.MAX_VALUE;
+//        int minDist = Integer.MAX_VALUE;
+        int minHealth = Integer.MAX_VALUE;
         for(RobotInfo info : nearbyOpponents){
             if(!Util.isTower(info.getType())){
                 continue;
             }
             int dist = rc.getLocation().distanceSquaredTo(info.getLocation());
-            if(dist < minDist){
-                minDist = dist;
+//            if(dist < minDist){
+//                minDist = dist;
+//                attackInfo = info;
+//            }
+            if(info.getHealth() < minHealth){
+                minHealth = info.getHealth();
                 attackInfo = info;
             }
         }
