@@ -56,16 +56,22 @@ public class Tower extends Robot {
 
         // Defensive moppers. TODO: Make sure the moppers can see the enemies.
         int dangerousEnemies = 0;
+        Direction closestEnemyDir = null;
+        int closestDist = Integer.MAX_VALUE;
         for (RobotInfo enemy : enemiesInVision) {
             if (enemy.getPaintAmount() > 0) {
                 dangerousEnemies++;
-                break;
+                int dist = rc.getLocation().distanceSquaredTo(enemy.getLocation());
+                if(dist < closestDist){
+                    closestDist = dist;
+                    closestEnemyDir = rc.getLocation().directionTo(enemy.getLocation());
+                }
             }
         }
 
-        if (dangerousEnemies > moppersInVision * 2) {
-            Direction dir = directions[rng.nextInt(directions.length)];
-            MapLocation nextLoc = rc.getLocation().add(dir);
+        if (closestEnemyDir != null && dangerousEnemies > moppersInVision * 2) {
+//            Direction dir = directions[rng.nextInt(directions.length)];
+            MapLocation nextLoc = rc.getLocation().add(closestEnemyDir);
             tryBuilding(UnitType.MOPPER, nextLoc);
         }
 
