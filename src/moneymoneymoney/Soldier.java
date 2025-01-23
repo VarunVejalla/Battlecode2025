@@ -33,6 +33,7 @@ public class Soldier extends Bunny {
 
         if (metric < Constants.RUIN_SEARCHING_THRESHOLD && rc.getRoundNum() < 100) {
             destination = Util.getRotationalReflection(spawnLoc);
+            goingRandom = false;
         }
 
     }
@@ -54,6 +55,7 @@ public class Soldier extends Bunny {
                 } else {
                     destination = nearestAlliedTowerLoc;
                 }
+                goingRandom = false;
                 tryingToReplenish = true;
                 Util.addToIndicatorString("REP");
             } else {
@@ -61,6 +63,7 @@ public class Soldier extends Bunny {
                 // we are kamikazes
                 if (rc.getLocation().distanceSquaredTo(destination) <= Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION) {
                     destination = Util.getRandomMapLocation();
+                    goingRandom = true;
                 }
                 tryReplenish();
                 tryingToReplenish = false;
@@ -72,6 +75,7 @@ public class Soldier extends Bunny {
         // TODO: is this needed?
         if (!tryingToReplenish && !alreadyVisited && (rc.getNumberTowers() <= 3 && rc.getRoundNum() < 100)) {
             destination = Util.getRotationalReflection(spawnLoc);
+            goingRandom = false;
         }
 
 

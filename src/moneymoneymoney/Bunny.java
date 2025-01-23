@@ -48,12 +48,14 @@ public abstract class Bunny extends Robot {
     MapLocation prevUpdateLoc;
     boolean symmetryUpdate = false;
     SymmetryType[] possibleSymmetries = {SymmetryType.HORIZONTAL, SymmetryType.VERTICAL, SymmetryType.ROTATIONAL};
+    boolean goingRandom = false;
 
     public Bunny(RobotController rc) throws GameActionException {
         super(rc);
         MarkingUtils.bunny = this;
         MarkingUtils.rc = rc;
         destination = Util.getRandomMapLocation();
+        goingRandom = true;
     }
 
     public void run() throws GameActionException {
@@ -415,6 +417,7 @@ public abstract class Bunny extends Robot {
             } else {
                 destination = nearestAlliedTowerLoc;
             }
+            goingRandom = false;
             tryingToReplenish = true;
             Util.addToIndicatorString("REP");
         }
@@ -422,6 +425,7 @@ public abstract class Bunny extends Robot {
         else if (destination == null ||
                 rc.getLocation().distanceSquaredTo(destination) <= Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION) {
             destination = Util.getRandomMapLocation();
+            goingRandom = true;
         }
     }
 
