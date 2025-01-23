@@ -268,6 +268,9 @@ public class PatternUtils {
                         Util.addToIndicatorString("PNT:" + attackSquare);
                         rc.attack(soldier.nearbyMapInfos[attackIndex].getMapLocation(), paintPattern[offsetX + 2][offsetY + 2]);
                     } else if (paintOutside) {
+                        if(currentPaint != PaintType.EMPTY){
+                            continue;
+                        }
                         Util.addToIndicatorString("PNTR:" + attackSquare);
                         rc.attack(soldier.nearbyMapInfos[attackIndex].getMapLocation(), getDefaultColor(offsetX+dx, offsetY+dy));
                     }
