@@ -86,11 +86,21 @@ public class Tower extends Robot {
             // Only go down if there's a robot nearby, and you can afford to put the tower back up immediately.
             nearbyFriendlies = rc.senseNearbyRobots(2, rc.getTeam());
             if(nearbyFriendlies.length > 0 && rc.getChips() > 1500) {
-                // TODO: Have soldiers fix the ruin if it's bad.
                 // Only go down if the ruin pattern is complete.
-//                if(PatternUtils.checkRuinCompleted(myLoc, UnitType.LEVEL_ONE_MONEY_TOWER)) {
-                    rc.disintegrate();
-//                }
+                int diff = Util.getPatternDifference(rc.getTowerPattern(UnitType.LEVEL_ONE_MONEY_TOWER));
+
+                if (diff != -1) {
+                    int paintingCapacity = 0;
+                    for (RobotInfo friend : nearbyFriendlies) {
+                        if (friend.getType() == UnitType.SOLDIER) {
+                            paintingCapacity += friend.getPaintAmount()/6; // dividing by 6 instead of 5 just to be a bit conservative from the soldiers losing paint
+                        }
+                    }
+                    if (paintingCapacity >= diff) {
+                        rc.disintegrate();
+                    }
+                }
+
             }
         }
 
