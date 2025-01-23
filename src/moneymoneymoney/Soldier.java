@@ -283,7 +283,7 @@ public class Soldier extends Bunny {
             return false;
         }
 
-        boolean patternCompleted = PatternUtils.checkPatternCompleted(currResourceCenterLoc, rc.getResourcePattern());
+        boolean patternCompleted = PatternUtils.checkPatternCompleted(currResourceCenterLoc, rc.getResourcePattern(), true);
         if(patternCompleted) {
             // If i'm assigned to this resource pattern, just stay near it.
             if (currResourceResponsibility == Responsibility.SELF_RESPONSIBLE) {

@@ -246,7 +246,7 @@ public class PatternUtils {
         if (isPaintReady) {
             byte[] ordering = ExcessConstants.orderFillingResourceCall(13*dx + dy + 84);
             MapLocation attackSquare;
-            for (short attackIndex : ordering) {
+            for (byte attackIndex : ordering) {
                 if (soldier.nearbyMapInfos[attackIndex] == null || soldier.nearbyMapInfos[attackIndex].hasRuin() || soldier.nearbyMapInfos[attackIndex].isWall() || !rc.canAttack(soldier.nearbyMapInfos[attackIndex].getMapLocation())) {
                     continue;
                 }
@@ -267,14 +267,15 @@ public class PatternUtils {
                         }
                         Util.addToIndicatorString("PNT:" + attackSquare);
                         rc.attack(soldier.nearbyMapInfos[attackIndex].getMapLocation(), paintPattern[offsetX + 2][offsetY + 2]);
+                        return;
                     } else if (paintOutside) {
                         if(currentPaint != PaintType.EMPTY){
                             continue;
                         }
                         Util.addToIndicatorString("PNTR:" + attackSquare);
                         rc.attack(soldier.nearbyMapInfos[attackIndex].getMapLocation(), getDefaultColor(offsetX+dx, offsetY+dy));
+                        return;
                     }
-                    break;
                 }
             }
         }
@@ -367,13 +368,13 @@ public class PatternUtils {
 
     public static boolean checkRuinCompleted(MapLocation ruinLoc, UnitType ruinType) throws GameActionException {
         boolean[][] pattern = rc.getTowerPattern(ruinType);
-        return checkPatternCompleted(ruinLoc, pattern);
+        return checkPatternCompleted(ruinLoc, pattern, false);
     }
 
-    public static boolean checkPatternCompleted(MapLocation centerLoc, boolean[][] pattern) throws GameActionException {
+    public static boolean checkPatternCompleted(MapLocation centerLoc, boolean[][] pattern, boolean checkCenter) throws GameActionException {
         for(int x = centerLoc.x - 2; x <= centerLoc.x + 2; x++) {
             for(int y = centerLoc.y - 2; y <= centerLoc.y + 2; y++) {
-                if(x == centerLoc.x && y == centerLoc.y) {
+                if(!checkCenter && x == centerLoc.x && y == centerLoc.y) {
                     continue;
                 }
                 MapLocation loc = new MapLocation(x, y);
