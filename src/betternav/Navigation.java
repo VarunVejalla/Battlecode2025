@@ -1,4 +1,4 @@
-package commbetterpainting;
+package betternav;
 
 import battlecode.common.*;
 
@@ -196,7 +196,8 @@ public class Navigation {
             }
             int allyHeuristic = numAllies * 5;
 
-            Util.log("D: " + dir + "," + distance + "," + paintHeuristic + "," + allyHeuristic);
+            Util.addToIndicatorString("D" + distance + "," + paintHeuristic + "," + allyHeuristic + ";");
+            Util.log("D" + dir + "," + distance + "," + paintHeuristic + "," + allyHeuristic + ";");
 
             int heuristic = numMoves + distance + paintHeuristic + allyHeuristic;
 

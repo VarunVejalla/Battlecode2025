@@ -1,4 +1,4 @@
-package commbetterpainting;
+package betternav;
 
 import battlecode.common.*;
 
@@ -46,9 +46,9 @@ public class Soldier extends Bunny {
 
 
         double metric = getMetric();
-        tryReplenish();
         if (metric < Constants.RUIN_SEARCHING_THRESHOLD) {
-            if ((nearestAlliedPaintTowerLoc != null || nearestAlliedTowerLoc != null) && checkIfIShouldStartReplenishing()) {
+
+            if ((nearestAlliedPaintTowerLoc != null || nearestAlliedTowerLoc != null) && (rc.getPaint() < 5)) {
                 if(nearestAlliedPaintTowerLoc != null){
                     destination = nearestAlliedPaintTowerLoc;
                 } else {
@@ -57,10 +57,12 @@ public class Soldier extends Bunny {
                 tryingToReplenish = true;
                 Util.addToIndicatorString("REP");
             } else {
+
                 // we are kamikazes
                 if (rc.getLocation().distanceSquaredTo(destination) <= Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION) {
                     destination = Util.getRandomMapLocation();
                 }
+                tryReplenish();
                 tryingToReplenish = false;
             }
         } else {
@@ -71,6 +73,8 @@ public class Soldier extends Bunny {
         if (!tryingToReplenish && !alreadyVisited && (rc.getNumberTowers() <= 3 && rc.getRoundNum() < 100)) {
             destination = Util.getRotationalReflection(spawnLoc);
         }
+
+
 
         // 1. If trying to replenish, go do that.
         // TODO: If nearestAlliedPaintTowerLoc == null, should we explore or smth?
@@ -147,30 +151,39 @@ public class Soldier extends Bunny {
     }
 
     public boolean checkIfIShouldStartReplenishing() throws GameActionException {
-        if(rc.getPaint() >= Constants.PAINT_THRESHOLD_TO_REPLENISH){
-            return false;
-        }
         boolean[][] pattern = null;
         MapLocation center = null;
-        boolean ignore_center = false;
         if(currRuinLoc != null){
             center = currRuinLoc;
             pattern = rc.getTowerPattern(PatternUtils.decideRuinUnitType(currRuinLoc));
-            ignore_center = true;
         }
         else if(currResourceCenterLoc != null){
             center = currResourceCenterLoc;
             pattern = rc.getResourcePattern();
-        } else if(potentialResourceCenterLoc != null){
-            center = potentialResourceCenterLoc;
-            pattern = rc.getResourcePattern();
         }
         if(center == null){
-            return rc.getPaint() <= 25;
+            return rc.getPaint() <= Constants.PAINT_THRESHOLD_TO_REPLENISH;
         }
 
-        int patternDiff = Util.getPatternDifference(center, pattern, ignore_center, false);
-        return patternDiff * rc.getType().attackCost > rc.getPaint();
+        MapLocation myLoc = rc.getLocation();
+        int needToComplete = 0;
+        for(int x = center.x - 2; x <= center.x + 2; x++){
+            for(int y = center.y - 2; y <= center.y + 2; y++){
+                int index = Util.getMapInfoIndex(x - myLoc.x, y - myLoc.y);
+                if(index == -1 || nearbyMapInfos[index] == null){
+                    continue;
+                }
+                PaintType paintType = nearbyMapInfos[index].getPaint();
+                if(!paintType.isAlly()){
+                    needToComplete++;
+                }
+                else if(nearbyMapInfos[index].getPaint().isSecondary() != pattern[x - center.x + 2][y - center.y + 2]){
+                    needToComplete++;
+                }
+            }
+        }
+
+        return rc.getPaint() - needToComplete * rc.getType().attackCost <= Constants.PAINT_THRESHOLD_TO_REPLENISH_WHEN_WORKING;
     }
 
     // Attacking logic.

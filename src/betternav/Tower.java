@@ -1,4 +1,4 @@
-package commbetterpainting;
+package betternav;
 
 import battlecode.common.*;
 
@@ -10,6 +10,11 @@ public class Tower extends Robot {
     int numTotalSpawned = 0;
     int myTowerNumber;
     int numRoundsLessThanN = 5;
+
+    RobotInfo[] nearbyFriendlies;
+
+    int numTowersLastRound = 0;
+    int towersUpdateRound = 0;
 
     int chipThreshold = 1100;
 
@@ -46,35 +51,34 @@ public class Tower extends Robot {
             midGameBots();
         }
 
-//        if (rc.getRoundNum() < Constants.SPAWN_OPENING_BOTS_ROUNDS) {
-//            openingBots();
-//        } else if (rc.getMoney() > Constants.SPAWN_BOTS_MIDGAME_COST_THRESHOLD) {
-//            midGameBots();
-//        }
-
         // Read incoming messages
         Message[] messages = rc.readMessages(-1);
         for (Message m : messages) {
              Util.log("Tower received message: '#" + m.getSenderID() + " " + m.getBytes());
         }
 
-//        if (rc.getPaint() < 100 && rc.getChips() > 1500 && rc.getType() == UnitType.LEVEL_ONE_MONEY_TOWER) {
-//            RobotInfo[] nearbyFriends = rc.senseNearbyRobots(8, myTeam);
-//            int paintsNeeded = Util.getPatternDifference(rc.getTowerPattern(UnitType.LEVEL_ONE_MONEY_TOWER));
-//            boolean nearby = false;
-//            for (RobotInfo friend : nearbyFriends) {
-//                if (friend.getType() == UnitType.SOLDIER) {
-//                    paintsNeeded -= friend.getPaintAmount()/5;
-//                    nearby = true;
-//                } else if (!nearby && myLoc.isWithinDistanceSquared(friend.getLocation(), 2)){
-//                    nearby = true;
+        sharedEndFunction();
+
+        // Don't take them all out.
+        boolean towersStillUp = rc.getNumberTowers() >= numTowersLastRound;
+
+        if (rc.getPaint() < 100 && rc.getChips() > 2500 && rc.getType() == UnitType.LEVEL_ONE_MONEY_TOWER && towersStillUp) {
+            // Make it so that all towers don't go down round after round.
+            // Only go down if there's a robot nearby, and you can afford to put the tower back up immediately.
+            nearbyFriendlies = rc.senseNearbyRobots(2, rc.getTeam());
+            if(nearbyFriendlies.length > 0 && rc.getChips() > 1500) {
+                // TODO: Have soldiers fix the ruin if it's bad.
+                // Only go down if the ruin pattern is complete.
+//                if(PatternUtils.checkRuinCompleted(myLoc, UnitType.LEVEL_ONE_MONEY_TOWER)) {
+                    rc.disintegrate();
 //                }
-//                if (nearby && paintsNeeded <= 0) {
-//                    rc.disintegrate();
-//                    return;
-//                }
-//            }
-//        }
+            }
+        }
+
+        if(rc.getRoundNum() != towersUpdateRound) {
+            numTowersLastRound = rc.getNumberTowers();
+            towersUpdateRound = rc.getRoundNum();
+        }
     }
 
     public boolean tryBuilding(UnitType unitType, MapLocation location) throws GameActionException {
@@ -149,58 +153,29 @@ public class Tower extends Robot {
         boolean enoughPaintForIntended = false;
 
         if (getMetric() < Constants.TOWER_SPAWNING_THRESHOLD) {
-//            if (Util.isPaintTower(rc.getType())) {
-//                spawned = tryBuilding(UnitType.SOLDIER, nextLoc);
-//            } else {
-//                if (lastSpawnedUnitType == UnitType.SOLDIER) {
-//                    spawned = tryBuilding(UnitType.SPLASHER, nextLoc);
-//                } else {
-//                    spawned = tryBuilding(UnitType.SOLDIER, nextLoc);
-//                }
-//
-//                if (!spawned && rc.getChips() >= UnitType.MOPPER.moneyCost && rc.getPaint() < UnitType.SOLDIER.paintCost && !Util.isPaintTower(rc.getType())) {
-//                    tryBuilding(UnitType.MOPPER, nextLoc);
-//                }
-//            }
             if (rc.getPaint() >= UnitType.SOLDIER.paintCost) {
                 enoughPaintForIntended = true;
             }
             spawned = tryBuilding(UnitType.SOLDIER, nextLoc);
+
         } else {
-            if (rc.getPaint() >= UnitType.SPLASHER.paintCost) {
-                enoughPaintForIntended = true;
+            if(rc.getRoundNum() % 3 == 0) {
+                if (rc.getPaint() >= UnitType.SOLDIER.paintCost) {
+                    enoughPaintForIntended = true;
+                }
+                spawned = tryBuilding(UnitType.SOLDIER, nextLoc);
+            } else {
+                if (rc.getPaint() >= UnitType.SPLASHER.paintCost) {
+                    enoughPaintForIntended = true;
+                }
+                spawned = tryBuilding(UnitType.SPLASHER, nextLoc);
             }
-            spawned = tryBuilding(UnitType.SPLASHER, nextLoc);
-//            spawned = tryBuilding(UnitType.SPLASHER, nextLoc);
-//            if (Util.isPaintTower(rc.getType())) {
-//                spawned = tryBuilding(UnitType.SPLASHER, nextLoc);
-//            } else {
-//                if (lastSpawnedUnitType != UnitType.SPLASHER) {
-//                    spawned = tryBuilding(UnitType.SPLASHER, nextLoc);
-//                } else {
-//                    spawned = tryBuilding(UnitType.MOPPER, nextLoc);
-//                }
-//
-//                if (!spawned && rc.getChips() >= UnitType.MOPPER.moneyCost && rc.getPaint() < UnitType.SPLASHER.paintCost && !Util.isPaintTower(rc.getType())) {
-//                    tryBuilding(UnitType.MOPPER, nextLoc);
-//                }
-//            }
         }
 
         if (!spawned && rc.getChips() >= UnitType.MOPPER.moneyCost && !enoughPaintForIntended && !Util.isPaintTower(rc.getType())) {
             tryBuilding(UnitType.MOPPER, nextLoc);
         }
 
-
-
-//        int robotType = rng.nextInt(3); // yes splashers
-//        if (robotType == 0) {
-//            tryBuilding(UnitType.SOLDIER, nextLoc);
-//        } else if (robotType == 1) {
-//            tryBuilding(UnitType.MOPPER, nextLoc);
-//        } else if (robotType == 2) {
-//            tryBuilding(UnitType.SPLASHER, nextLoc);
-//        }
     }
 
     public void endGameBots() throws GameActionException {

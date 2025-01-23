@@ -1,4 +1,4 @@
-package commbetterpainting;
+package betternav;
 
 import battlecode.common.*;
 
@@ -49,21 +49,15 @@ public class Util {
         return new MapLocation(rc.getMapWidth()-1-current.x, current.y);
     }
 
-    public static int getPatternDifference(MapLocation center, boolean[][] pattern, boolean ignore_center, boolean count_unsensable) throws GameActionException {
+    public static int getPatternDifference(boolean[][] pattern) throws GameActionException {
         int paintsNeeded = 0;
-        for(int x = center.x - 2; x <= center.x + 2; x++) {
-            for(int y = center.y - 2; y <= center.y + 2; y++) {
-                if(ignore_center && x == center.x && y == center.y) {
+        for(int x = robot.myLoc.x - 2; x <= robot.myLoc.x + 2; x++) {
+            for(int y = robot.myLoc.y - 2; y <= robot.myLoc.y + 2; y++) {
+                if(x == robot.myLoc.x && y == robot.myLoc.y) {
                     continue;
                 }
                 MapLocation loc = new MapLocation(x, y);
-                if(!rc.canSenseLocation(loc)){
-                    if(count_unsensable) {
-                        paintsNeeded++;
-                    }
-                    continue;
-                }
-                boolean shouldBeSecondary = pattern[x - center.x + 2][y - center.y + 2];
+                boolean shouldBeSecondary = pattern[x - robot.myLoc.x + 2][y - robot.myLoc.y + 2];
                 PaintType paint = rc.senseMapInfo(loc).getPaint();
                 if (paint.isEnemy()) {
                     return -1;

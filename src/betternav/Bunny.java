@@ -1,4 +1,4 @@
-package commbetterpainting;
+package betternav;
 
 import battlecode.common.*;
 
@@ -353,18 +353,17 @@ public abstract class Bunny extends Robot {
      * transfer paint
      */
     public void tryReplenish() throws GameActionException {
-        for(RobotInfo info : rc.senseNearbyRobots(GameConstants.PAINT_TRANSFER_RADIUS_SQUARED)){
-            Util.addToIndicatorString("FILL? " + info.getPaintAmount());
-            if(info.getPaintAmount() == 0){
-                continue;
-            }
-            Util.addToIndicatorString("FILL " + info.getLocation());
+        if (nearestAlliedPaintTowerLoc == null) return;
+
+        if (rc.getLocation()
+                .distanceSquaredTo(nearestAlliedPaintTowerLoc) <= GameConstants.PAINT_TRANSFER_RADIUS_SQUARED) {
+            int towerPaintQuantity = rc.senseRobotAtLocation(nearestAlliedPaintTowerLoc).getPaintAmount();
             int paintToFillUp = Math.min(
                     rc.getType().paintCapacity - rc.getPaint(), // amount of paint needed to fully top off
-                    info.getPaintAmount()); // amount of paint available in the tower
+                    towerPaintQuantity); // amount of paint available in the tower
 
-            if (rc.isActionReady() && rc.canTransferPaint(info.getLocation(), -paintToFillUp)) {
-                rc.transferPaint(info.getLocation(), -paintToFillUp);
+            if (rc.isActionReady() && rc.canTransferPaint(nearestAlliedPaintTowerLoc, -paintToFillUp)) {
+                rc.transferPaint(nearestAlliedPaintTowerLoc, -paintToFillUp);
             }
 
             if (checkIfImDoneReplenishing()) {
