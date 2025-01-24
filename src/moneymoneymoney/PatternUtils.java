@@ -487,7 +487,6 @@ public class PatternUtils {
                 validBitstring &= invalidSquareForResource[i];
             } else if (nearbyMapInfos[i].isResourcePatternCenter() || nearbyMapInfos[i].getMark() == PaintType.ALLY_PRIMARY) {
                 // do stuff
-//                validBitstring &= confirmedFinishedMasks[i];
                 validBitstring &= squareHasResourceCenter[i];
             } else if(nearbyMapInfos[i].hasRuin() && rc.senseRobotAtLocation(nearbyMapInfos[i].getMapLocation()) == null) {
                 validBitstring &= squareHasUnfinishedRuin[i];

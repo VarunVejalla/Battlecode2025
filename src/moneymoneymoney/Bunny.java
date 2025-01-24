@@ -50,7 +50,6 @@ public abstract class Bunny extends Robot {
 
     public Bunny(RobotController rc) throws GameActionException {
         super(rc);
-        Util.logBytecode("A");
         MarkingUtils.bunny = this;
         MarkingUtils.rc = rc;
         destination = Util.getRandomMapLocation();
@@ -59,9 +58,7 @@ public abstract class Bunny extends Robot {
     public void run() throws GameActionException {
         super.run();
         // Comms is run inside of scan surroundings (and nearest allied paint tower, which is called in surroundings)!
-        Util.logBytecode("Shared robot logic");
         scanSurroundings();
-        Util.logBytecode("Scanned surroundings");
         checkForUpgrades();
 
 //        if(tryingToReplenish) {
@@ -213,8 +210,6 @@ public abstract class Bunny extends Robot {
                 }
             }
         }
-
-        Util.logBytecode("C2");
 
         // If there's no ruin at all in the sector, set it to (-1, -1). Check if this can also eliminate any symmetries.
         int fullyEnclosedSectorID = comms.getFullyEnclosedSectorID(rc.getLocation());

@@ -31,9 +31,7 @@ public class Mopper extends Bunny {
             enemyTowerInfos[i] = enemyInfos[i];
         }
 
-        Util.logBytecode("Before calcing heuristics");
         MapLocation heuristicLocation = calcHeuristics();
-        Util.logBytecode("After calcing heuristics");
 
         Util.log("Location at beginning of round: " + rc.getLocation());
         if(enemyNearby || enemyPaintNearby) {
@@ -53,8 +51,6 @@ public class Mopper extends Bunny {
 
         MarkingUtils.tryRuinPatternCompletion();
         MarkingUtils.tryResourcePatternCompletion();
-
-        Util.logBytecode("Tried completion");
     }
 
     public boolean checkIfIShouldStartReplenishing() throws GameActionException {
