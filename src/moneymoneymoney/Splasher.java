@@ -18,31 +18,29 @@ public class Splasher extends Bunny {
 
         updateDestinationIfNeeded();
 
+        replenishLogic();
+
 //        Util.logBytecode("Ran super");
 //        updateOffLimits();
 //        Util.logBytecode("Updated off limits");
 
         // 1. Replenish or Perform Splash Attack
-        if (tryingToReplenish) {
-            replenishLogic();
-        } else {
 //            splashAttack();
 //            Util.logBytecode("After first attack");
-            // 2. Movement Logic
+        // 2. Movement Logic
 //            MapLocation currLoc = rc.getLocation();
-            if (canMove()) {
-                moveLogic();
+        if (canMove()) {
+            moveLogic();
 //                Util.logBytecode("Move logic");
-            }
+        }
 //                if(!rc.getLocation().equals(currLoc) && rc.isActionReady()) {
-            nearbyMapInfos = Util.getFilledInMapInfo(rc.senseNearbyMapInfos());
+        nearbyMapInfos = Util.getFilledInMapInfo(rc.senseNearbyMapInfos());
 //            Util.logBytecode("Reclaculate infos");
-            updateOffLimits();
+        updateOffLimits();
 //            Util.logBytecode("Reupdate off limits");
 //                }
-            splashAttack();
+        splashAttack();
 //            Util.logBytecode("Second attack");
-        }
 
         MarkingUtils.tryRuinPatternCompletion();
         MarkingUtils.tryResourcePatternCompletion();
@@ -353,13 +351,6 @@ public class Splasher extends Bunny {
      */
     public void moveLogic() throws GameActionException {
         myLoc = rc.getLocation();
-
-//        if (tryingToReplenish && nearestAlliedPaintTowerLoc != null &&
-//                myLoc.distanceSquaredTo(nearestAlliedPaintTowerLoc) > GameConstants.PAINT_TRANSFER_RADIUS_SQUARED) {
-//            nav.goToBug(nearestAlliedPaintTowerLoc, GameConstants.PAINT_TRANSFER_RADIUS_SQUARED);
-//            return;
-//        }
-
         macroMove(0);
     }
 
