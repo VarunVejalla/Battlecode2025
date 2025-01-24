@@ -362,6 +362,13 @@ public class Soldier extends Bunny {
                     return false;
                 }
             }
+            if(info.isWall() && (abs_dx <= 2 && abs_dy <= 2)) {
+                // Failure! Wall there.
+                Util.addToIndicatorString("IVD75");
+                PatternUtils.markPotentialRCInvalid();
+                return false;
+            }
+
             if((info.isResourcePatternCenter() || info.getMark() == PaintType.ALLY_PRIMARY) && abs_dx <= 4 && abs_dy <= 4){
                 boolean valid_overlap = (overlap_x == 1 && overlap_y == 1) || (overlap_x == 1 && overlap_y == 2) || (overlap_x == 1 && overlap_y == 5) || (overlap_x == 2 && overlap_y == 1) || (overlap_x == 5 && overlap_y == 1);
                 if(!valid_overlap){
