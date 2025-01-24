@@ -45,67 +45,45 @@ public class Soldier extends Bunny {
             alreadyVisited = true;
         }
 
+        replenishLogic();
 
         double metric = getMetric();
         if (metric < Constants.RUIN_SEARCHING_THRESHOLD) {
-
-            if ((nearestAlliedPaintTowerLoc != null || nearestAlliedTowerLoc != null) && (rc.getPaint() < 5)) {
-                if(nearestAlliedPaintTowerLoc != null){
-                    destination = nearestAlliedPaintTowerLoc;
-                } else {
-                    destination = nearestAlliedTowerLoc;
-                }
-                goingRandom = false;
-                tryingToReplenish = true;
-                Util.addToIndicatorString("REP");
-            } else {
-
-                // we are kamikazes
-                if (rc.getLocation().distanceSquaredTo(destination) <= Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION) {
-                    destination = Util.getRandomMapLocation();
-                    goingRandom = true;
-                }
-                tryReplenish();
-                tryingToReplenish = false;
+            // we are kamikazes
+            if (rc.getLocation().distanceSquaredTo(destination) <= Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION) {
+                destination = Util.getRandomMapLocation();
+                goingRandom = true;
             }
         } else {
             updateDestinationIfNeeded();
         }
 
         // TODO: is this needed?
-        if (!tryingToReplenish && !alreadyVisited && (rc.getNumberTowers() <= 3 && rc.getRoundNum() < 100)) {
+        if (!alreadyVisited && (rc.getNumberTowers() <= 3 && rc.getRoundNum() < 100)) {
             destination = Util.getRotationalReflection(spawnLoc);
             goingRandom = false;
         }
 
-
-
         // 1. If trying to replenish, go do that.
-        // TODO: If nearestAlliedPaintTowerLoc == null, should we explore or smth?
-        if(tryingToReplenish){
-            replenishLogic();
+        RobotInfo attackInfo = getAttackTarget();
+        Util.logBytecode("Get attack target");
+        if(attackInfo != null) {
+            runAttackLogic(attackInfo);
+            Util.logBytecode("Running attack logic");
         }
-        else {
-            RobotInfo attackInfo = getAttackTarget();
-            Util.logBytecode("Get attack target");
-            if(attackInfo != null) {
-                runAttackLogic(attackInfo);
-                Util.logBytecode("Running attack logic");
+        else if(!tryingToReplenish) {
+            if(Constants.BLOCK_OFF_ENEMY_RUINS) {
+                blockEnemyRuins();
             }
-            else {
-                if(Constants.BLOCK_OFF_ENEMY_RUINS) {
-                    blockEnemyRuins();
-                }
-                // 3. If not attacking, run pattern painting logic.
-                if (metric < Constants.RUIN_SEARCHING_THRESHOLD) {
-                    buildPatternHardExplore();
-                } else if (metric < Constants.PATTERN_SEARCHING_THRESHOLD) {
-                    buildPatternMediumExplore();
-                } else {
-                    buildPattern();
-                }
-                Util.logBytecode("Built pattern");
+            // 3. If not attacking, run pattern painting logic.
+            if (metric < Constants.RUIN_SEARCHING_THRESHOLD) {
+                buildPatternHardExplore();
+            } else if (metric < Constants.PATTERN_SEARCHING_THRESHOLD) {
+                buildPatternMediumExplore();
+            } else {
+                buildPattern();
             }
+            Util.logBytecode("Built pattern");
         }
 
         MarkingUtils.tryRuinPatternCompletion();
