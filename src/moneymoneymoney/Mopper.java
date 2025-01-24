@@ -31,9 +31,7 @@ public class Mopper extends Bunny {
             enemyTowerInfos[i] = enemyInfos[i];
         }
 
-        Util.logBytecode("Before calcing heuristics");
         MapLocation heuristicLocation = calcHeuristics();
-        Util.logBytecode("After calcing heuristics");
 
         Util.log("Location at beginning of round: " + rc.getLocation());
         if(enemyNearby || enemyPaintNearby) {
@@ -53,8 +51,6 @@ public class Mopper extends Bunny {
 
         MarkingUtils.tryRuinPatternCompletion();
         MarkingUtils.tryResourcePatternCompletion();
-
-        Util.logBytecode("Tried completion");
     }
 
     public boolean checkIfIShouldStartReplenishing() throws GameActionException {
@@ -308,6 +304,8 @@ public class Mopper extends Bunny {
         int lowestEnemyPaintOnPaint = Integer.MAX_VALUE;
         MapLocation bestIndividualTargetOnEmpty = null;
         int lowestEnemyPaintOnEmpty = Integer.MAX_VALUE;
+        MapLocation bestZeroEnemyPaintTarget = null;
+        int closestZeroEnemyPaint = Integer.MAX_VALUE;
 
         int westDirectionMetric = 0;
         int eastDirectionMetric = 0;
@@ -320,10 +318,20 @@ public class Mopper extends Bunny {
         int dx, dy;
 
         for (RobotInfo opponent : actionableOpponents) {
-            if (opponent.getType().isTowerType() || opponent.getPaintAmount() == 0) {
+            if (opponent.getType().isTowerType()) {
                 continue;
             }
             individualPaint = opponent.getPaintAmount();
+
+            if(individualPaint == 0){
+                int dist = rc.getLocation().distanceSquaredTo(opponent.getLocation());
+                if(dist < closestZeroEnemyPaint && rc.canAttack(opponent.getLocation())){
+                    bestZeroEnemyPaintTarget = opponent.getLocation();
+                    closestZeroEnemyPaint = dist;
+                }
+                continue;
+            }
+
             dx = opponent.getLocation().x-myLoc.x;
             dy = opponent.getLocation().y-myLoc.y;
 
@@ -384,7 +392,11 @@ public class Mopper extends Bunny {
 
             if (bestMetric > 0 && rc.canMopSwing(bestDir)) {
                 rc.mopSwing(bestDir);
-            } else {
+            } else if (bestZeroEnemyPaintTarget != null) {
+                Util.addToIndicatorString("BZT " + bestZeroEnemyPaintTarget);
+                rc.attack(bestZeroEnemyPaintTarget);
+            }
+            else {
                 MapLocation tileToMop = getTileToMop();
                 Util.addToIndicatorString("TE2" + tileToMop);
                 if (tileToMop != null) {
