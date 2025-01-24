@@ -69,7 +69,7 @@ public abstract class Bunny extends Robot {
             if (friendlyRobot.getType().isTowerType()) {
                 if (friendlyRobot.getType() == UnitType.LEVEL_ONE_PAINT_TOWER) {
                     threshold = 2500;
-                } else if (friendlyRobot.getType() == UnitType.LEVEL_ONE_PAINT_TOWER) {
+                } else if (friendlyRobot.getType() == UnitType.LEVEL_ONE_MONEY_TOWER) {
                     threshold = 2550;
                 } else if (friendlyRobot.getType() == UnitType.LEVEL_ONE_DEFENSE_TOWER) {
                     threshold = 2600;
