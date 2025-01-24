@@ -25,7 +25,7 @@ public class Soldier extends Bunny {
 
     public Soldier(RobotController rc) throws GameActionException {
         super(rc);
-        invalidPotentialLocs = new boolean[3600];
+        invalidPotentialLocs = new boolean[400];
         PatternUtils.soldier = this;
         PatternUtils.rc = rc;
         double metric = getMetric();
@@ -35,7 +35,6 @@ public class Soldier extends Bunny {
             destination = Util.getRotationalReflection(spawnLoc);
             goingRandom = false;
         }
-
     }
 
     public void run() throws GameActionException {
@@ -45,10 +44,10 @@ public class Soldier extends Bunny {
             alreadyVisited = true;
         }
 
+        Util.logBytecode("A");
 
         double metric = getMetric();
         if (metric < Constants.RUIN_SEARCHING_THRESHOLD) {
-
             if ((nearestAlliedPaintTowerLoc != null || nearestAlliedTowerLoc != null) && (rc.getPaint() < 5)) {
                 if(nearestAlliedPaintTowerLoc != null){
                     destination = nearestAlliedPaintTowerLoc;
@@ -72,13 +71,13 @@ public class Soldier extends Bunny {
             updateDestinationIfNeeded();
         }
 
+        Util.logBytecode("Metric done");
+
         // TODO: is this needed?
         if (!tryingToReplenish && !alreadyVisited && (rc.getNumberTowers() <= 3 && rc.getRoundNum() < 100)) {
             destination = Util.getRotationalReflection(spawnLoc);
             goingRandom = false;
         }
-
-
 
         // 1. If trying to replenish, go do that.
         // TODO: If nearestAlliedPaintTowerLoc == null, should we explore or smth?
@@ -87,30 +86,32 @@ public class Soldier extends Bunny {
         }
         else {
             RobotInfo attackInfo = getAttackTarget();
-            Util.logBytecode("Get attack target");
+            Util.logBytecode("Got attack target");
             if(attackInfo != null) {
                 runAttackLogic(attackInfo);
-                Util.logBytecode("Running attack logic");
+                Util.logBytecode("Ran logic");
             }
             else {
                 if(Constants.BLOCK_OFF_ENEMY_RUINS) {
                     blockEnemyRuins();
                 }
+                Util.logBytecode("Blocked off enemy ruiins");
                 // 3. If not attacking, run pattern painting logic.
                 if (metric < Constants.RUIN_SEARCHING_THRESHOLD) {
                     buildPatternHardExplore();
+                    Util.logBytecode("Hard explore");
                 } else if (metric < Constants.PATTERN_SEARCHING_THRESHOLD) {
                     buildPatternMediumExplore();
+                    Util.logBytecode("Medium explore");
                 } else {
                     buildPattern();
+                    Util.logBytecode("Pattern");
                 }
-                Util.logBytecode("Built pattern");
             }
         }
 
         MarkingUtils.tryRuinPatternCompletion();
         MarkingUtils.tryResourcePatternCompletion();
-
         Util.logBytecode("Tried completion");
     }
 
@@ -473,7 +474,7 @@ public class Soldier extends Bunny {
 
     public void buildPatternHardExplore() throws GameActionException {
         // If we're already building a ruin, check if it's been completed.
-        Util.log("Beginning of hard: " + currRuinLoc);
+        Util.addToIndicatorString("HARD");
         Util.addToIndicatorString("R " + currRuinLoc);
         if(currRuinResponsibility == Responsibility.SELF_RESPONSIBLE){
             Util.addToIndicatorString("RP");

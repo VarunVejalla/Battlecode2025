@@ -5,51 +5,36 @@ import battlecode.common.*;
 public class Splasher extends Bunny {
 
     boolean[][] offlimits;
-    boolean[][] updated;
 
     public Splasher(RobotController rc) throws GameActionException {
         super(rc);
+        SplasherUtils.rc = rc;
+        SplasherUtils.splasher = this;
         offlimits = new boolean[rc.getMapWidth()][rc.getMapHeight()];
-        updated = new boolean[rc.getMapWidth()][rc.getMapHeight()];
     }
 
     public void run() throws GameActionException {
         super.run(); // Call shared logic for all bunnies
 
-        updateDestinationIfNeeded();
+        updateOffLimits();
+        splashAttack();
 
-//        Util.logBytecode("Ran super");
-//        updateOffLimits();
-//        Util.logBytecode("Updated off limits");
+        updateDestinationIfNeeded();
 
         // 1. Replenish or Perform Splash Attack
         if (tryingToReplenish) {
             replenishLogic();
         } else {
-//            splashAttack();
-//            Util.logBytecode("After first attack");
             // 2. Movement Logic
-//            MapLocation currLoc = rc.getLocation();
             if (canMove()) {
+                // 2k bytecode.
                 moveLogic();
-//                Util.logBytecode("Move logic");
             }
-//                if(!rc.getLocation().equals(currLoc) && rc.isActionReady()) {
-            nearbyMapInfos = Util.getFilledInMapInfo(rc.senseNearbyMapInfos());
-//            Util.logBytecode("Reclaculate infos");
-            updateOffLimits();
-//            Util.logBytecode("Reupdate off limits");
-//                }
-            splashAttack();
-//            Util.logBytecode("Second attack");
         }
 
         MarkingUtils.tryRuinPatternCompletion();
         MarkingUtils.tryResourcePatternCompletion();
-
-        Util.logBytecode("Tried completion");
     }
-
 
     public boolean checkIfIShouldStartReplenishing() throws GameActionException {
         return rc.getPaint() <= Constants.PAINT_THRESHOLD_TO_REPLENISH;
@@ -63,35 +48,26 @@ public class Splasher extends Bunny {
             if(info == null){
                 continue;
             }
-            MapLocation loc = info.getMapLocation();
-            if(info.getMark() == PaintType.ALLY_PRIMARY || (info.isResourcePatternCenter() && info.getPaint().isAlly()) || (info.hasRuin() && rc.senseRobotAtLocation(loc) == null)){
-                if(updated[loc.x][loc.y]){
+            // Already handled this one.
+            if(info.getMark() == PaintType.ALLY_PRIMARY || (info.isResourcePatternCenter() && info.getPaint().isAlly()) || (info.hasRuin() && rc.senseRobotAtLocation(info.getMapLocation()) == null)){
+                MapLocation loc = info.getMapLocation();
+                if(offlimits[loc.x][loc.y]) {
                     continue;
                 }
                 Util.log("Updating new location");
                 // Don't touch 5x5 square if no enemy paint in area.
-                boolean enemyPaintPresent = false;
                 for(int x = loc.x - 2; x <= loc.x + 2; x++) {
                     for(int y = loc.y - 2; y <= loc.y + 2; y++) {
-                        int index = Util.getMapInfoIndex(myLoc.x - x, myLoc.y - y);
+                        int index = Util.getMapInfoIndex(x - myLoc.x, y - myLoc.y);
                         if(index != -1 && nearbyMapInfos[index] != null && nearbyMapInfos[index].getPaint().isEnemy()){
-                            enemyPaintPresent = true;
-                        }
-                    }
-                }
-
-                if(!enemyPaintPresent){
-                    updated[loc.x][loc.y] = true;
-                    for(int dx = -4; dx <= 4; dx++) {
-                        for(int dy = -4; dy <= 4; dy++) {
-                            if(dx*dx + dy*dy > 20){
-                                continue;
+                            for(int x2 = loc.x - 2; x2 <= loc.x + 2; x2++) {
+                                for(int y2 = loc.y - 2; y2 <= loc.y + 2; y2++) {
+                                    if(x2 >= 0 && y2 >= 0 && x2 < offlimits.length && y2 < offlimits[0].length) {
+                                        offlimits[x2][y2] = true;
+                                    }
+                                }
                             }
-                            int x = loc.x + dx;
-                            int y = loc.y + dy;
-                            if(x >= 0 && y >= 0 && x < offlimits.length && y < offlimits[0].length) {
-                                offlimits[x][y] = true;
-                            }
+                            return;
                         }
                     }
                 }
@@ -104,13 +80,17 @@ public class Splasher extends Bunny {
      */
     // ~4.5k bytecode
     public void splashAttack() throws GameActionException {
-        MapInfo[] actionableTiles = rc.senseNearbyMapInfos(UnitType.SPLASHER.actionRadiusSquared);
-
         MapLocation bestTarget = null;
         int bestScore = 0;
+        MapLocation myLoc = rc.getLocation();
 
-        for (MapInfo tile : actionableTiles) {
-            MapLocation targetLocation = tile.getMapLocation();
+        // 1k bytecode
+        int[] adjacencyCounts = SplasherUtils.calculateAdjacencyCounts();
+        for(int i = 0; i < 13; i++){
+            int emptyCount = adjacencyCounts[i];
+            int enemyCount = adjacencyCounts[i + 13];
+            MapLocation targetLocation = SplasherUtils.indexToLocation(i, myLoc);
+
             if (!rc.canAttack(targetLocation)) continue;
 
             // Check if this square fucks w/ any ruin or resource center builds.
@@ -118,213 +98,27 @@ public class Splasher extends Bunny {
                 continue;
             }
 
-            int[] adjacencyCounts = calculateAdjacencyCounts(targetLocation);
-
-            int emptyCount = adjacencyCounts[0];
-            int enemyCount = adjacencyCounts[1];
-
             int score = 0;
             if(emptyCount + enemyCount > 4){
                 score = 10 * emptyCount + 50 * enemyCount;
             }
 
-//            // Unit at location.
+            // Unit at location.
             // TODO: Update this to check for adjacency to enemy tower.
-            RobotInfo rob= rc.senseRobotAtLocation(targetLocation);
+            RobotInfo rob = rc.senseRobotAtLocation(targetLocation);
             if(rob != null && rob.getType().isTowerType() && rob.getTeam() == oppTeam) {
                 score += 10000;
             }
 
             if (score > bestScore) {
                 bestScore = score;
-                bestTarget = tile.getMapLocation();
+                bestTarget = targetLocation;
             }
         }
 
         if (bestTarget != null && rc.isActionReady()) {
             rc.attack(bestTarget);
-            //Util.log("Splasher attacked: " + bestTarget);
         }
-    }
-
-    /**
-     * Calculate adjacency to empty and enemy-painted tiles.
-     */
-    public int[] calculateAdjacencyCounts(MapLocation loc) throws GameActionException {
-        int index;
-        int emptyCount = 0;
-        int enemyCount = 0;
-
-        int deltaX = loc.x - rc.getLocation().x;
-        int deltaY = loc.y - rc.getLocation().y;
-
-        index = Util.getMapInfoIndex(deltaX - 2, deltaY);
-        if(index != -1 && nearbyMapInfos[index] != null && !nearbyMapInfos[index].isWall()) {
-            switch(nearbyMapInfos[index].getPaint()) {
-                case EMPTY:
-                    emptyCount++;
-                    break;
-            }
-        }
-
-        index = Util.getMapInfoIndex(deltaX - 1, deltaY - 1);
-        if(index != -1 && nearbyMapInfos[index] != null && !nearbyMapInfos[index].isWall()) {
-            switch(nearbyMapInfos[index].getPaint()) {
-                case EMPTY:
-                    emptyCount++;
-                    break;
-
-                case ENEMY_PRIMARY:
-                case ENEMY_SECONDARY:
-                    enemyCount++;
-                    break;
-            }
-        }
-
-        index = Util.getMapInfoIndex(deltaX - 1, deltaY);
-        if(index != -1 && nearbyMapInfos[index] != null && !nearbyMapInfos[index].isWall()) {
-            switch(nearbyMapInfos[index].getPaint()) {
-                case EMPTY:
-                    emptyCount++;
-                    break;
-
-                case ENEMY_PRIMARY:
-                case ENEMY_SECONDARY:
-                    enemyCount++;
-                    break;
-            }
-        }
-
-        index = Util.getMapInfoIndex(deltaX - 1, deltaY + 1);
-        if(index != -1 && nearbyMapInfos[index] != null && !nearbyMapInfos[index].isWall()) {
-            switch(nearbyMapInfos[index].getPaint()) {
-                case EMPTY:
-                    emptyCount++;
-                    break;
-
-                case ENEMY_PRIMARY:
-                case ENEMY_SECONDARY:
-                    enemyCount++;
-                    break;
-            }
-        }
-
-        index = Util.getMapInfoIndex(deltaX, deltaY - 2);
-        if(index != -1 && nearbyMapInfos[index] != null && !nearbyMapInfos[index].isWall()) {
-            switch(nearbyMapInfos[index].getPaint()) {
-                case EMPTY:
-                    emptyCount++;
-                    break;
-            }
-        }
-
-        index = Util.getMapInfoIndex(deltaX, deltaY - 1);
-        if(index != -1 && nearbyMapInfos[index] != null && !nearbyMapInfos[index].isWall()) {
-            switch(nearbyMapInfos[index].getPaint()) {
-                case EMPTY:
-                    emptyCount++;
-                    break;
-
-                case ENEMY_PRIMARY:
-                case ENEMY_SECONDARY:
-                    enemyCount++;
-                    break;
-            }
-        }
-
-        index = Util.getMapInfoIndex(deltaX, deltaY);
-        if(index != -1 && nearbyMapInfos[index] != null && !nearbyMapInfos[index].isWall()) {
-            switch(nearbyMapInfos[index].getPaint()) {
-                case EMPTY:
-                    emptyCount++;
-                    break;
-
-                case ENEMY_PRIMARY:
-                case ENEMY_SECONDARY:
-                    enemyCount++;
-                    break;
-
-            }
-        }
-
-        index = Util.getMapInfoIndex(deltaX, deltaY + 1);
-        if(index != -1 && nearbyMapInfos[index] != null && !nearbyMapInfos[index].isWall()) {
-            switch(nearbyMapInfos[index].getPaint()) {
-                case EMPTY:
-                    emptyCount++;
-                    break;
-
-                case ENEMY_PRIMARY:
-                case ENEMY_SECONDARY:
-                    enemyCount++;
-                    break;
-            }
-        }
-
-        index = Util.getMapInfoIndex(deltaX, deltaY + 2);
-        if(index != -1 && nearbyMapInfos[index] != null && !nearbyMapInfos[index].isWall()) {
-            switch(nearbyMapInfos[index].getPaint()) {
-                case EMPTY:
-                    emptyCount++;
-                    break;
-            }
-        }
-
-        index = Util.getMapInfoIndex(deltaX + 1, deltaY - 1);
-        if(index != -1 && nearbyMapInfos[index] != null && !nearbyMapInfos[index].isWall()) {
-            switch(nearbyMapInfos[index].getPaint()) {
-                case EMPTY:
-                    emptyCount++;
-                    break;
-
-                case ENEMY_PRIMARY:
-                case ENEMY_SECONDARY:
-                    enemyCount++;
-                    break;
-            }
-        }
-
-        index = Util.getMapInfoIndex(deltaX + 1, deltaY);
-        if(index != -1 && nearbyMapInfos[index] != null && !nearbyMapInfos[index].isWall()) {
-            switch(nearbyMapInfos[index].getPaint()) {
-                case EMPTY:
-                    emptyCount++;
-                    break;
-
-                case ENEMY_PRIMARY:
-                case ENEMY_SECONDARY:
-                    enemyCount++;
-                    break;
-            }
-        }
-
-        index = Util.getMapInfoIndex(deltaX + 1, deltaY + 1);
-        if(index != -1 && nearbyMapInfos[index] != null && !nearbyMapInfos[index].isWall()) {
-            switch(nearbyMapInfos[index].getPaint()) {
-                case EMPTY:
-                    emptyCount++;
-                    break;
-
-                case ENEMY_PRIMARY:
-                case ENEMY_SECONDARY:
-                    enemyCount++;
-                    break;
-            }
-        }
-
-        index = Util.getMapInfoIndex(deltaX + 2, deltaY);
-        if(index != -1 && nearbyMapInfos[index] != null && !nearbyMapInfos[index].isWall()) {
-            switch(nearbyMapInfos[index].getPaint()) {
-                case EMPTY:
-                    emptyCount++;
-                    break;
-            }
-        }
-
-        int[] ret = new int[2];
-        ret[0] = emptyCount;
-        ret[1] = enemyCount;
-        return ret;
     }
 
     /**

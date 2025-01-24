@@ -39,29 +39,29 @@ public abstract class Bunny extends Robot {
     TowerType nearestAlliedTowerType;
     MapLocation nearestAlliedPaintTowerLoc;
     MapLocation destination; // long-term destination
-    MapLocation center = new MapLocation(rc.getMapWidth() / 2, rc.getMapHeight() / 2);
     MapInfo[] nearbyMapInfos;
     RobotInfo[] nearbyFriendlies;
     RobotInfo[] nearbyOpponents;
     boolean tryingToReplenish = false;
     BunnyComms comms = new BunnyComms(rc, this);
     MapLocation prevUpdateLoc;
-    boolean symmetryUpdate = false;
     SymmetryType[] possibleSymmetries = {SymmetryType.HORIZONTAL, SymmetryType.VERTICAL, SymmetryType.ROTATIONAL};
-    boolean goingRandom = false;
+    boolean goingRandom = true;
 
     public Bunny(RobotController rc) throws GameActionException {
         super(rc);
+        Util.logBytecode("A");
         MarkingUtils.bunny = this;
         MarkingUtils.rc = rc;
         destination = Util.getRandomMapLocation();
-        goingRandom = true;
     }
 
     public void run() throws GameActionException {
         super.run();
         // Comms is run inside of scan surroundings (and nearest allied paint tower, which is called in surroundings)!
+        Util.logBytecode("Shared robot logic");
         scanSurroundings();
+        Util.logBytecode("Scanned surroundings");
         checkForUpgrades();
 
 //        if(tryingToReplenish) {
@@ -172,7 +172,7 @@ public abstract class Bunny extends Robot {
         updateKnownTowers();
         // 200 bytecode
         setNearestAlliedTowers();
-        // Faster now I think
+        // 2k bytecode first iteration, not as much every other iteration.
         updateKnownRuinsAndSymmetries();
     }
 
@@ -213,6 +213,8 @@ public abstract class Bunny extends Robot {
                 }
             }
         }
+
+        Util.logBytecode("C2");
 
         // If there's no ruin at all in the sector, set it to (-1, -1). Check if this can also eliminate any symmetries.
         int fullyEnclosedSectorID = comms.getFullyEnclosedSectorID(rc.getLocation());
@@ -273,9 +275,8 @@ public abstract class Bunny extends Robot {
             for (int i = 0; i < knownAlliedTowerLocs.length; i++) {
                 if (knownAlliedTowerLocs[i] == null) {
                     nullIdx = i;
-                    continue;
                 }
-                if (currAlliedTowerLocation.equals(knownAlliedTowerLocs[i])) {
+                else if (currAlliedTowerLocation.equals(knownAlliedTowerLocs[i])) {
                     alreadyIn = true;
                 }
             }
@@ -388,24 +389,6 @@ public abstract class Bunny extends Robot {
         return rc.getPaint() >= rc.getType().paintCapacity * 0.8;
     }
 
-
-    /**
-     * Finds a ruin that is not claimed by your team.
-     */
-    public MapInfo findUnmarkedRuin() throws GameActionException {
-        // MapInfo[] nearbyTiles = rc.senseNearbyMapInfos();
-        for (MapInfo tile : nearbyMapInfos) {
-            if (rc.canSenseLocation(tile.getMapLocation()) && tile.hasRuin()) {
-                RobotInfo robotAtRuin = rc.senseRobotAtLocation(tile.getMapLocation());
-                // We want a ruin either unoccupied or not controlled by our team
-                if (robotAtRuin == null || robotAtRuin.team != rc.getTeam()) {
-                    return tile;
-                }
-            }
-        }
-        return null;
-    }
-
     /**
      * Update the destination we're travelling to if we need to replenish, or we've
      * reached our current destination
@@ -428,53 +411,4 @@ public abstract class Bunny extends Robot {
             goingRandom = true;
         }
     }
-
-    public MapLocation findEmptyTiles() throws GameActionException {
-        // MapInfo[] visionTiles = rc.senseNearbyMapInfos();
-        int emptyX = 0;
-        int emptyY = 0;
-        int emptyCount = 0;
-        for (MapInfo tile : nearbyMapInfos) {
-            if (tile.getPaint() == PaintType.EMPTY) {
-                emptyX += tile.getMapLocation().x;
-                emptyY += tile.getMapLocation().y;
-                emptyCount++;
-            }
-        }
-
-        if (emptyCount == 0) {
-            return null;
-        }
-
-        emptyX /= emptyCount;
-        emptyY /= emptyCount;
-
-        return new MapLocation(emptyX, emptyY);
-    }
-
-    public MapLocation findEnemyPaintCOM() throws GameActionException {
-        // MapInfo[] visionTiles = rc.senseNearbyMapInfos();
-        int enemyPaintX = 0;
-        int enemyPaintY = 0;
-        int enemyPaintCount = 0;
-        for (MapInfo tile : nearbyMapInfos) {
-            if (tile.getPaint().isEnemy()) {
-                enemyPaintX += tile.getMapLocation().x;
-                enemyPaintY += tile.getMapLocation().y;
-                enemyPaintCount++;
-            }
-        }
-
-        if (enemyPaintCount == 0) {
-            return null;
-        }
-
-        enemyPaintX /= enemyPaintCount;
-        enemyPaintY /= enemyPaintCount;
-
-        return new MapLocation(enemyPaintX, enemyPaintY);
-    }
-
-
-
 }

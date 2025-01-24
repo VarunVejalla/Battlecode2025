@@ -7,7 +7,6 @@ enum NavigationMode {
 }
 
 public class Navigation {
-
     RobotController rc;
     Robot robot;
 
@@ -19,9 +18,6 @@ public class Navigation {
     Direction lastDirectionMoved = null;
     int roundsSinceClosestDistReset = 0;
     MapLocation prevTarget = null;
-    boolean[][] locsToIgnore;
-    MapLocation[] recentlyVisited = new MapLocation[10];
-    int recentlyVisitedIdx = 0;
     boolean bugFollowRight = true; // TODO: Figure out how to make this a smart decision.
 
     final int ROUNDS_TO_RESET_BUG_CLOSEST = 15;
@@ -29,7 +25,6 @@ public class Navigation {
     public Navigation(RobotController rc, Robot robot) {
         this.rc = rc;
         this.robot = robot;
-        locsToIgnore = new boolean[rc.getMapWidth()][rc.getMapHeight()];
     }
 
     public boolean goToBug(MapLocation target, int minDistToSatisfy) throws GameActionException {
