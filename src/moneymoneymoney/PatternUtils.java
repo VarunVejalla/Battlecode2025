@@ -161,7 +161,7 @@ public class PatternUtils {
                     Util.move(direction.rotateLeft());
                 }
             } else {
-                soldier.nav.goToFuzzy(soldier.nearbyMapInfos[index].getMapLocation(), 0);
+                soldier.nav.goToSmart(soldier.nearbyMapInfos[index].getMapLocation(), 0);
             }
         }
     }
@@ -238,7 +238,7 @@ public class PatternUtils {
                     Util.move(direction.rotateLeft());
                 }
             } else {
-                soldier.nav.goToFuzzy(soldier.nearbyMapInfos[index].getMapLocation(), 0);
+                soldier.nav.goToSmart(soldier.nearbyMapInfos[index].getMapLocation(), 0);
             }
         }
     }

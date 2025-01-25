@@ -23,6 +23,8 @@ public class Navigation {
     MapLocation[] recentlyVisited = new MapLocation[10];
     int recentlyVisitedIdx = 0;
     boolean bugFollowRight = true; // TODO: Figure out how to make this a smart decision.
+    boolean fuzzyFailed = false;
+    MapLocation lastGoToSmartLoc = null;
 
     final int ROUNDS_TO_RESET_BUG_CLOSEST = 15;
 
@@ -120,6 +122,8 @@ public class Navigation {
                         if (rc.canSenseLocation(newLoc) && rc.senseRobotAtLocation(newLoc) == null) {
                             lastWallFollowed = newLoc;
                         }
+                    } else {
+                        bugFollowRight = !bugFollowRight;
                     }
                 }
             }
@@ -130,9 +134,12 @@ public class Navigation {
             }
         }
 
+        Util.addToIndicatorString("BFR: " + bugFollowRight);
+        Util.addToIndicatorString("WD: " + wallDir);
+
         if (closestDir != null) {
-    //            Direction bestDir = closestDir;
-    //            int bestHeuristic = heuristic(closestDir);
+            //            Direction bestDir = closestDir;
+            //            int bestHeuristic = heuristic(closestDir);
             return closestDir;
         }
         return wallDir;
@@ -196,8 +203,8 @@ public class Navigation {
             }
             int allyHeuristic = numAllies * 5;
 
-            Util.addToIndicatorString("D" + distance + "," + paintHeuristic + "," + allyHeuristic + ";");
-            Util.log("D" + dir + "," + distance + "," + paintHeuristic + "," + allyHeuristic + ";");
+//            Util.addToIndicatorString("D" + distance + "," + paintHeuristic + "," + allyHeuristic + ";");
+//            Util.log("D" + dir + "," + distance + "," + paintHeuristic + "," + allyHeuristic + ";");
 
             int heuristic = numMoves + distance + paintHeuristic + allyHeuristic;
 
@@ -243,5 +250,38 @@ public class Navigation {
             }
         }
         return true;
+    }
+
+    public void goToSmart(MapLocation target, int minDistToSatisfy) throws GameActionException {
+        if(lastGoToSmartLoc == null || !target.isWithinDistanceSquared(lastGoToSmartLoc, 8)) {
+            Util.addToIndicatorString("RESETTING FUZZY " + target + ", " + lastGoToSmartLoc);
+            lastGoToSmartLoc = target;
+            fuzzyFailed = false;
+            if(rc.getLocation().distanceSquaredTo(target) > 36){
+                fuzzyFailed = true;
+            }
+        }
+
+        if(rc.getLocation().isWithinDistanceSquared(target, minDistToSatisfy)){
+            return;
+        }
+
+        Util.addToIndicatorString("FZ FAILED: " + fuzzyFailed);
+        if(!fuzzyFailed){
+            Direction bestDir = fuzzyNav(target, true);
+            if(bestDir == Direction.CENTER){
+                fuzzyFailed = true;
+            } else {
+                Util.tryMove(bestDir);
+            }
+            Util.addToIndicatorString("BDR: " + bestDir);
+        }
+        if(rc.isMovementReady() && fuzzyFailed){
+            Direction bestDir = bugNav(target);
+            if(bestDir != Direction.CENTER){
+                Util.tryMove(bestDir);
+            }
+        }
+        Util.addToIndicatorString("FZ FAILED 2: " + fuzzyFailed);
     }
 }

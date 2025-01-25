@@ -319,7 +319,7 @@ public abstract class Bunny extends Robot {
         if(rc.getLocation().distanceSquaredTo(replenishDestination) > 9) {
             nav.goToBug(replenishDestination, 0);
         } else {
-            nav.goToFuzzy(replenishDestination, 0);
+            nav.goToSmart(replenishDestination, 0);
         }
         if(rc.isActionReady()){
             tryReplenish();

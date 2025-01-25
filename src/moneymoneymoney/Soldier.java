@@ -126,7 +126,7 @@ public class Soldier extends Bunny {
                 if(rc.canAttack(closestEmpty)){
                     rc.attack(closestEmpty);
                 } else {
-                    nav.goToFuzzy(closestEmpty, 0);
+                    nav.goToSmart(closestEmpty, 0);
                 }
             }
         }
@@ -199,18 +199,18 @@ public class Soldier extends Bunny {
         // 1. If you can attack him, attack him, then back out.
         if(rc.isActionReady() && rc.canAttack(attackTarget)){
             rc.attack(attackTarget);
-            nav.goToFuzzy(backoutLoc, 0);
+            nav.goToSmart(backoutLoc, 0);
         }
         // 2. If your action is ready but you're too far away, move towards and then attack.
         else if(rc.isActionReady()){
-            nav.goToFuzzy(attackTarget, 0);
+            nav.goToSmart(attackTarget, 0);
             if(rc.canAttack(attackTarget)){
                 rc.attack(attackTarget);
             }
         }
         // 3. If your action is not ready but you're within attack radius, back out.
         else if(!rc.isActionReady() && distToTarget <= attackInfo.getType().actionRadiusSquared){
-            nav.goToFuzzy(backoutLoc, 0);
+            nav.goToSmart(backoutLoc, 0);
         }
     }
 
@@ -232,7 +232,7 @@ public class Soldier extends Bunny {
             Util.addToIndicatorString("??");
             if(currRuinResponsibility == Responsibility.SELF_RESPONSIBLE){
                 Util.addToIndicatorString("SR");
-                nav.goToFuzzy(currRuinLoc, 0);
+                nav.goToSmart(currRuinLoc, 0);
                 return true;
             }
             // Otherwise, responsibility is still unknown.
@@ -246,7 +246,7 @@ public class Soldier extends Bunny {
             }
             // No one's taken responsibility yet, lets try taking responsibility.
             else {
-                nav.goToFuzzy(currRuinLoc, 0);
+                nav.goToSmart(currRuinLoc, 0);
                 boolean markedResponsibility = PatternUtils.markResponsibility(currRuinLoc);
                 if(markedResponsibility){
                     currRuinResponsibility = Responsibility.SELF_RESPONSIBLE;
@@ -270,7 +270,7 @@ public class Soldier extends Bunny {
             // If i'm assigned to this resource pattern, just stay near it.
             if (currResourceResponsibility == Responsibility.SELF_RESPONSIBLE) {
                 Util.addToIndicatorString("SR");
-                nav.goToFuzzy(currResourceCenterLoc, 0);
+                nav.goToSmart(currResourceCenterLoc, 0);
                 return true;
             }
             // Otherwise, responsibility is still unknown.
@@ -282,7 +282,7 @@ public class Soldier extends Bunny {
             }
             // No one's taken responsibility yet, lets try taking responsibility.
             else {
-                nav.goToFuzzy(currResourceCenterLoc, 0);
+                nav.goToSmart(currResourceCenterLoc, 0);
                 boolean markedResponsibility = PatternUtils.markResponsibility(currResourceCenterLoc);
                 if (markedResponsibility) {
                     currResourceResponsibility = Responsibility.SELF_RESPONSIBLE;
@@ -382,7 +382,7 @@ public class Soldier extends Bunny {
 
         MapLocation cornerLoc = getPotentialRCCornerLoc(closestUnchecked);
         if(!rc.getLocation().equals(cornerLoc)){
-            nav.goToFuzzy(cornerLoc, 0);
+            nav.goToSmart(cornerLoc, 0);
             return true;
         }
 
@@ -430,7 +430,7 @@ public class Soldier extends Bunny {
         boolean[][] resourcePattern = rc.getResourcePattern();
         PatternUtils.workOnResourcePattern(currResourceCenterLoc.x - myLoc.x, currResourceCenterLoc.y - myLoc.y, resourcePattern, paintEmpty);
 
-        nav.goToFuzzy(currResourceCenterLoc, 0);
+        nav.goToSmart(currResourceCenterLoc, 0);
         if (rc.canCompleteResourcePattern(currResourceCenterLoc)) {
             rc.completeResourcePattern(currResourceCenterLoc);
         }
