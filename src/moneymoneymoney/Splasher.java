@@ -39,7 +39,9 @@ public class Splasher extends Bunny {
         updateOffLimits();
 //            Util.logBytecode("Reupdate off limits");
 //                }
-        splashAttack();
+        if (rc.getPaint() >= UnitType.SPLASHER.attackCost) {
+            splashAttack();
+        }
 //            Util.logBytecode("Second attack");
 
         MarkingUtils.tryRuinPatternCompletion();
@@ -351,7 +353,10 @@ public class Splasher extends Bunny {
      */
     public void moveLogic() throws GameActionException {
         myLoc = rc.getLocation();
-        macroMove(0);
+        adjustDestination();
+        nav.goToBug(destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
+
+
     }
 
 }

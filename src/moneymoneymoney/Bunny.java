@@ -444,6 +444,55 @@ public abstract class Bunny extends Robot {
         return new MapLocation(enemyPaintX, enemyPaintY);
     }
 
+    public void adjustDestination() throws GameActionException {
+        if (goingRandom) {
+            double charge_x = 0;
+            double charge_y = 0;
+            double curr_delta;
+            double distance_squared;
+            UnitType myType = rc.getType();
+            for (RobotInfo friend : rc.senseNearbyRobots(-1, myTeam)) {
+                if (friend.getType() != myType) {
+                    continue;
+                }
+
+                distance_squared = friend.getLocation().distanceSquaredTo(rc.getLocation());
+                curr_delta = friend.getLocation().x-rc.getLocation().x;
+                charge_x += curr_delta/distance_squared;
+                curr_delta = friend.getLocation().y-rc.getLocation().y;
+                charge_y += curr_delta/distance_squared;
+            }
+
+            double delta_x = destination.x - rc.getLocation().x;
+            double delta_y = destination.y - rc.getLocation().y;
+
+            // the further it is, the more sensitive it should be to perturbations
+
+            double velocity_x = delta_x/Math.sqrt(delta_x*delta_x + delta_y*delta_y);
+            double velocity_y = delta_y/Math.sqrt(delta_x*delta_x + delta_y*delta_y);
+
+            velocity_x -= charge_x;
+            velocity_y -= charge_y;
+
+            double min_time = Double.MAX_VALUE;
+
+            if (velocity_x < 0) {
+                min_time = Math.min(min_time, (2 - rc.getLocation().x)/velocity_x);
+            }
+            if (velocity_x > 0) {
+                min_time = Math.min(min_time, (mapWidth - 3 - rc.getLocation().x)/velocity_x);
+            }
+            if (velocity_y < 0) {
+                min_time = Math.min(min_time, (2 - rc.getLocation().y)/velocity_y);
+            }
+            if (velocity_y > 0) {
+                min_time = Math.min(min_time, (mapHeight - 3 - rc.getLocation().y)/velocity_y);
+            }
+
+            destination = rc.getLocation().translate((int)(velocity_x*min_time), (int)(velocity_y*min_time));
+        }
+    }
+
 
 
 }

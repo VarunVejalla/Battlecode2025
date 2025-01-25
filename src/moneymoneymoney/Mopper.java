@@ -87,6 +87,7 @@ public class Mopper extends Bunny {
             mopperNav(comms.getSectorCenter(bestSector));
         } else {
             // Goes to random destination
+            adjustDestination();
             mopperNav(destination);
             // Go towards the center
         }
