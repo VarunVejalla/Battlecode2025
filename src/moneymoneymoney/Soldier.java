@@ -96,6 +96,8 @@ public class Soldier extends Bunny {
         MarkingUtils.tryRuinPatternCompletion();
         MarkingUtils.tryResourcePatternCompletion();
 
+        tryReplenish();
+
         Util.logBytecode("Tried completion");
     }
 
