@@ -86,6 +86,13 @@ public class Soldier extends Bunny {
             Util.logBytecode("Built pattern");
         }
 
+        if (Constants.PAINT_ALONG_PATH) {
+            myLoc = rc.getLocation();
+            if (rc.senseMapInfo(myLoc).getPaint() == PaintType.EMPTY && rc.canAttack(myLoc)) {
+                rc.attack(myLoc);
+            }
+        }
+
         MarkingUtils.tryRuinPatternCompletion();
         MarkingUtils.tryResourcePatternCompletion();
 
