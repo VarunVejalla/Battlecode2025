@@ -1,4 +1,4 @@
-package toweredmoney;
+package speed;
 
 import battlecode.common.*;
 
@@ -82,52 +82,8 @@ public class PatternUtils {
         }
 
         if (rc.isMovementReady()) {
-            if (soldier.goingRandom) {
-                // look through the nearby robots and project away from them
-                double charge_x = 0;
-                double charge_y = 0;
-                double curr_delta;
-                double distance_squared;
-                for (RobotInfo friend : rc.senseNearbyRobots(-1, soldier.myTeam)) {
-                    if (friend.getType() != UnitType.SOLDIER) {
-                        continue;
-                    }
+            soldier.adjustDestination();
 
-                    distance_squared = friend.getLocation().distanceSquaredTo(rc.getLocation());
-                    curr_delta = friend.getLocation().x-rc.getLocation().x;
-                    charge_x += curr_delta/distance_squared;
-                    curr_delta = friend.getLocation().y-rc.getLocation().y;
-                    charge_y += curr_delta/distance_squared;
-                }
-
-                double delta_x = soldier.destination.x - rc.getLocation().x;
-                double delta_y = soldier.destination.y - rc.getLocation().y;
-
-                // the further it is, the more sensitive it should be to perturbations
-
-                double velocity_x = delta_x/Math.sqrt(delta_x*delta_x + delta_y*delta_y);
-                double velocity_y = delta_y/Math.sqrt(delta_x*delta_x + delta_y*delta_y);
-
-                velocity_x -= charge_x;
-                velocity_y -= charge_y;
-
-                double min_time = Double.MAX_VALUE;
-
-                if (velocity_x < 0) {
-                    min_time = Math.min(min_time, (2 - rc.getLocation().x)/velocity_x);
-                }
-                if (velocity_x > 0) {
-                    min_time = Math.min(min_time, (soldier.mapWidth - 3 - rc.getLocation().x)/velocity_x);
-                }
-                if (velocity_y < 0) {
-                    min_time = Math.min(min_time, (2 - rc.getLocation().y)/velocity_y);
-                }
-                if (velocity_y > 0) {
-                    min_time = Math.min(min_time, (soldier.mapHeight - 3 - rc.getLocation().y)/velocity_y);
-                }
-
-                soldier.destination = rc.getLocation().translate((int)(velocity_x*min_time), (int)(velocity_y*min_time));
-            }
 
             Util.addToIndicatorString("DEST " + soldier.destination  + ";");
             soldier.nav.goToBug(soldier.destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
@@ -205,7 +161,7 @@ public class PatternUtils {
                     Util.move(direction.rotateLeft());
                 }
             } else {
-                soldier.nav.goToFuzzy(soldier.nearbyMapInfos[index].getMapLocation(), 0);
+                soldier.nav.goToSmart(soldier.nearbyMapInfos[index].getMapLocation(), 0);
             }
         }
     }
@@ -282,7 +238,7 @@ public class PatternUtils {
                     Util.move(direction.rotateLeft());
                 }
             } else {
-                soldier.nav.goToFuzzy(soldier.nearbyMapInfos[index].getMapLocation(), 0);
+                soldier.nav.goToSmart(soldier.nearbyMapInfos[index].getMapLocation(), 0);
             }
         }
     }

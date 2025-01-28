@@ -1,4 +1,4 @@
-package toweredmoney;
+package speed;
 
 import battlecode.common.GameActionException;
 import battlecode.common.Message;

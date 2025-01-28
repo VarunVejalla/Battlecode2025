@@ -1,4 +1,4 @@
-package toweredmoney;
+package speed;
 
 import battlecode.common.*;
 
@@ -54,6 +54,8 @@ public class Mopper extends Bunny {
         MarkingUtils.tryRuinPatternCompletion();
         MarkingUtils.tryResourcePatternCompletion();
 
+        tryReplenish();
+
         Util.logBytecode("Tried completion");
     }
 
@@ -87,6 +89,7 @@ public class Mopper extends Bunny {
             mopperNav(comms.getSectorCenter(bestSector));
         } else {
             // Goes to random destination
+            adjustDestination();
             mopperNav(destination);
             // Go towards the center
         }
