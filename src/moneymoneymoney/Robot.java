@@ -49,7 +49,7 @@ public class Robot {
         this.mapWidth = rc.getMapWidth();
         this.mapHeight = rc.getMapHeight();
         this.nav = new Navigation(rc, this);
-        rng = new Random(42); // seed the random number generator with the id of the bot
+        rng = new Random(rc.getID()); // seed the random number generator with the id of the bot
         roundSpawn = rc.getRoundNum();
         this.myLoc = rc.getLocation();
         previousNumTotalChips = rc.getChips();

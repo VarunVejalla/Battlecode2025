@@ -83,10 +83,35 @@ public class PatternUtils {
 
         if (rc.isMovementReady()) {
             soldier.adjustDestination();
+            MapLocation myLoc = rc.getLocation();
 
-
-            Util.addToIndicatorString("DEST " + soldier.destination  + ";");
             soldier.nav.goToBug(soldier.destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
+
+//            // Select array of unexplored sectors
+//            int[] unexploredSectors = {-1,-1,-1,-1,-1,-1,-1,-1, -1};
+//            int unexploredSectorCount = 0;
+//            int[] neighborSectorIndexes = Util.getSectorAndNeighbors(myLoc, 1);
+//
+//            for (int neighorSectorIndex : neighborSectorIndexes) {
+//                // Check the last bit for exploration
+//                if((soldier.comms.myWorld[neighorSectorIndex] & 1) == 0) {
+//                    unexploredSectors[unexploredSectorCount] = neighorSectorIndex;
+//                    unexploredSectorCount++;
+//                }
+//            }
+//
+//            if(unexploredSectorCount == 0) {
+//                Util.addToIndicatorString("RAND DEST " + soldier.destination  + ";");
+//                soldier.nav.goToBug(soldier.destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
+//            }
+//            else {
+//                // Random select from the unexplored sectors.
+//                int randomSector = unexploredSectors[soldier.rng.nextInt(unexploredSectorCount)];
+//                Util.addToIndicatorString("EXPLORE DEST " + soldier.destination  + ";");
+//                soldier.nav.goToBug(Util.getSectorCenter(randomSector), Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
+//            }
+
+
         }
     }
 

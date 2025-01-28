@@ -549,4 +549,43 @@ public class Util {
     }
 
 
+
+    /**
+     * Returns an array containing the index of the sector that contains the given MapLocation
+     * as well as the indices of its neighboring sectors.
+     */
+    public static int[] getSectorAndNeighbors(MapLocation loc, int sectorsAway) {
+        int sectorRows = (rc.getMapWidth() + 4) / 5;
+        int sectorCols = (rc.getMapHeight() + 4) / 5;
+
+        int col = loc.x / 5;
+        int row = loc.y / 5;
+
+        // Precompute bounds to avoid repeated checks
+        int minRow = Math.max(0, row - sectorsAway);
+        int maxRow = Math.min(sectorCols - 1, row + sectorsAway);
+        int minCol = Math.max(0, col - sectorsAway);
+        int maxCol = Math.min(sectorRows - 1, col + sectorsAway);
+
+        // Validate bounds
+        if (maxRow < minRow || maxCol < minCol) {
+            throw new IllegalStateException("Invalid sector bounds");
+        }
+
+        // Calculate the number of valid neighbors
+        int neighborCount = (maxRow - minRow + 1) * (maxCol - minCol + 1);
+
+        int[] neighbors = new int[neighborCount];
+        int index = 0;
+
+        // Iterate only over valid rows and columns
+        for (int r = minRow; r <= maxRow; r++) {
+            for (int c = minCol; c <= maxCol; c++) {
+                neighbors[index++] = r * sectorRows + c;
+            }
+        }
+
+        return neighbors;
+    }
+
 }

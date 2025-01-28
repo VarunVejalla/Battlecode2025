@@ -21,7 +21,7 @@ public class Soldier extends Bunny {
     int[] roundPaintedRuinsBySector = new int[144];
     MapLocation rotationalDestination;
     boolean alreadyVisited = false;
-
+    BunnyComms comms = new BunnyComms(rc, this);
 
     public Soldier(RobotController rc) throws GameActionException {
         super(rc);
