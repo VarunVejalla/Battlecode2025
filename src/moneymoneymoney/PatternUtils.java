@@ -80,82 +80,6 @@ public class PatternUtils {
         }
     }
 
-    public static void workOnRuinWithoutPaintingOutside(int index, boolean[][] paintPattern) throws GameActionException {
-        boolean isPaintReady = rc.isActionReady() && rc.getPaint() >= UnitType.SOLDIER.attackCost;
-
-        if (isPaintReady) {
-            byte dx = UnrolledConstants.getShiftDx(index);
-            byte dy = UnrolledConstants.getShiftDy(index);
-
-            // TODO: this could be optimized to not look at squares that are not part of the grid
-            // since we are not paintint outside the ruin in this function
-            byte[] ordering = ExcessConstants.orderFillingRuinCall(13*dx + dy + 84);
-
-            for (byte attackIndex : ordering) {
-                if (attackIndex == index) {
-                    continue;
-                }
-
-                if (soldier.nearbyMapInfos[attackIndex] == null || soldier.nearbyMapInfos[attackIndex].isWall()) {
-                    continue;
-                }
-
-                PaintType currentPaint = soldier.nearbyMapInfos[attackIndex].getPaint();
-                if (currentPaint == PaintType.EMPTY) {
-                    int offsetX = UnrolledConstants.getShiftDx(attackIndex) - dx;
-                    int offsetY = UnrolledConstants.getShiftDy(attackIndex) - dy;
-                    if (offsetX*offsetX + offsetY*offsetY <= 8) {
-                        rc.attack(soldier.nearbyMapInfos[attackIndex].getMapLocation(), paintPattern[offsetX+2][offsetY+2]);
-                        break;
-                    }
-                } else if (currentPaint.isEnemy()) {
-                    continue;
-                } else {
-                    int offsetX = UnrolledConstants.getShiftDx(attackIndex) - dx;
-                    int offsetY = UnrolledConstants.getShiftDy(attackIndex) - dy;
-
-                    if (offsetX*offsetX + offsetY*offsetY <= 8 && paintPattern[offsetX+2][offsetY+2] != currentPaint.isSecondary()) {
-                        rc.attack(soldier.nearbyMapInfos[attackIndex].getMapLocation(), paintPattern[offsetX+2][offsetY+2]);
-                        break;
-                    }
-                }
-            }
-        }
-
-        if (rc.isMovementReady()) {
-            int r2 = soldier.myLoc.distanceSquaredTo(soldier.nearbyMapInfos[index].getMapLocation());
-
-            if (r2 == 1) {
-                // try going counter-clockwise around those r^2 = 1 squares
-                Direction direction = soldier.myLoc.directionTo(soldier.nearbyMapInfos[index].getMapLocation());
-
-                if (rc.canMove(direction.rotateRight())) {
-                    Util.move(direction.rotateRight());
-                }
-
-            } else if (r2 == 2) {
-                // diagonally adjacent to center
-                Direction direction = soldier.myLoc.directionTo(soldier.nearbyMapInfos[index].getMapLocation());
-                if (rc.canMove(direction.rotateRight())) {
-                    Util.move(direction.rotateRight());
-                } else if (rc.canMove(direction.rotateLeft())) {
-                    Util.move(direction.rotateLeft());
-                }
-            } else if (r2 == 4) {
-                Direction direction = soldier.myLoc.directionTo(soldier.nearbyMapInfos[index].getMapLocation());
-                if (rc.canMove(direction)) {
-                    Util.move(direction);
-                } else if (rc.canMove(direction.rotateRight())) {
-                    Util.move(direction.rotateRight());
-                } else if (rc.canMove(direction.rotateLeft())) {
-                    Util.move(direction.rotateLeft());
-                }
-            } else {
-                soldier.nav.goToSmart(soldier.nearbyMapInfos[index].getMapLocation(), 0);
-            }
-        }
-    }
-
     public static void workOnRuin(int index, boolean[][] paintPattern, boolean paintEmpty) throws GameActionException {
         boolean isPaintReady = rc.isActionReady() && rc.getPaint() >= UnitType.SOLDIER.attackCost;
 
@@ -403,12 +327,7 @@ public class PatternUtils {
     }
 
     public static void markPotentialRCInvalid() throws GameActionException {
-        for(int dx = -1; dx <= 1; dx++) {
-            for(int dy = -1; dy <= 1; dy++) {
-                int idx = (soldier.potentialResourceCenterLoc.x + dx) * rc.getMapHeight() + (soldier.potentialResourceCenterLoc.y + dy);
-                soldier.invalidPotentialLocs[idx] = true;
-            }
-        }
+        soldier.invalidPotentialLocs[soldier.potentialResourceCenterLoc.x / 3][soldier.potentialResourceCenterLoc.y / 3] = true;
         soldier.potentialResourceCenterLoc = null;
         soldier.potentialRCCornersChecked = new boolean[4];
     }
@@ -455,8 +374,7 @@ public class PatternUtils {
             }
             if (nearbyMapInfos[i] != null) {
                 MapLocation loc = nearbyMapInfos[i].getMapLocation();
-                int idx = loc.x * rc.getMapHeight() + loc.y;
-                if(loc.x < 2 || loc.y < 2 || loc.x > soldier.mapWidth - 3 || loc.y > soldier.mapHeight - 3 || soldier.invalidPotentialLocs[idx]){
+                if(loc.x < 2 || loc.y < 2 || loc.x > soldier.mapWidth - 3 || loc.y > soldier.mapHeight - 3 || soldier.invalidPotentialLocs[loc.x / 3][loc.y / 3]){
 //                    Util.log("INVALID LOC: " + loc);
 //                    Util.log("i: " + i);
                     int index = soldier.invSpiralOutwardIndices[i];

@@ -13,7 +13,7 @@ public class Soldier extends Bunny {
 
     MapLocation potentialResourceCenterLoc = null;
     boolean[] potentialRCCornersChecked = new boolean[4];
-    boolean[] invalidPotentialLocs;
+    boolean[][] invalidPotentialLocs;
     MapLocation currResourceCenterLoc = null;
     Responsibility currResourceResponsibility = Responsibility.UNASSIGNED;
     MapLocation currRuinLoc = null;
@@ -22,23 +22,20 @@ public class Soldier extends Bunny {
     MapLocation rotationalDestination;
     boolean alreadyVisited = false;
 
-
     public Soldier(RobotController rc) throws GameActionException {
         super(rc);
         Util.logBytecode("Start of soldier constructor");
-        invalidPotentialLocs = new boolean[3600];
+        invalidPotentialLocs = new boolean[rc.getMapWidth() / 3][rc.getMapHeight() / 3];
         Util.logBytecode("Start of soldier constructor pt 2");
         PatternUtils.soldier = this;
         PatternUtils.rc = rc;
         double metric = getMetric();
-        Util.logBytecode("Start of soldier constructor pt 3");
         rotationalDestination = Util.getRotationalReflection(spawnLoc);
 
         if (metric < Constants.RUIN_SEARCHING_THRESHOLD && rc.getRoundNum() < 100) {
             destination = rotationalDestination;
             goingRandom = false;
         }
-
     }
 
     public void run() throws GameActionException {
