@@ -49,6 +49,7 @@ public abstract class Bunny extends Robot {
 
     public Bunny(RobotController rc) throws GameActionException {
         super(rc);
+        Util.logBytecode("Start of bunny constructor");
         MarkingUtils.bunny = this;
         MarkingUtils.rc = rc;
         destination = Util.getRandomMapLocation();
@@ -57,6 +58,7 @@ public abstract class Bunny extends Robot {
 
     public void run() throws GameActionException {
         super.run();
+        Util.logBytecode("Start of bunny run");
         // Comms is run inside of scan surroundings (and nearest allied paint tower, which is called in surroundings)!
         scanSurroundings();
         checkForUpgrades();

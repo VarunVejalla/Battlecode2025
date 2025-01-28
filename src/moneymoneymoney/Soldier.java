@@ -25,14 +25,17 @@ public class Soldier extends Bunny {
 
     public Soldier(RobotController rc) throws GameActionException {
         super(rc);
+        Util.logBytecode("Start of soldier constructor");
         invalidPotentialLocs = new boolean[3600];
+        Util.logBytecode("Start of soldier constructor pt 2");
         PatternUtils.soldier = this;
         PatternUtils.rc = rc;
         double metric = getMetric();
+        Util.logBytecode("Start of soldier constructor pt 3");
         rotationalDestination = Util.getRotationalReflection(spawnLoc);
 
         if (metric < Constants.RUIN_SEARCHING_THRESHOLD && rc.getRoundNum() < 100) {
-            destination = Util.getRotationalReflection(spawnLoc);
+            destination = rotationalDestination;
             goingRandom = false;
         }
 
@@ -40,6 +43,7 @@ public class Soldier extends Bunny {
 
     public void run() throws GameActionException {
         super.run(); // Call the shared logic for all bunnies
+        Util.logBytecode("Start of soldier run");
 
         if (myLoc.isWithinDistanceSquared(rotationalDestination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION)) {
             alreadyVisited = true;
@@ -64,6 +68,8 @@ public class Soldier extends Bunny {
             goingRandom = false;
         }
 
+        Util.logBytecode("AAAAAAAAAAAAAAA");
+
         // 1. If trying to replenish, go do that.
         RobotInfo attackInfo = getAttackTarget();
         Util.logBytecode("Get attack target");
@@ -85,6 +91,8 @@ public class Soldier extends Bunny {
             }
             Util.logBytecode("Built pattern");
         }
+
+        Util.logBytecode("BBBBBBBBBBBB");
 
         if (Constants.PAINT_ALONG_PATH) {
             myLoc = rc.getLocation();
