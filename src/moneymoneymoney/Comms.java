@@ -212,4 +212,5 @@ public class Comms {
             Util.log(Util.getSectorDescription(myWorld[sectorIndex]));
         }
     }
+
 }

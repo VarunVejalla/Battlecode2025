@@ -333,7 +333,7 @@ public class Splasher extends Bunny {
      * Returns a score evaluating how favorable it would be for this robot to move to this sector.
      */
     public int evaluateSector(int encodedSector) {
-        ScanResult sr = comms.decodeSector(encodedSector);
+        ScanResult sr = Util.decodeSector(encodedSector);
         int tileScore = 0;
         // Move towards areas with high enemy paint.
 //        if(sr.enemyPaintLevel >= 2) {

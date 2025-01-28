@@ -1,4 +1,4 @@
-package toweredmoney;
+package moneybenchmark8;
 
 import battlecode.common.*;
 
@@ -33,11 +33,9 @@ enum SymmetryType {
 public abstract class Bunny extends Robot {
     final MapLocation noRuinLoc = new MapLocation(-1, -1);
     MapLocation[] knownRuinsBySector = new MapLocation[144];
-    MapLocation[] knownAlliedTowerLocs = new MapLocation[10];
-    TowerType[] knownAlliedTowerTypes = new TowerType[10];
-    MapLocation nearestAlliedTowerLoc;
-    TowerType nearestAlliedTowerType;
-    MapLocation nearestAlliedPaintTowerLoc;
+    MapLocation[] knownAlliedTowerLocs = new MapLocation[15];
+    int[] knownAlliedPaintCounts = new int[15];
+    MapLocation replenishDestination;
     MapLocation destination; // long-term destination
     MapLocation center = new MapLocation(rc.getMapWidth() / 2, rc.getMapHeight() / 2);
     MapInfo[] nearbyMapInfos;
@@ -63,12 +61,6 @@ public abstract class Bunny extends Robot {
         // Comms is run inside of scan surroundings (and nearest allied paint tower, which is called in surroundings)!
         scanSurroundings();
         checkForUpgrades();
-
-//        if(tryingToReplenish) {
-//            Util.addToIndicatorString("REP");
-//        }
-//        if(rc.getRoundNum() > 270) rc.resign();
-//        if(rc.getRoundNum() == 260) comms.describeWorld();
     }
 
     public void checkForUpgrades() throws GameActionException {
@@ -251,9 +243,9 @@ public abstract class Bunny extends Robot {
                 RobotInfo info = rc.senseRobotAtLocation(knownAlliedTowerLocs[i]);
                 if (info == null || info.getTeam() != myTeam) {
                     knownAlliedTowerLocs[i] = null;
-                    knownAlliedTowerTypes[i] = null;
+                    knownAlliedPaintCounts[i] = 0;
                 } else {
-                    knownAlliedTowerTypes[i] = TowerType.from(info.getType());
+                    knownAlliedPaintCounts[i] = info.getPaintAmount();
                 }
             }
         }
@@ -277,11 +269,13 @@ public abstract class Bunny extends Robot {
                 }
                 if (currAlliedTowerLocation.equals(knownAlliedTowerLocs[i])) {
                     alreadyIn = true;
+                    knownAlliedPaintCounts[i] = bot.getPaintAmount();
+                    break;
                 }
             }
             if (!alreadyIn && nullIdx != -1) {
                 knownAlliedTowerLocs[nullIdx] = currAlliedTowerLocation;
-                knownAlliedTowerTypes[nullIdx] = TowerType.from(bot.getType());
+                knownAlliedPaintCounts[nullIdx] = bot.getPaintAmount();
             }
         }
     }
@@ -292,61 +286,43 @@ public abstract class Bunny extends Robot {
      */
     public void setNearestAlliedTowers() throws GameActionException {
         int maxDist = Integer.MAX_VALUE;
-        int maxPaintDist = Integer.MAX_VALUE;
-        nearestAlliedPaintTowerLoc = null;
-        nearestAlliedTowerType = null;
-        nearestAlliedTowerLoc = null;
         MapLocation myLocation = rc.getLocation();
+        replenishDestination = null;
         for(int i = 0; i < knownAlliedTowerLocs.length; i++){
             if(knownAlliedTowerLocs[i] == null){
                 continue;
             }
             int dist = myLocation.distanceSquaredTo(knownAlliedTowerLocs[i]);
-            if(dist < maxDist){
+            if(dist < maxDist && knownAlliedPaintCounts[i] > 0){
                 maxDist = dist;
-                nearestAlliedTowerLoc = knownAlliedTowerLocs[i];
-                nearestAlliedTowerType = knownAlliedTowerTypes[i];
-            }
-            if(knownAlliedTowerTypes[i] == TowerType.PaintTower && dist < maxPaintDist){
-                nearestAlliedPaintTowerLoc = knownAlliedTowerLocs[i];
-                maxPaintDist = dist;
+                replenishDestination = knownAlliedTowerLocs[i];
             }
         }
     }
 
     public void replenishLogic() throws GameActionException {
-        MapLocation homebase = nearestAlliedPaintTowerLoc;
-        // TODO: Make this smarter. Wander around friendly territory till you find someone to replenish you.
-        if(homebase == null){
-            homebase = nearestAlliedTowerLoc;
+        if(replenishDestination == null || checkIfImDoneReplenishing()){
+            tryingToReplenish = false;
+            return;
         }
-        // In the case they're both null, search through comms
-        if(homebase == null) {
-            // TODO if theres a money tower go there too
-//            int[] neighborSectorIndexes = comms.getSectorAndNeighbors(myLoc, 2);
-//            for(int sectorIndex : neighborSectorIndexes){
-//                int encodedSector = comms.myWorld[sectorIndex];
-//                int tower = (encodedSector >> 1) & 0b111;
-//                // If there's a friendly paint tower, go there
-//                if(tower == 2) {
-//                    homebase = comms.getSectorCenter(sectorIndex);
-//                    break;
-//                }
-//            }
-//            if(homebase == null) {
-//                return;
-//            }
+        if(!tryingToReplenish && checkIfIShouldStartReplenishing()){
+            tryingToReplenish = true;
+        }
+        if(!tryingToReplenish){
             return;
         }
 
-        if(rc.getLocation().distanceSquaredTo(homebase) > 9) {
-            nav.goToBug(homebase, 0);
-        } else {
+        if(rc.isActionReady()){
             tryReplenish();
-            nav.goToFuzzy(homebase, 0);
-            if(rc.isActionReady()){
-                tryReplenish();
-            }
+        }
+
+        if(rc.getLocation().distanceSquaredTo(replenishDestination) > 9) {
+            nav.goToBug(replenishDestination, 0);
+        } else {
+            nav.goToSmart(replenishDestination, 0);
+        }
+        if(rc.isActionReady()){
+            tryReplenish();
         }
     }
 
@@ -355,22 +331,26 @@ public abstract class Bunny extends Robot {
      * transfer paint
      */
     public void tryReplenish() throws GameActionException {
-        if (nearestAlliedPaintTowerLoc == null) return;
-
-        if (rc.getLocation()
-                .distanceSquaredTo(nearestAlliedPaintTowerLoc) <= GameConstants.PAINT_TRANSFER_RADIUS_SQUARED) {
-            int towerPaintQuantity = rc.senseRobotAtLocation(nearestAlliedPaintTowerLoc).getPaintAmount();
-            int paintToFillUp = Math.min(
-                    rc.getType().paintCapacity - rc.getPaint(), // amount of paint needed to fully top off
-                    towerPaintQuantity); // amount of paint available in the tower
-
-            if (rc.isActionReady() && rc.canTransferPaint(nearestAlliedPaintTowerLoc, -paintToFillUp)) {
-                rc.transferPaint(nearestAlliedPaintTowerLoc, -paintToFillUp);
+        RobotInfo[] transferRobots = rc.senseNearbyRobots(GameConstants.PAINT_TRANSFER_RADIUS_SQUARED, myTeam);
+        for(RobotInfo info : transferRobots){
+            int minPaintToLeave;
+            if(info.getType().isTowerType()) {
+                minPaintToLeave = 0;
+            } else if(info.getType() == UnitType.MOPPER) {
+                minPaintToLeave = 50;
+            } else {
+                continue;
             }
 
-            if (checkIfImDoneReplenishing()) {
-                // Util.log("DONE REPLENISHING");
-                tryingToReplenish = false;
+            if (info.getPaintAmount() <= minPaintToLeave) {
+                continue;
+            }
+            int paintToFillUp = Math.min(
+                    rc.getType().paintCapacity - rc.getPaint(), // amount of paint needed to fully top off
+                    info.getPaintAmount() - minPaintToLeave); // amount of paint available in the tower
+
+            if (rc.isActionReady() && rc.canTransferPaint(info.getLocation(), -paintToFillUp)) {
+                rc.transferPaint(info.getLocation(), -paintToFillUp);
             }
         }
     }
@@ -411,18 +391,7 @@ public abstract class Bunny extends Robot {
      * reached our current destination
      */
     public void updateDestinationIfNeeded() throws GameActionException {
-        if ((nearestAlliedPaintTowerLoc != null || nearestAlliedTowerLoc != null) && (tryingToReplenish || checkIfIShouldStartReplenishing())) {
-            if(nearestAlliedPaintTowerLoc != null){
-                destination = nearestAlliedPaintTowerLoc;
-            } else {
-                destination = nearestAlliedTowerLoc;
-            }
-            goingRandom = false;
-            tryingToReplenish = true;
-            Util.addToIndicatorString("REP");
-        }
-
-        else if (destination == null ||
+        if (destination == null ||
                 rc.getLocation().distanceSquaredTo(destination) <= Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION) {
             destination = Util.getRandomMapLocation();
             goingRandom = true;
@@ -473,6 +442,55 @@ public abstract class Bunny extends Robot {
         enemyPaintY /= enemyPaintCount;
 
         return new MapLocation(enemyPaintX, enemyPaintY);
+    }
+
+    public void adjustDestination() throws GameActionException {
+        if (goingRandom) {
+            double charge_x = 0;
+            double charge_y = 0;
+            double curr_delta;
+            double distance_squared;
+            UnitType myType = rc.getType();
+            for (RobotInfo friend : rc.senseNearbyRobots(-1, myTeam)) {
+                if (friend.getType() != myType) {
+                    continue;
+                }
+
+                distance_squared = friend.getLocation().distanceSquaredTo(rc.getLocation());
+                curr_delta = friend.getLocation().x-rc.getLocation().x;
+                charge_x += curr_delta/distance_squared;
+                curr_delta = friend.getLocation().y-rc.getLocation().y;
+                charge_y += curr_delta/distance_squared;
+            }
+
+            double delta_x = destination.x - rc.getLocation().x;
+            double delta_y = destination.y - rc.getLocation().y;
+
+            // the further it is, the more sensitive it should be to perturbations
+
+            double velocity_x = delta_x/Math.sqrt(delta_x*delta_x + delta_y*delta_y);
+            double velocity_y = delta_y/Math.sqrt(delta_x*delta_x + delta_y*delta_y);
+
+            velocity_x -= charge_x;
+            velocity_y -= charge_y;
+
+            double min_time = Double.MAX_VALUE;
+
+            if (velocity_x < 0) {
+                min_time = Math.min(min_time, (2 - rc.getLocation().x)/velocity_x);
+            }
+            if (velocity_x > 0) {
+                min_time = Math.min(min_time, (mapWidth - 3 - rc.getLocation().x)/velocity_x);
+            }
+            if (velocity_y < 0) {
+                min_time = Math.min(min_time, (2 - rc.getLocation().y)/velocity_y);
+            }
+            if (velocity_y > 0) {
+                min_time = Math.min(min_time, (mapHeight - 3 - rc.getLocation().y)/velocity_y);
+            }
+
+            destination = rc.getLocation().translate((int)(velocity_x*min_time), (int)(velocity_y*min_time));
+        }
     }
 
 

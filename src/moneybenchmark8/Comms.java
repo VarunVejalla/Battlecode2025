@@ -1,4 +1,4 @@
-package toweredmoney;
+package moneybenchmark8;
 
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;

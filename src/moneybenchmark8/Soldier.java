@@ -1,4 +1,4 @@
-package toweredmoney;
+package moneybenchmark8;
 
 import battlecode.common.*;
 
@@ -45,71 +45,58 @@ public class Soldier extends Bunny {
             alreadyVisited = true;
         }
 
+        replenishLogic();
 
         double metric = getMetric();
         if (metric < Constants.RUIN_SEARCHING_THRESHOLD) {
-
-            if ((nearestAlliedPaintTowerLoc != null || nearestAlliedTowerLoc != null) && (rc.getPaint() < 5)) {
-                if(nearestAlliedPaintTowerLoc != null){
-                    destination = nearestAlliedPaintTowerLoc;
-                } else {
-                    destination = nearestAlliedTowerLoc;
-                }
-                goingRandom = false;
-                tryingToReplenish = true;
-                Util.addToIndicatorString("REP");
-            } else {
-
-                // we are kamikazes
-                if (rc.getLocation().distanceSquaredTo(destination) <= Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION) {
-                    destination = Util.getRandomMapLocation();
-                    goingRandom = true;
-                }
-                tryReplenish();
-                tryingToReplenish = false;
+            // we are kamikazes
+            if (rc.getLocation().distanceSquaredTo(destination) <= Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION) {
+                destination = Util.getRandomMapLocation();
+                goingRandom = true;
             }
         } else {
             updateDestinationIfNeeded();
         }
 
         // TODO: is this needed?
-        if (!tryingToReplenish && !alreadyVisited && (rc.getNumberTowers() <= 3 && rc.getRoundNum() < 100)) {
+        if (!alreadyVisited && (rc.getNumberTowers() <= 3 && rc.getRoundNum() < 100)) {
             destination = Util.getRotationalReflection(spawnLoc);
             goingRandom = false;
         }
 
-
-
         // 1. If trying to replenish, go do that.
-        // TODO: If nearestAlliedPaintTowerLoc == null, should we explore or smth?
-        if(tryingToReplenish){
-            replenishLogic();
+        RobotInfo attackInfo = getAttackTarget();
+        Util.logBytecode("Get attack target");
+        if(attackInfo != null) {
+            runAttackLogic(attackInfo);
+            Util.logBytecode("Running attack logic");
         }
-        else {
-            RobotInfo attackInfo = getAttackTarget();
-            Util.logBytecode("Get attack target");
-            if(attackInfo != null) {
-                runAttackLogic(attackInfo);
-                Util.logBytecode("Running attack logic");
+        else if(!tryingToReplenish) {
+            if(Constants.BLOCK_OFF_ENEMY_RUINS) {
+                blockEnemyRuins();
             }
-            else {
-                if(Constants.BLOCK_OFF_ENEMY_RUINS) {
-                    blockEnemyRuins();
-                }
-                // 3. If not attacking, run pattern painting logic.
-                if (metric < Constants.RUIN_SEARCHING_THRESHOLD) {
-                    buildPatternHardExplore();
-                } else if (metric < Constants.PATTERN_SEARCHING_THRESHOLD) {
-                    buildPatternMediumExplore();
-                } else {
-                    buildPattern();
-                }
-                Util.logBytecode("Built pattern");
+            // 3. If not attacking, run pattern painting logic.
+            if (metric < Constants.RUIN_SEARCHING_THRESHOLD) {
+                buildPatternHardExplore();
+            } else if (metric < Constants.PATTERN_SEARCHING_THRESHOLD) {
+                buildPatternMediumExplore();
+            } else {
+                buildPattern();
+            }
+            Util.logBytecode("Built pattern");
+        }
+
+        if (Constants.PAINT_ALONG_PATH) {
+            myLoc = rc.getLocation();
+            if (rc.senseMapInfo(myLoc).getPaint() == PaintType.EMPTY && rc.canAttack(myLoc)) {
+                rc.attack(myLoc);
             }
         }
 
         MarkingUtils.tryRuinPatternCompletion();
         MarkingUtils.tryResourcePatternCompletion();
+
+        tryReplenish();
 
         Util.logBytecode("Tried completion");
     }
@@ -148,7 +135,7 @@ public class Soldier extends Bunny {
                 if(rc.canAttack(closestEmpty)){
                     rc.attack(closestEmpty);
                 } else {
-                    nav.goToFuzzy(closestEmpty, 0);
+                    nav.goToSmart(closestEmpty, 0);
                 }
             }
         }
@@ -221,18 +208,18 @@ public class Soldier extends Bunny {
         // 1. If you can attack him, attack him, then back out.
         if(rc.isActionReady() && rc.canAttack(attackTarget)){
             rc.attack(attackTarget);
-            nav.goToFuzzy(backoutLoc, 0);
+            nav.goToSmart(backoutLoc, 0);
         }
         // 2. If your action is ready but you're too far away, move towards and then attack.
         else if(rc.isActionReady()){
-            nav.goToFuzzy(attackTarget, 0);
+            nav.goToSmart(attackTarget, 0);
             if(rc.canAttack(attackTarget)){
                 rc.attack(attackTarget);
             }
         }
         // 3. If your action is not ready but you're within attack radius, back out.
         else if(!rc.isActionReady() && distToTarget <= attackInfo.getType().actionRadiusSquared){
-            nav.goToFuzzy(backoutLoc, 0);
+            nav.goToSmart(backoutLoc, 0);
         }
     }
 
@@ -254,7 +241,7 @@ public class Soldier extends Bunny {
             Util.addToIndicatorString("??");
             if(currRuinResponsibility == Responsibility.SELF_RESPONSIBLE){
                 Util.addToIndicatorString("SR");
-                nav.goToFuzzy(currRuinLoc, 0);
+                nav.goToSmart(currRuinLoc, 0);
                 return true;
             }
             // Otherwise, responsibility is still unknown.
@@ -268,7 +255,7 @@ public class Soldier extends Bunny {
             }
             // No one's taken responsibility yet, lets try taking responsibility.
             else {
-                nav.goToFuzzy(currRuinLoc, 0);
+                nav.goToSmart(currRuinLoc, 0);
                 boolean markedResponsibility = PatternUtils.markResponsibility(currRuinLoc);
                 if(markedResponsibility){
                     currRuinResponsibility = Responsibility.SELF_RESPONSIBLE;
@@ -292,7 +279,7 @@ public class Soldier extends Bunny {
             // If i'm assigned to this resource pattern, just stay near it.
             if (currResourceResponsibility == Responsibility.SELF_RESPONSIBLE) {
                 Util.addToIndicatorString("SR");
-                nav.goToFuzzy(currResourceCenterLoc, 0);
+                nav.goToSmart(currResourceCenterLoc, 0);
                 return true;
             }
             // Otherwise, responsibility is still unknown.
@@ -304,7 +291,7 @@ public class Soldier extends Bunny {
             }
             // No one's taken responsibility yet, lets try taking responsibility.
             else {
-                nav.goToFuzzy(currResourceCenterLoc, 0);
+                nav.goToSmart(currResourceCenterLoc, 0);
                 boolean markedResponsibility = PatternUtils.markResponsibility(currResourceCenterLoc);
                 if (markedResponsibility) {
                     currResourceResponsibility = Responsibility.SELF_RESPONSIBLE;
@@ -384,6 +371,13 @@ public class Soldier extends Bunny {
                     return false;
                 }
             }
+            if(info.isWall() && (abs_dx <= 2 && abs_dy <= 2)) {
+                // Failure! Wall there.
+                Util.addToIndicatorString("IVD75");
+                PatternUtils.markPotentialRCInvalid();
+                return false;
+            }
+
             if((info.isResourcePatternCenter() || info.getMark() == PaintType.ALLY_PRIMARY) && abs_dx <= 4 && abs_dy <= 4){
                 boolean valid_overlap = (overlap_x == 1 && overlap_y == 1) || (overlap_x == 1 && overlap_y == 2) || (overlap_x == 1 && overlap_y == 5) || (overlap_x == 2 && overlap_y == 1) || (overlap_x == 5 && overlap_y == 1);
                 if(!valid_overlap){
@@ -397,7 +391,7 @@ public class Soldier extends Bunny {
 
         MapLocation cornerLoc = getPotentialRCCornerLoc(closestUnchecked);
         if(!rc.getLocation().equals(cornerLoc)){
-            nav.goToFuzzy(cornerLoc, 0);
+            nav.goToSmart(cornerLoc, 0);
             return true;
         }
 
@@ -445,7 +439,7 @@ public class Soldier extends Bunny {
         boolean[][] resourcePattern = rc.getResourcePattern();
         PatternUtils.workOnResourcePattern(currResourceCenterLoc.x - myLoc.x, currResourceCenterLoc.y - myLoc.y, resourcePattern, paintEmpty);
 
-        nav.goToFuzzy(currResourceCenterLoc, 0);
+        nav.goToSmart(currResourceCenterLoc, 0);
         if (rc.canCompleteResourcePattern(currResourceCenterLoc)) {
             rc.completeResourcePattern(currResourceCenterLoc);
         }

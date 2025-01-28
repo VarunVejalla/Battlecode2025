@@ -1,4 +1,4 @@
-package toweredmoney;
+package moneybenchmark8;
 
 public class ExcessConstants {
     // ~200 bytecode.

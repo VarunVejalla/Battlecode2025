@@ -42,7 +42,6 @@ public abstract class Bunny extends Robot {
     RobotInfo[] nearbyFriendlies;
     RobotInfo[] nearbyOpponents;
     boolean tryingToReplenish = false;
-    BunnyComms comms = new BunnyComms(rc, this);
     MapLocation prevUpdateLoc;
     boolean symmetryUpdate = false;
     SymmetryType[] possibleSymmetries = {SymmetryType.HORIZONTAL, SymmetryType.VERTICAL, SymmetryType.ROTATIONAL};
@@ -92,45 +91,13 @@ public abstract class Bunny extends Robot {
     }
 
     public boolean canMove() {
-        if(comms.waitingForMap || comms.waitingForMap2) {
-           Util.addToIndicatorString("Waiting for a map");
-        }
-        return rc.isMovementReady() && !comms.waitingForMap && !comms.waitingForMap2;
+//        if(comms.waitingForMap || comms.waitingForMap2) {
+//           Util.addToIndicatorString("Waiting for a map");
+//        }
+        return rc.isMovementReady(); // && !comms.waitingForMap && !comms.waitingForMap2;
     }
 
-    public int getBestSector() throws GameActionException {
-        int bestScore = 0;
-        int bestSector = -1;
-        int[] neighborSectorIndexes = comms.getSectorAndNeighbors(myLoc, 1);
-        int sectorScore;
 
-        for (int neighorSectorIndex : neighborSectorIndexes) {
-            if(neighorSectorIndex == comms.getSectorIndex(myLoc)){
-                continue;
-            }
-            sectorScore = evaluateSector(comms.myWorld[neighorSectorIndex]);
-            if (sectorScore > bestScore) {
-                bestScore = sectorScore;
-                bestSector = neighorSectorIndex;
-            }
-        }
-        return bestSector;
-    }
-
-    /**
-     * Evalute the sectors that are neighboring your current sector and move towards the best one.
-     */
-    public void macroMove(int dist_to_best_sector) throws GameActionException {
-        int bestSector = getBestSector();
-        if(bestSector != -1) {
-            // Go to the center of that sector.
-            nav.goToBug(comms.getSectorCenter(bestSector), dist_to_best_sector);
-        } else {
-            // Goes to random destination
-            nav.goToBug(destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
-            // Go towards the center
-        }
-    }
 
     /**
      * Evalute the encoded information about each sector depending on the specific Bunny implementation.
@@ -152,15 +119,15 @@ public abstract class Bunny extends Robot {
         // COMMS IS HERE
         // Find sector that is fully enclosed and update bunny world.
         // 2.2k bytecode
-        comms.updateSectorInVision(rc.getLocation());
+//        comms.updateSectorInVision(rc.getLocation());
 
         // If you requested a map, wait for the tower to send it.
         // 2k bytecode
-        if(comms.waitingForMap) {
-            comms.processMap();
-        } else if (comms.waitingForMap2) {
-            comms.processMap2();
-        }
+//        if(comms.waitingForMap) {
+//            comms.processMap();
+//        } else if (comms.waitingForMap2) {
+//            comms.processMap2();
+//        }
 
         // Updates both nearest allied paint tower and nearest allied tower.
         // 1.7k bytecode
@@ -184,7 +151,7 @@ public abstract class Bunny extends Robot {
             }
             MapLocation infoLoc = info.getMapLocation();
             // There can only be one ruin per sector index.
-            int sectorIdx = comms.getSectorIndex(infoLoc);
+            int sectorIdx = Util.getSectorIndex(infoLoc);
             if(knownRuinsBySector[sectorIdx] == null){
                 knownRuinsBySector[sectorIdx] = infoLoc;
             }
@@ -196,7 +163,7 @@ public abstract class Bunny extends Robot {
                         continue;
                     }
                     MapLocation symmetryLoc = Util.applySymmetry(infoLoc, symmetry);
-                    int symmetrySectorIdx = comms.getSectorIndex(symmetryLoc);
+                    int symmetrySectorIdx = Util.getSectorIndex(symmetryLoc);
                     if(knownRuinsBySector[symmetrySectorIdx] == null){
                         continue;
                     }
@@ -210,7 +177,7 @@ public abstract class Bunny extends Robot {
         }
 
         // If there's no ruin at all in the sector, set it to (-1, -1). Check if this can also eliminate any symmetries.
-        int fullyEnclosedSectorID = comms.getFullyEnclosedSectorID(rc.getLocation());
+        int fullyEnclosedSectorID = Util.getFullyEnclosedSectorID(rc.getLocation());
         if(fullyEnclosedSectorID != -1 && knownRuinsBySector[fullyEnclosedSectorID] == null){
             knownRuinsBySector[fullyEnclosedSectorID] = noRuinLoc;
 
@@ -221,7 +188,7 @@ public abstract class Bunny extends Robot {
                         continue;
                     }
                     MapLocation symmetryLoc = Util.applySymmetry(rc.getLocation(), symmetry);
-                    int symmetrySectorIdx = comms.getSectorIndex(symmetryLoc);
+                    int symmetrySectorIdx = Util.getSectorIndex(symmetryLoc);
                     if(knownRuinsBySector[symmetrySectorIdx] == null){
                         continue;
                     }
@@ -261,7 +228,7 @@ public abstract class Bunny extends Robot {
 
             MapLocation currAlliedTowerLocation = bot.getLocation();
 
-            comms.sendMessages(bot);
+//            comms.sendMessages(bot);
 
             boolean alreadyIn = false;
             int nullIdx = -1;

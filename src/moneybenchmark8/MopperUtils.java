@@ -1,4 +1,4 @@
-package toweredmoney;
+package moneybenchmark8;
 
 public class MopperUtils {
     public static void updateHeuristicAdjacents(int[] heuristics, int index, int diff){

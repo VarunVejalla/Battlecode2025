@@ -1,4 +1,4 @@
-package toweredmoney;
+package moneybenchmark8;
 
 import battlecode.common.*;
 
@@ -24,6 +24,7 @@ public class Robot {
     int previousPaint;
     int roundSpawn;
     MapLocation spawnLoc;
+    UnitType myType;
 
     /**
      * Array containing all the possible movement directions.
@@ -55,9 +56,11 @@ public class Robot {
         previousNumTotalTowers = rc.getNumberTowers();
         spawnLoc = rc.getLocation();
         estimatedChipsPerRound = 0;
+        myType = rc.getType();
     }
 
     public void run() throws GameActionException {
+        myType = rc.getType();
         indicatorString = "";
         myLoc = rc.getLocation();
         currentNumTotalChips = rc.getChips();

@@ -228,7 +228,7 @@ public class Soldier extends Bunny {
     public boolean checkRuinStillValid() throws GameActionException {
         // Check if ruin is invalid.
         if((rc.canSenseLocation(currRuinLoc) && rc.senseRobotAtLocation(currRuinLoc) != null) || PatternUtils.checkEnemyPaintInConsctructionArea(currRuinLoc)){
-            roundPaintedRuinsBySector[comms.getSectorIndex(currRuinLoc)] = rc.getRoundNum();
+            roundPaintedRuinsBySector[Util.getSectorIndex(currRuinLoc)] = rc.getRoundNum();
             currRuinLoc = null;
             currRuinResponsibility = Responsibility.UNASSIGNED;
             return false;
@@ -249,7 +249,7 @@ public class Soldier extends Bunny {
             Util.addToIndicatorString("RA" + responsiblityAssigned);
             // Someone else took responsibility. Lets dip.
             if(responsiblityAssigned){
-                roundPaintedRuinsBySector[comms.getSectorIndex(currRuinLoc)] = rc.getRoundNum();
+                roundPaintedRuinsBySector[Util.getSectorIndex(currRuinLoc)] = rc.getRoundNum();
                 currRuinLoc = null;
                 currRuinResponsibility = Responsibility.UNASSIGNED;
             }
@@ -454,7 +454,7 @@ public class Soldier extends Bunny {
             }
 
             MapLocation ruinLoc = nearbyMapInfos[index].getMapLocation();
-            int sectorIdx = comms.getSectorIndex(ruinLoc);
+            int sectorIdx = Util.getSectorIndex(ruinLoc);
             if(roundPaintedRuinsBySector[sectorIdx] != 0 && roundPaintedRuinsBySector[sectorIdx] + Constants.ROUNDS_TO_IGNORE_PAINTED_RUINS > rc.getRoundNum()){
                 continue;
             }
@@ -662,7 +662,7 @@ public class Soldier extends Bunny {
      * Returns a score evaluating how favorable it would be for this robot to move to this sector.
      */
     public int evaluateSector(int encodedSector) {
-        ScanResult sr = comms.decodeSector(encodedSector);
+        ScanResult sr = Util.decodeSector(encodedSector);
         int sectorScore = 0;
 
         // If the region is mostly empty and there's an unbuilt ruin, go there first.

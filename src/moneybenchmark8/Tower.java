@@ -1,4 +1,4 @@
-package toweredmoney;
+package moneybenchmark8;
 
 import battlecode.common.*;
 
@@ -88,8 +88,14 @@ public class Tower extends Robot {
             if(nearbyFriendlies.length > 0 && rc.getChips() > 1500) {
                 // Only go down if the ruin pattern is complete.
                 int diff = Util.getPatternDifference(rc.getTowerPattern(UnitType.LEVEL_ONE_MONEY_TOWER));
+                int numNearbyResourcePatterns = 0;
+                for (MapInfo nearbyTile : rc.senseNearbyMapInfos(17)) {
+                    if (nearbyTile.isResourcePatternCenter()) {
+                        numNearbyResourcePatterns++;
+                    }
+                }
 
-                if (diff != -1) {
+                if (diff != -1 && rc.getChips() > 1500 + 20*rc.getNumberTowers()*numNearbyResourcePatterns) {
                     int paintingCapacity = 0;
                     for (RobotInfo friend : nearbyFriendlies) {
                         if (friend.getType() == UnitType.SOLDIER) {
@@ -100,7 +106,6 @@ public class Tower extends Robot {
                         rc.disintegrate();
                     }
                 }
-
             }
         }
 

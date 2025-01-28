@@ -1,4 +1,4 @@
-package toweredmoney;
+package moneybenchmark8;
 
 /**
  * Basic datastructure to hold scan results that will be used to populate comms

@@ -6,6 +6,7 @@ public class Util {
     static RobotController rc;
     static Robot robot;
 
+
     public static int minMovesToReach(MapLocation a, MapLocation b) {
         int dx = a.x - b.x;
         int dy = a.y - b.y;
@@ -482,5 +483,70 @@ public class Util {
                 ruinCondition, ruinConditionDescription
         );
     }
+
+    /**
+     * Returns the sector index for a given MapLocation.
+     */
+    public static int getSectorIndex(MapLocation loc) {
+        int sectorRows = (rc.getMapWidth() + 4) / 5;
+
+        int col = loc.x / 5;
+        int row = loc.y / 5;
+        return row * sectorRows + col;
+    }
+
+    /**
+     * Decodes the sector data and returns an array of values:
+     * [enemyPaintCount, emptyCount, ruinCondition, staleBit]
+     */
+    public static ScanResult decodeSector(int encodedSector) {
+
+        int ruinCondition = (encodedSector >> 1) & 0b111;
+        int emptyCount = (encodedSector >> 4) & 0b11;
+        int enemyPaintCount = (encodedSector >> 6) & 0b11;
+
+        // Put in a fake sector and a fake round number.
+        return new ScanResult(-1, ruinCondition, enemyPaintCount, emptyCount, -1);
+    }
+
+
+    /**
+     * Returns the index of the sector that is fully contained within a vision radius from center.
+     * Returns -1 if there is no such sector.
+     */
+    public static int getFullyEnclosedSectorID(MapLocation center) {
+        int sectorRows = (rc.getMapWidth() + 4) / 5;
+        int sectorCols = (rc.getMapHeight() + 4) / 5;
+        int sectorCount = sectorCols * sectorRows;
+
+
+        // There is only one sector that could be fully enclosed. It must contain the center.
+        int sectorIndex = getSectorIndex(center);
+        assert sectorIndex < sectorCount;
+        // If center is within radius squared 4 of the sector center, the sector is fully visible, even if the sector is cutoff!
+        if (center.isWithinDistanceSquared(getSectorCenter(sectorIndex), 4)) {
+            return sectorIndex;
+        }
+
+        return -1;
+    }
+
+    /**
+     * Returns the center of a sector given its index.
+     */
+    public static MapLocation getSectorCenter(int sectorIndex) {
+        int sectorRows = (rc.getMapWidth() + 4) / 5;
+        int sectorCols = (rc.getMapHeight() + 4) / 5;
+
+
+        int row = sectorIndex / sectorRows;
+        int col = sectorIndex % sectorRows;
+
+        int centerX = col * 5 + 2; // Center of the 5x5 grid
+        int centerY = row * 5 + 2;
+
+        return new MapLocation(centerX, centerY);
+    }
+
 
 }

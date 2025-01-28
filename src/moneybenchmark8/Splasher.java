@@ -1,4 +1,4 @@
-package toweredmoney;
+package moneybenchmark8;
 
 import battlecode.common.*;
 
@@ -18,34 +18,36 @@ public class Splasher extends Bunny {
 
         updateDestinationIfNeeded();
 
+        replenishLogic();
+
 //        Util.logBytecode("Ran super");
 //        updateOffLimits();
 //        Util.logBytecode("Updated off limits");
 
         // 1. Replenish or Perform Splash Attack
-        if (tryingToReplenish) {
-            replenishLogic();
-        } else {
 //            splashAttack();
 //            Util.logBytecode("After first attack");
-            // 2. Movement Logic
+        // 2. Movement Logic
 //            MapLocation currLoc = rc.getLocation();
-            if (canMove()) {
-                moveLogic();
+        if (canMove()) {
+            moveLogic();
 //                Util.logBytecode("Move logic");
-            }
+        }
 //                if(!rc.getLocation().equals(currLoc) && rc.isActionReady()) {
-            nearbyMapInfos = Util.getFilledInMapInfo(rc.senseNearbyMapInfos());
+        nearbyMapInfos = Util.getFilledInMapInfo(rc.senseNearbyMapInfos());
 //            Util.logBytecode("Reclaculate infos");
-            updateOffLimits();
+        updateOffLimits();
 //            Util.logBytecode("Reupdate off limits");
 //                }
+        if (rc.getPaint() >= UnitType.SPLASHER.attackCost) {
             splashAttack();
-//            Util.logBytecode("Second attack");
         }
+//            Util.logBytecode("Second attack");
 
         MarkingUtils.tryRuinPatternCompletion();
         MarkingUtils.tryResourcePatternCompletion();
+
+        tryReplenish();
 
         Util.logBytecode("Tried completion");
     }
@@ -353,14 +355,10 @@ public class Splasher extends Bunny {
      */
     public void moveLogic() throws GameActionException {
         myLoc = rc.getLocation();
+        adjustDestination();
+        nav.goToBug(destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
 
-//        if (tryingToReplenish && nearestAlliedPaintTowerLoc != null &&
-//                myLoc.distanceSquaredTo(nearestAlliedPaintTowerLoc) > GameConstants.PAINT_TRANSFER_RADIUS_SQUARED) {
-//            nav.goToBug(nearestAlliedPaintTowerLoc, GameConstants.PAINT_TRANSFER_RADIUS_SQUARED);
-//            return;
-//        }
 
-        macroMove(0);
     }
 
 }
