@@ -85,7 +85,8 @@ public class PatternUtils {
             soldier.adjustDestination();
             MapLocation myLoc = rc.getLocation();
 
-            soldier.nav.goToBug(soldier.destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
+
+            soldier.nav.goToBug(soldier.destination, Constants.MIN_DIST_TO_SATISFY_EXPLORE_DESTINATION);
 
 //            // Select array of unexplored sectors
 //            int[] unexploredSectors = {-1,-1,-1,-1,-1,-1,-1,-1, -1};

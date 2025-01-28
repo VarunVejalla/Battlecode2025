@@ -57,7 +57,7 @@ public abstract class Bunny extends Robot {
         ExplorationUtils.rc = rc;
         ExplorationUtils.comms = comms;
 
-        destination = Util.getRandomMapLocation();
+//        destination = Util.getRandomMapLocation();
         goingRandom = true;
     }
 

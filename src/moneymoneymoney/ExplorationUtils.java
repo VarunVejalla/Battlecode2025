@@ -4,56 +4,64 @@ import battlecode.common.*;
 
 public class ExplorationUtils {
     static Bunny bunny;
+    static BunnyComms comms;
     static RobotController rc;
 
-//    public static MapLocation getExplorationTarget() throws GameActionException {
-//        // this returns the center of the sector to explore
-//        MapLocation target = null;
-//
-//        boolean isExplored = true;
-//        int distance = Integer.MAX_VALUE;
-//        int numNearbyRobots = Integer.MAX_VALUE;
-//        int numRows = (bunny.mapHeight+4)/5;
-//        int numCols = (bunny.mapWidth+4)/5;
-//        int maxRuins = numRows * numCols;
-//
-//
-//        int index;
-//        MapLocation sectorCenter;
-//
-//        boolean currExplored;
-//        int currDistance;
-//
-//        for (int sector_x = 0; sector_x < numCols; sector_x++) {
-//            for(int sector_y = 0; sector_y < numRows; sector_y++) {
-//                index = sector_x * numRows + sector_y;
-//
-//                sectorCenter = new MapLocation(sector_x * 5 + 2, sector_y * 5 + 2);
-//                currExplored =
-//                currDistance = Util.minMovesToReach(myLoc, sectorCenter);
-//                bunny.comms.getSectorAndNeighbors()
-//
-//            }
-//        }
-//
-//        double chargeAngle = bunny.getChargeAngle();
-//
-//        for (int depth = 1; depth < 3; depth++) {
-//            for(int )
-//        }
-//
-//
-//        for(int i = 0; i < maxRuins; i++) {
-//            sector_x =
-//        }
-//
-//        for (boolean explored : bunny.exploredSectors) {
-//
-//        }
-//
-//
-//
-//    }
+    public static MapLocation getExplorationTarget() throws GameActionException {
+        // this returns the center of the sector to explore
+        double chargeAngle = bunny.getChargeAngle();
+
+        MapLocation sectorCenter = Util.getSectorCenter(Util.getSectorIndex(bunny.myLoc));
+
+
+        boolean isExplored = true;
+        int distance = Integer.MAX_VALUE;
+        double angleDiff = Double.MAX_VALUE;
+        MapLocation target = null;
+
+        int currDistance;
+        double currAngleDiff, currAngle;
+        MapLocation currTarget;
+        boolean currExplored;
+        for (int index : Util.getSectorAndNeighbors(sectorCenter, 10)) {
+//            comms.myWorld[index]
+//            comms.myWorld[index]
+            currExplored = (comms.myWorld[index] & 1) != 0; // TODO: how do i get whether i explored this sector?
+            if (!isExplored && currExplored) {
+                continue;
+            }
+
+            if (!currExplored) {
+                Util.log("found unexplored");
+            }
+
+            currTarget = Util.getSectorCenter(index);
+            currDistance = Util.minMovesToReach(currTarget, sectorCenter);
+            currAngle = Util.getAngle(currTarget, sectorCenter);
+
+            currAngleDiff = Math.abs(currAngle - chargeAngle);
+
+            if (currAngleDiff > Math.PI) {
+                currAngleDiff = 2*Math.PI-currAngleDiff;
+            }
+
+            if (currDistance < distance) {
+                distance = currDistance;
+                angleDiff = currAngleDiff;
+                isExplored = currExplored;
+                target = currTarget;
+            } else if (currDistance == distance && chargeAngle > -4 && currAngleDiff < angleDiff) {
+                isExplored = currExplored;
+                target = currTarget;
+            }
+        }
+        return target;
+
+
+
+
+
+    }
 
 
 

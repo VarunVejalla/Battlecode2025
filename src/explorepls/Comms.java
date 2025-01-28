@@ -147,7 +147,7 @@ public class Comms {
         int sectorIndex = getSectorIndex(center);
         assert sectorIndex < sectorCount;
         // If center is within radius squared 4 of the sector center, the sector is fully visible, even if the sector is cutoff!
-        if (center.isWithinDistanceSquared(getSectorCenter(sectorIndex), 4)) {
+        if (center.isWithinDistanceSquared(getSectorCenter(sectorIndex), Constants.MIN_DIST_TO_SATISFY_EXPLORE_DESTINATION)) {
             return sectorIndex;
         }
 

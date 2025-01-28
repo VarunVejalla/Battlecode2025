@@ -6,6 +6,10 @@ enum Responsibility {
     SELF_RESPONSIBLE, UNASSIGNED
 }
 
+enum DestinationType {
+    REPLENISHING, EXPLORING, RUIN, BLITZING
+}
+
 public class Soldier extends Bunny {
 
     public static final int[] spiralOutwardIndices = {34,25,33,35,43,24,26,42,44,16,32,36,52,15,17,23,27,41,45,51,53,14,18,50,54,8,31,37,60,7,9,22,28,40,46,59,61,6,10,13,19,49,55,58,62,2,30,38,66,1,3,21,29,39,47,65,67,5,11,57,63,0,4,12,20,48,56,64,68};
@@ -31,9 +35,13 @@ public class Soldier extends Bunny {
         double metric = getMetric();
         rotationalDestination = Util.getRotationalReflection(spawnLoc);
 
+
         if (metric < Constants.RUIN_SEARCHING_THRESHOLD && rc.getRoundNum() < 100) {
             destination = Util.getRotationalReflection(spawnLoc);
             goingRandom = false;
+        } else {
+            destination = ExplorationUtils.getExplorationTarget();
+            goingRandom = true;
         }
 
     }
@@ -41,6 +49,7 @@ public class Soldier extends Bunny {
     public void run() throws GameActionException {
         super.run(); // Call the shared logic for all bunnies
 
+        Util.log("dest beg: " + destination);
 
         if (myLoc.isWithinDistanceSquared(rotationalDestination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION)) {
             alreadyVisited = true;
@@ -48,34 +57,25 @@ public class Soldier extends Bunny {
 
         replenishLogic();
 
-        if (!tryingToReplenish && (exploreDestination == null || (comms.myWorld[Util.getSectorIndex(exploreDestination)] & 1) != 0)) {
-            exploreDestination = ExplorationUtils.getExplorationTarget();
+        MapLocation newExploreDestination = ExplorationUtils.getExplorationTarget();
+        if (newExploreDestination != null) {
+            exploreDestination = newExploreDestination;
         }
 
         double metric = getMetric();
-        if (metric < Constants.RUIN_SEARCHING_THRESHOLD) {
-            if (rc.getLocation().distanceSquaredTo(exploreDestination) <= 4) {
-                exploreDestination = ExplorationUtils.getExplorationTarget();
-                goingRandom = true;
-                destination = exploreDestination;
-            }
 
-//            // we are kamikazes
-//            if (rc.getLocation().distanceSquaredTo(destination) <= Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION) {
-//                destination = ExplorationUtils.getExplorationTarget();
-//                goingRandom = true;
-//            }
-        } else {
-            updateDestinationIfNeeded();
-        }
+
 
         // TODO: is this needed?
         if (!alreadyVisited && (rc.getNumberTowers() <= 3 && rc.getRoundNum() < 100)) {
             destination = Util.getRotationalReflection(spawnLoc);
             goingRandom = false;
-        } else {
+        } else if (destination == null) {
             destination = exploreDestination;
+            goingRandom = true;
         }
+
+        Util.log("Dest: " + destination.toString());
 
         // 1. If trying to replenish, go do that.
         RobotInfo attackInfo = getAttackTarget();
@@ -85,6 +85,12 @@ public class Soldier extends Bunny {
             Util.logBytecode("Running attack logic");
         }
         else if(!tryingToReplenish) {
+            if (myLoc.isWithinDistanceSquared(destination, Constants.MIN_DIST_TO_SATISFY_EXPLORE_DESTINATION)) {
+                destination = exploreDestination;
+                goingRandom = true;
+            }
+
+
             if(Constants.BLOCK_OFF_ENEMY_RUINS) {
                 blockEnemyRuins();
             }

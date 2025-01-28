@@ -29,9 +29,13 @@ public class ExplorationUtils {
 //            comms.myWorld[index]
 //            comms.myWorld[index]
             currExplored = (comms.myWorld[index] & 1) != 0; // TODO: how do i get whether i explored this sector?
-            if (!isExplored && currExplored) {
+            if (currExplored) {
                 continue;
             }
+
+//            if (!currExplored) {
+//                Util.log("found unexplored");
+//            }
 
             currTarget = Util.getSectorCenter(index);
             currDistance = Util.minMovesToReach(currTarget, sectorCenter);
@@ -53,6 +57,7 @@ public class ExplorationUtils {
                 target = currTarget;
             }
         }
+        Util.log("Exploration target: " + target);
         return target;
 
 

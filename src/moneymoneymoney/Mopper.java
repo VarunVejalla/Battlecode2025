@@ -6,7 +6,6 @@ public class Mopper extends Bunny {
     boolean enemyPaintNearby = false;
     boolean enemyNearby = false;
     RobotInfo[] enemyTowerInfos;
-    BunnyComms comms = new BunnyComms(rc, this);
 
     public Mopper(RobotController rc) throws GameActionException {
         super(rc);

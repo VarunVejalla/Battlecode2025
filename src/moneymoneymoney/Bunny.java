@@ -46,6 +46,7 @@ public abstract class Bunny extends Robot {
     boolean symmetryUpdate = false;
     SymmetryType[] possibleSymmetries = {SymmetryType.HORIZONTAL, SymmetryType.VERTICAL, SymmetryType.ROTATIONAL};
     boolean goingRandom = false;
+    BunnyComms comms = new BunnyComms(rc, this);
 
     boolean[] exploredSectors = new boolean[144];
     int lastExploredSectorIndex;

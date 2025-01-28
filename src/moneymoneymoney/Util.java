@@ -20,6 +20,17 @@ public class Util {
         }
         return false;
     }
+    public static double getAngle(MapLocation a, MapLocation b) {
+        int dx = a.x - b.x;
+        int dy = a.y - b.y;
+        boolean zero_x = -0.01 < dx && dx < 0.01;
+        boolean zero_y = -0.01 < dy && dy < 0.01;
+        if (zero_x && zero_y) {
+            return -5;
+        } else {
+            return Math.atan2(dy, dx);
+        }
+    }
 
     public static MapLocation getRotationalReflection(MapLocation location) {
         double vx = rc.getMapWidth()/2.0 - location.x;
