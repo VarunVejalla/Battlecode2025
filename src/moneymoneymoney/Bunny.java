@@ -445,7 +445,11 @@ public abstract class Bunny extends Robot {
             }
         }
 
-        return Math.atan2(charge_y, charge_x)+Math.PI; // adding pi to make it
+        double angle = Math.atan2(charge_y, charge_x); // adding pi to make it
+        if (angle < 0) {
+            return angle + 2*Math.PI;
+        }
+        return angle;
 
     }
 
