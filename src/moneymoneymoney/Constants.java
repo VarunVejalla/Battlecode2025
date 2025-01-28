@@ -15,6 +15,6 @@ public class Constants {
     public static final double TOWER_SPAWNING_THRESHOLD = 28;
     public static final double RUIN_SEARCHING_THRESHOLD = 40;
     public static final double PATTERN_SEARCHING_THRESHOLD = 40;
-    public static final int DEBUG_BOT_ID = 12654;
+    public static final int DEBUG_BOT_ID = 12732;
 //    public static final int DEBUG_BOT_ID = 0;
 }

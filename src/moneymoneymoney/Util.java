@@ -95,6 +95,7 @@ public class Util {
         if(topOffset < 4){
             bottomOffset = 100;
         }
+        // TODO: Can optimize more by directly filling it in instead of returning an array.
         byte[] order = ExcessConstants.getFilledInMapInfoOrder(leftOffset, bottomOffset, rightOffset, topOffset);
         for(int i = 0; i < nearbyMapInfo.length; i++){
             filledInMapInfo[order[i]] = nearbyMapInfo[i];

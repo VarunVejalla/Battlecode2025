@@ -85,6 +85,20 @@ for dx, dy in canon:
     lookup_invalid.append(lookup)
 
 
+lookup_3by3_invalid = []
+for dx, dy in canon:
+    # suppose this is invalid. what other square get marked invalid?
+    lookup = 0
+    for index in relevant_indices[::-1]:
+        new_dx, new_dy = canon[index]
+        if abs(new_dx-dx) <= 1 and abs(new_dy-dy) <= 1:
+            lookup = 2*lookup
+        else:
+            # mark this as 1
+            lookup = 2*lookup+1
+    lookup_3by3_invalid.append(lookup)
+
+
 lookup_nonoverlap_invalid = []
 for dx, dy in canon:
     # suppose this is invalid and you don't want any squares to overlap w/ the other pattern. what other square get marked invalid?
@@ -266,13 +280,16 @@ for dx, dy in canon:
             lookup = 2*lookup+1
     lookup_splasher_offlimits.append(lookup)
 
-print("Splasher off limits")
-print(getStringLong(lookup_splasher_offlimits))
+# print("Splasher off limits")
+# print(getStringLong(lookup_splasher_offlimits))
 
 # print("Non-overlapping")
 # print(getStringLong(lookup_nonoverlap_invalid))
 # print("RC-overlapping")
 # print(getStringLong(lookup_rcoverlap_invalid))
+
+print("Resource pattern revalidation")
+print(getStringLong(lookup_3by3_invalid))
 
 
 # for dx, dy in canon:

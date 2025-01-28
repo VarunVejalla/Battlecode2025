@@ -344,49 +344,47 @@ public class PatternUtils {
     }
 
     // NOTE: Script to unroll created, but varun's gonna change some code so wait until that's done.
+    // 3k bytecode.
     public static int getPotentialResourcePatternCenterIndex(MapInfo[] nearbyMapInfos) throws GameActionException {
         long validBitstring = -1;
-        long unfinishedBitstring = 0;
 
         for(int i = 0; i < 69; i++) {
-            if (nearbyMapInfos[i] == null || nearbyMapInfos[i].hasRuin() || nearbyMapInfos[i].isWall()) {
-                // if it's a ruin, we might actually want a bit bigger radius around it, but whatever
+            if (nearbyMapInfos[i] == null || !nearbyMapInfos[i].isPassable()) {
                 validBitstring &= UnrolledConstants.getInvalidSquareForResource(i);
             } else if (nearbyMapInfos[i].isResourcePatternCenter() || nearbyMapInfos[i].getMark() == PaintType.ALLY_PRIMARY) {
-                // do stuff
-//                validBitstring &= confirmedFinishedMasks[i];
                 validBitstring &= UnrolledConstants.getSquareHasResourceCenter(i);
             } else if(nearbyMapInfos[i].hasRuin() && rc.senseRobotAtLocation(nearbyMapInfos[i].getMapLocation()) == null) {
                 validBitstring &= UnrolledConstants.getSquareHasUnfinishedRuin(i);
-            } else {
-                PaintType paint = nearbyMapInfos[i].getPaint();
-                switch(paint) {
-                    case PaintType.ENEMY_PRIMARY:
-                    case PaintType.ENEMY_SECONDARY:
-                        validBitstring &= UnrolledConstants.getInvalidSquareForResource(i);
-                        break;
-                    case PaintType.EMPTY:
-                        // we still need this because it's possible that a pattern was finished, but not completed (if not enough tiles)
-                        // we wouldn't want to go toward these
-                        unfinishedBitstring |= UnrolledConstants.getEmptySquareForResource(i);
-                        break;
-                }
+            } else if(nearbyMapInfos[i].getPaint().isEnemy()){
+                validBitstring &= UnrolledConstants.getInvalidSquareForResource(i);
             }
-            if (nearbyMapInfos[i] != null) {
-                MapLocation loc = nearbyMapInfos[i].getMapLocation();
-                if(loc.x < 2 || loc.y < 2 || loc.x > soldier.mapWidth - 3 || loc.y > soldier.mapHeight - 3 || soldier.invalidPotentialLocs[loc.x / 3][loc.y / 3]){
-//                    Util.log("INVALID LOC: " + loc);
-//                    Util.log("i: " + i);
-                    int index = soldier.invSpiralOutwardIndices[i];
-//                    Util.log("Index: " + index);
-                    long invalidBit = ~(1L << (long)index);
-//                    Util.log("Invalid bit: " + invalidBit);
-                    validBitstring &= invalidBit;
+//            if (nearbyMapInfos[i] != null) {
+//                MapLocation loc = nearbyMapInfos[i].getMapLocation();
+//                if(soldier.invalidPotentialLocs[loc.x / 3][loc.y / 3]){
+//                    int index = soldier.invSpiralOutwardIndices[i];
+//                    long invalidBit = ~(1L << (long)index);
+//                    validBitstring &= invalidBit;
+//                }
+//            }
+        }
+
+        MapLocation currLoc = rc.getLocation();
+        int minX = Math.max((currLoc.x - 4) / 3, 0);
+        int minY = Math.max((currLoc.y - 4) / 3, 0);
+        int maxX = Math.min((currLoc.x + 4) / 3, (soldier.mapWidth - 1) / 3);
+        int maxY = Math.min((currLoc.y + 4) / 3, (soldier.mapHeight - 1) / 3);
+        for(int x = minX; x <= maxX; x++) {
+            for(int y = minY; y <= maxY; y++) {
+                if(soldier.invalidPotentialLocs[x][y]){
+                    int i = Util.getMapInfoIndex(x * 3 - currLoc.x, y * 3 - currLoc.y);
+                    if(i == -1){
+                        continue;
+                    }
+                    validBitstring &= UnrolledConstants.getPotentialRCAlreadyMarkedInvalid(i);
                 }
             }
         }
 
-        validBitstring &= unfinishedBitstring;
         if (validBitstring == 0) {
             return -1;
         }

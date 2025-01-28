@@ -90,15 +90,6 @@ public abstract class Bunny extends Robot {
         }
     }
 
-    public boolean canMove() {
-//        if(comms.waitingForMap || comms.waitingForMap2) {
-//           Util.addToIndicatorString("Waiting for a map");
-//        }
-        return rc.isMovementReady(); // && !comms.waitingForMap && !comms.waitingForMap2;
-    }
-
-
-
     /**
      * Evalute the encoded information about each sector depending on the specific Bunny implementation.
      * Returns an int score. Higher scores are considered better.
@@ -111,7 +102,7 @@ public abstract class Bunny extends Robot {
      */
     // 8k bytecode
     public void scanSurroundings() throws GameActionException {
-        // 400 bytecode
+        // 1.7k bytecode when near edge, 400 bytecode when not
         nearbyMapInfos = Util.getFilledInMapInfo(rc.senseNearbyMapInfos());
         nearbyFriendlies = rc.senseNearbyRobots(-1, rc.getTeam());
         nearbyOpponents = rc.senseNearbyRobots(-1, rc.getTeam().opponent());

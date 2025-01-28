@@ -352,6 +352,7 @@ public class ExcessConstants {
         }
     }
 
+    // 400 bytecode.
     public static byte[] getFilledInMapInfoOrder(int leftOffset, int bottomOffset, int rightOffset, int topOffset){
         switch(leftOffset){
             case 0:

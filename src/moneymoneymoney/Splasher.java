@@ -5,12 +5,11 @@ import battlecode.common.*;
 public class Splasher extends Bunny {
 
     boolean[][] offlimits;
-    boolean[][] updated;
 
     public Splasher(RobotController rc) throws GameActionException {
         super(rc);
+        Util.logBytecode("Start of splasher constructor");
         offlimits = new boolean[rc.getMapWidth()][rc.getMapHeight()];
-        updated = new boolean[rc.getMapWidth()][rc.getMapHeight()];
     }
 
     public void run() throws GameActionException {
@@ -20,29 +19,25 @@ public class Splasher extends Bunny {
 
         replenishLogic();
 
-//        Util.logBytecode("Ran super");
-//        updateOffLimits();
-//        Util.logBytecode("Updated off limits");
+        Util.logBytecode("Ran super");
+        updateOffLimits();
+        Util.logBytecode("Updated off limits");
+
+        if (rc.getPaint() >= UnitType.SPLASHER.attackCost) {
+            splashAttack();
+        }
+
+        Util.logBytecode("After attacking");
 
         // 1. Replenish or Perform Splash Attack
 //            splashAttack();
 //            Util.logBytecode("After first attack");
         // 2. Movement Logic
 //            MapLocation currLoc = rc.getLocation();
-        if (canMove()) {
+        if (rc.isMovementReady()) {
             moveLogic();
-//                Util.logBytecode("Move logic");
+            Util.logBytecode("Move logic");
         }
-//                if(!rc.getLocation().equals(currLoc) && rc.isActionReady()) {
-        nearbyMapInfos = Util.getFilledInMapInfo(rc.senseNearbyMapInfos());
-//            Util.logBytecode("Reclaculate infos");
-        updateOffLimits();
-//            Util.logBytecode("Reupdate off limits");
-//                }
-        if (rc.getPaint() >= UnitType.SPLASHER.attackCost) {
-            splashAttack();
-        }
-//            Util.logBytecode("Second attack");
 
         MarkingUtils.tryRuinPatternCompletion();
         MarkingUtils.tryResourcePatternCompletion();
@@ -66,11 +61,8 @@ public class Splasher extends Bunny {
                 continue;
             }
             MapLocation loc = info.getMapLocation();
-            if(info.getMark() == PaintType.ALLY_PRIMARY || (info.isResourcePatternCenter() && info.getPaint().isAlly()) || (info.hasRuin() && rc.senseRobotAtLocation(loc) == null)){
-                if(updated[loc.x][loc.y]){
-                    continue;
-                }
-                Util.log("Updating new location");
+            if(info.getMark() == PaintType.ALLY_PRIMARY || info.isResourcePatternCenter() || (info.hasRuin() && rc.senseRobotAtLocation(loc) == null)){
+                Util.logBytecode("Updating new location");
                 // Don't touch 5x5 square if no enemy paint in area.
                 boolean enemyPaintPresent = false;
                 for(int x = loc.x - 2; x <= loc.x + 2; x++) {
@@ -83,7 +75,6 @@ public class Splasher extends Bunny {
                 }
 
                 if(!enemyPaintPresent){
-                    updated[loc.x][loc.y] = true;
                     for(int dx = -4; dx <= 4; dx++) {
                         for(int dy = -4; dy <= 4; dy++) {
                             if(dx*dx + dy*dy > 20){
@@ -97,6 +88,7 @@ public class Splasher extends Bunny {
                         }
                     }
                 }
+                Util.logBytecode("Updated new location");
             }
         }
     }
@@ -357,8 +349,6 @@ public class Splasher extends Bunny {
         myLoc = rc.getLocation();
         adjustDestination();
         nav.goToBug(destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
-
-
     }
 
 }
