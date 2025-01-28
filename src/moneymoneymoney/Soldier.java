@@ -41,6 +41,8 @@ public class Soldier extends Bunny {
     public void run() throws GameActionException {
         super.run(); // Call the shared logic for all bunnies
 
+//        comms.updateSectorInVision(rc.getLocation());
+
         if (myLoc.isWithinDistanceSquared(rotationalDestination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION)) {
             alreadyVisited = true;
         }
