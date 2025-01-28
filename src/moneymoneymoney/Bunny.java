@@ -48,6 +48,9 @@ public abstract class Bunny extends Robot {
     SymmetryType[] possibleSymmetries = {SymmetryType.HORIZONTAL, SymmetryType.VERTICAL, SymmetryType.ROTATIONAL};
     boolean goingRandom = false;
 
+    boolean[] exploredSectors = new boolean[144];
+    int lastExploredSectorIndex;
+
     public Bunny(RobotController rc) throws GameActionException {
         super(rc);
         MarkingUtils.bunny = this;
@@ -443,6 +446,43 @@ public abstract class Bunny extends Robot {
 
         return new MapLocation(enemyPaintX, enemyPaintY);
     }
+
+    public double getChargeAngle() throws GameActionException {
+        double charge_x = 0;
+        double charge_y = 0;
+        double curr_delta;
+        double distance_squared;
+        UnitType myType = rc.getType();
+        for (RobotInfo friend : rc.senseNearbyRobots(-1, myTeam)) {
+            if (friend.getType() != myType) {
+                continue;
+            }
+
+            distance_squared = friend.getLocation().distanceSquaredTo(rc.getLocation());
+            curr_delta = friend.getLocation().x-rc.getLocation().x;
+            charge_x += curr_delta/distance_squared;
+            curr_delta = friend.getLocation().y-rc.getLocation().y;
+            charge_y += curr_delta/distance_squared;
+        }
+
+        boolean zero_x = -0.01 < charge_x && charge_x < 0.01;
+        boolean zero_y = -0.01 < charge_y && charge_y < 0.01;
+        if (zero_x && zero_y) {
+            return -1;
+        } else if (zero_x) {
+            // this will be either pi/2 or 3pi/2
+            if (charge_y > 0) {
+                return Math.PI/2;
+            } else {
+                return 3*Math.PI/2;
+            }
+        }
+
+        return Math.atan2(charge_y, charge_x)+Math.PI; // adding pi to make it
+
+    }
+
+
 
     public void adjustDestination() throws GameActionException {
         if (goingRandom) {
