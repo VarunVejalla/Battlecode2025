@@ -14,10 +14,13 @@ public class Mopper extends Bunny {
 
     public void run() throws GameActionException {
         super.run();
+        Util.logBytecode("Start of mopper run");
 
         comms.updateSectorInVision(rc.getLocation());
+        Util.logBytecode("Updated sector");
 
         updateDestinationIfNeeded();
+        Util.logBytecode("Updated destination");
 
         enemyNearby = false;
         enemyPaintNearby = false;

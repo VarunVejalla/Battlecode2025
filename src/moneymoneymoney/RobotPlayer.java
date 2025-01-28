@@ -48,6 +48,7 @@ public class RobotPlayer {
 //                }
             } catch (Exception e) {
                 e.printStackTrace();
+                rc.resign();
             } finally {
                 Clock.yield();
             }
