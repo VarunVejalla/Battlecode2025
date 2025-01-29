@@ -14,7 +14,7 @@ public class Mopper extends Bunny {
     public void run() throws GameActionException {
         super.run();
 
-        comms.updateSectorInVision(rc.getLocation());
+//        comms.updateSectorInVision(rc.getLocation());
 
         updateDestinationIfNeeded();
 
