@@ -38,7 +38,7 @@ public class RobotPlayer {
                 robot.sharedEndFunction();
                 if (rc.getRoundNum() != currentTurn) {
                     System.out.println("BYTECODE EXCEEDED");
-                    rc.resign();
+//                    rc.resign();
                 }
 
                 // End early for debugging.
@@ -48,7 +48,7 @@ public class RobotPlayer {
 //                }
             } catch (Exception e) {
                 e.printStackTrace();
-                rc.resign();
+//                rc.resign();
             } finally {
                 Clock.yield();
             }

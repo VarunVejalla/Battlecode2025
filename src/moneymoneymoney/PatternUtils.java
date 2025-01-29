@@ -75,6 +75,7 @@ public class PatternUtils {
             soldier.adjustDestination();
             MapLocation myLoc = rc.getLocation();
 
+            Util.addToIndicatorString("DEST: " + soldier.destination);
             soldier.nav.goToBug(soldier.destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
 
 //            // Select array of unexplored sectors
@@ -376,13 +377,21 @@ public class PatternUtils {
         for(int i = 0; i < 69; i++) {
             if (nearbyMapInfos[i] == null || !nearbyMapInfos[i].isPassable()) {
                 validBitstring &= UnrolledConstants.getInvalidSquareForResource(i);
-            } else if (nearbyMapInfos[i].isResourcePatternCenter() || nearbyMapInfos[i].getMark() == PaintType.ALLY_PRIMARY) {
-                validBitstring &= UnrolledConstants.getSquareHasResourceCenter(i);
-            } else if(nearbyMapInfos[i].hasRuin() && rc.senseRobotAtLocation(nearbyMapInfos[i].getMapLocation()) == null) {
-                validBitstring &= UnrolledConstants.getSquareHasUnfinishedRuin(i);
-            } else if(nearbyMapInfos[i].getPaint().isEnemy()){
-                validBitstring &= UnrolledConstants.getInvalidSquareForResource(i);
             }
+            else {
+                int x = nearbyMapInfos[i].getMapLocation().x;
+                int y = nearbyMapInfos[i].getMapLocation().y;
+                if(x <= 2 || y <= 2 || x >= soldier.mapWidth - 3 || y >= soldier.mapHeight - 3) {
+                    validBitstring &= UnrolledConstants.getPotentialRCAlreadyMarkedInvalid(i);
+                } else if (nearbyMapInfos[i].isResourcePatternCenter() || nearbyMapInfos[i].getMark() == PaintType.ALLY_PRIMARY) {
+                    validBitstring &= UnrolledConstants.getSquareHasResourceCenter(i);
+                } else if(nearbyMapInfos[i].hasRuin() && rc.senseRobotAtLocation(nearbyMapInfos[i].getMapLocation()) == null) {
+                    validBitstring &= UnrolledConstants.getSquareHasUnfinishedRuin(i);
+                } else if(nearbyMapInfos[i].getPaint().isEnemy()) {
+                    validBitstring &= UnrolledConstants.getInvalidSquareForResource(i);
+                }
+            }
+
 //            if (nearbyMapInfos[i] != null) {
 //                MapLocation loc = nearbyMapInfos[i].getMapLocation();
 //                if(soldier.invalidPotentialLocs[loc.x / 3][loc.y / 3]){
