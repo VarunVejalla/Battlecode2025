@@ -34,8 +34,13 @@ public class RobotPlayer {
             int currentTurn = rc.getRoundNum();
 
             try {
+                if (rc.getRoundNum() > Constants.RESIGN_ROUND) {
+                    rc.resign();
+                }
                 robot.run();
                 robot.sharedEndFunction();
+
+
                 if (rc.getRoundNum() != currentTurn && rc.getRoundNum() > spawnedRound + 1) {
 //                    System.out.println("BYTECODE EXCEEDED");
 //                    rc.resign();

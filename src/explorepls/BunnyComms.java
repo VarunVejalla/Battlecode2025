@@ -29,9 +29,12 @@ public class BunnyComms extends Comms {
 
     Bunny bunny;
 
+    boolean[] explored;
+
     public BunnyComms(RobotController rc, Bunny bunny) {
         super(rc);
         this.bunny = bunny;
+        explored = new boolean[sectorCount];
     }
 
     public void updateBunnyBuffer(ScanResult sr) throws GameActionException {
@@ -191,6 +194,14 @@ public class BunnyComms extends Comms {
                 myWorld[sectorIndex] = bytes & 0xFF;
                 bytes >>>= 8;
             }
+        }
+    }
+
+    public void updateExplored(MapLocation curLoc) throws GameActionException {
+        int sectorIndex = getFullyEnclosedSectorID(curLoc);
+
+        if (sectorIndex != -1) {
+            explored[sectorIndex] = true;
         }
     }
 

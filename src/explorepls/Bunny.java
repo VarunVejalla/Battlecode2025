@@ -30,6 +30,10 @@ enum SymmetryType {
     ROTATIONAL
 }
 
+//enum DestinationType {
+//    REPLENISHING, EXPLORING, RUIN, BLITZING, RANDOM
+//}
+
 public abstract class Bunny extends Robot {
     final MapLocation noRuinLoc = new MapLocation(-1, -1);
     MapLocation[] knownRuinsBySector = new MapLocation[144];
@@ -47,7 +51,7 @@ public abstract class Bunny extends Robot {
     SymmetryType[] possibleSymmetries = {SymmetryType.HORIZONTAL, SymmetryType.VERTICAL, SymmetryType.ROTATIONAL};
     boolean goingRandom = false;
     BunnyComms comms = new BunnyComms(rc, this);
-    MapLocation exploreDestination;
+//    DestinationType destinationType;
 
     public Bunny(RobotController rc) throws GameActionException {
         super(rc);
@@ -67,7 +71,8 @@ public abstract class Bunny extends Robot {
         scanSurroundings();
         checkForUpgrades();
 
-        comms.updateSectorInVision(rc.getLocation());
+        comms.updateExplored(rc.getLocation());
+//        comms.updateSectorInVision(rc.getLocation());
     }
 
     public void checkForUpgrades() throws GameActionException {

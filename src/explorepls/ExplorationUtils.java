@@ -13,10 +13,24 @@ public class ExplorationUtils {
         // this returns the center of the sector to explore
         double chargeAngle = bunny.getChargeAngle();
 
+        if (chargeAngle > -4) {
+            if (chargeAngle > 0) {
+                chargeAngle -= Math.PI;
+            } else {
+                chargeAngle += Math.PI;
+            }
+        }
+
+//        if (chargeAngle < -4) {
+//            chargeAngle = Util.getAngle(bunny.myLoc, new MapLocation(bunny.mapWidth/2, bunny.mapHeight/2));
+//        }
+
         MapLocation sectorCenter = Util.getSectorCenter(Util.getSectorIndex(bunny.myLoc));
+        Util.log("My loc: " + bunny.myLoc);
+        Util.log("Sector: " + sectorCenter);
 
 
-        boolean isExplored = true;
+
         int distance = Integer.MAX_VALUE;
         double angleDiff = Double.MAX_VALUE;
         MapLocation target = null;
@@ -25,13 +39,26 @@ public class ExplorationUtils {
         double currAngleDiff, currAngle;
         MapLocation currTarget;
         boolean currExplored;
-        for (int index : Util.getSectorAndNeighbors(sectorCenter, 2)) {
-//            comms.myWorld[index]
-//            comms.myWorld[index]
-            currExplored = (comms.myWorld[index] & 1) != 0; // TODO: how do i get whether i explored this sector?
+
+        int[] relevantIndices;
+        if (sectorCenter.x < 5 || sectorCenter.y < 5  || sectorCenter.x > bunny.mapWidth - 4 || sectorCenter.y > bunny.mapHeight - 4) {
+            relevantIndices = Util.getSectorAndNeighbors(sectorCenter, 3);
+        } else {
+            relevantIndices = Util.getSectorAndNeighbors(sectorCenter, 2);
+        }
+
+
+        Util.log("" + chargeAngle);
+        Util.log("these are unexplored");
+
+
+        for (int index : relevantIndices) {
+            currExplored = comms.explored[index];
             if (currExplored) {
                 continue;
             }
+
+            Util.log(Util.getSectorCenter(index).toString());
 
 //            if (!currExplored) {
 //                Util.log("found unexplored");
@@ -50,10 +77,8 @@ public class ExplorationUtils {
             if (currDistance < distance) {
                 distance = currDistance;
                 angleDiff = currAngleDiff;
-                isExplored = currExplored;
                 target = currTarget;
-            } else if (currDistance == distance && chargeAngle > -4 && currAngleDiff < angleDiff) {
-                isExplored = currExplored;
+            } else if (currDistance == distance && currAngleDiff < angleDiff) {
                 target = currTarget;
             }
         }

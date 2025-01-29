@@ -82,8 +82,7 @@ public class PatternUtils {
         }
 
         if (rc.isMovementReady()) {
-            soldier.adjustDestination();
-            MapLocation myLoc = rc.getLocation();
+//            soldier.adjustDestination();
 
 
             soldier.nav.goToBug(soldier.destination, Constants.MIN_DIST_TO_SATISFY_EXPLORE_DESTINATION);

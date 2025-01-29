@@ -7,7 +7,7 @@ enum Responsibility {
 }
 
 enum DestinationType {
-    REPLENISHING, EXPLORING, RUIN, BLITZING
+    REPLENISHING, EXPLORING, RUIN, BLITZING, RANDOM
 }
 
 public class Soldier extends Bunny {
@@ -20,11 +20,16 @@ public class Soldier extends Bunny {
     boolean[] invalidPotentialLocs;
     MapLocation currResourceCenterLoc = null;
     Responsibility currResourceResponsibility = Responsibility.UNASSIGNED;
-    MapLocation currRuinLoc = null;
+
     Responsibility currRuinResponsibility = Responsibility.UNASSIGNED;
     int[] roundPaintedRuinsBySector = new int[144];
-    MapLocation rotationalDestination;
-    boolean alreadyVisited = false;
+    boolean[] alreadyBlitzed = new boolean[3];
+
+//    MapLocation replenishDestination = null;
+    MapLocation exploreDestination;
+    MapLocation currRuinLoc = null;
+    MapLocation[] blitzDestinations = new MapLocation[3];
+    DestinationType destinationType;
 
 
     public Soldier(RobotController rc) throws GameActionException {
@@ -33,15 +38,18 @@ public class Soldier extends Bunny {
         PatternUtils.soldier = this;
         PatternUtils.rc = rc;
         double metric = getMetric();
-        rotationalDestination = Util.getRotationalReflection(spawnLoc);
+        blitzDestinations[0] = Util.getRotationalReflection(spawnLoc);
+        blitzDestinations[1] = Util.getVerticalReflection(spawnLoc);
+        blitzDestinations[2] = Util.getHorizontalReflection(spawnLoc);
+        exploreDestination = ExplorationUtils.getExplorationTarget();
 
 
         if (metric < Constants.RUIN_SEARCHING_THRESHOLD && rc.getRoundNum() < 100) {
-            destination = Util.getRotationalReflection(spawnLoc);
-            goingRandom = false;
+            destination = blitzDestinations[0];
+            destinationType = DestinationType.BLITZING;
         } else {
-            destination = ExplorationUtils.getExplorationTarget();
-            goingRandom = true;
+            destination = exploreDestination;
+            destinationType = DestinationType.EXPLORING;
         }
 
     }
@@ -51,8 +59,10 @@ public class Soldier extends Bunny {
 
         Util.log("dest beg: " + destination);
 
-        if (myLoc.isWithinDistanceSquared(rotationalDestination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION)) {
-            alreadyVisited = true;
+
+
+        if (myLoc.isWithinDistanceSquared(blitzDestinations[0], Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION)) {
+            alreadyBlitzed[0] = true;
         }
 
         replenishLogic();
@@ -67,11 +77,13 @@ public class Soldier extends Bunny {
 
 
         // TODO: is this needed?
-        if (!alreadyVisited && (rc.getNumberTowers() <= 3 && rc.getRoundNum() < 100)) {
-            destination = Util.getRotationalReflection(spawnLoc);
+        if (!alreadyBlitzed[0] && (rc.getNumberTowers() <= 3 && rc.getRoundNum() < 100)) {
+            destination = blitzDestinations[0];
+            destinationType = DestinationType.BLITZING;
             goingRandom = false;
-        } else if (destination == null) {
+        } else if (exploreDestination != null) {
             destination = exploreDestination;
+            destinationType = DestinationType.EXPLORING;
             goingRandom = true;
         }
 
@@ -85,10 +97,25 @@ public class Soldier extends Bunny {
             Util.logBytecode("Running attack logic");
         }
         else if(!tryingToReplenish) {
-            if (myLoc.isWithinDistanceSquared(destination, Constants.MIN_DIST_TO_SATISFY_EXPLORE_DESTINATION)) {
+            if (destinationType == DestinationType.EXPLORING && myLoc.isWithinDistanceSquared(destination, Constants.MIN_DIST_TO_SATISFY_EXPLORE_DESTINATION)) {
                 destination = exploreDestination;
-                goingRandom = true;
+                destinationType = DestinationType.EXPLORING;
+            } else if (destinationType == DestinationType.RANDOM && myLoc.isWithinDistanceSquared(destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION)) {
+                destination = exploreDestination;
+                destinationType = DestinationType.EXPLORING;
+            } else if (destinationType == DestinationType.BLITZING && myLoc.isWithinDistanceSquared(destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION)) {
+                destination = exploreDestination;
+                destinationType = DestinationType.EXPLORING;
             }
+            if (destination == null) {
+                destination = Util.getRandomMapLocation();
+                destinationType = DestinationType.RANDOM;
+                goingRandom = true;
+                adjustDestination();
+
+            }
+
+            Util.log("bfdsa Dest: " + destination.toString());
 
 
             if(Constants.BLOCK_OFF_ENEMY_RUINS) {
