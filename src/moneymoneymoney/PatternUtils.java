@@ -370,7 +370,7 @@ public class PatternUtils {
     }
 
     // NOTE: Script to unroll created, but varun's gonna change some code so wait until that's done.
-    // 3k bytecode.
+    // 5k bytecode.
     public static int getPotentialResourcePatternCenterIndex(MapInfo[] nearbyMapInfos) throws GameActionException {
         long validBitstring = -1;
 

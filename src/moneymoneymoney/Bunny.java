@@ -42,14 +42,10 @@ public abstract class Bunny extends Robot {
     RobotInfo[] nearbyFriendlies;
     RobotInfo[] nearbyOpponents;
     boolean tryingToReplenish = false;
-    MapLocation prevUpdateLoc;
     boolean symmetryUpdate = false;
     SymmetryType[] possibleSymmetries = {SymmetryType.HORIZONTAL, SymmetryType.VERTICAL, SymmetryType.ROTATIONAL};
     boolean goingRandom = false;
     BunnyComms comms = new BunnyComms(rc, this);
-
-    boolean[] exploredSectors = new boolean[144];
-    int lastExploredSectorIndex;
 
     public Bunny(RobotController rc) throws GameActionException {
         super(rc);
@@ -138,17 +134,11 @@ public abstract class Bunny extends Robot {
     }
 
     public void updateKnownRuinsAndSymmetries() throws GameActionException {
-        Direction lastMoveDir = null;
-        if(prevUpdateLoc != null){
-            lastMoveDir = prevUpdateLoc.directionTo(rc.getLocation());
-        }
-        int[] indices = Util.getNewVisionIndicesAfterMove(lastMoveDir);
-        for(int idx : indices) {
-            MapInfo info = nearbyMapInfos[idx];
-            if(info == null || !info.hasRuin()){
-                continue;
-            }
-            MapLocation infoLoc = info.getMapLocation();
+        MapLocation myLoc = rc.getLocation();
+        MapLocation[] nearbyRuins = rc.senseNearbyRuins(-1);
+        for(MapLocation infoLoc : nearbyRuins){
+            int index = Util.getMapInfoIndex(infoLoc.x - myLoc.x, infoLoc.y - myLoc.y);
+
             // There can only be one ruin per sector index.
             int sectorIdx = Util.getSectorIndex(infoLoc);
             if(knownRuinsBySector[sectorIdx] == null){
@@ -199,7 +189,6 @@ public abstract class Bunny extends Robot {
                 }
             }
         }
-        prevUpdateLoc = rc.getLocation();
     }
 
     public void updateKnownTowers() throws GameActionException {

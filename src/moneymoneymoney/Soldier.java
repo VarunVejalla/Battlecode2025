@@ -461,52 +461,31 @@ public class Soldier extends Bunny {
         }
     }
 
-    // 1.5k bytecode
+    // 250 bytecode
     public void checkForNewRuinToBuild() throws GameActionException {
-        // Spirals outward up to vision radius.
-        // 1500 bytecode.
-        for(int index : spiralOutwardIndices) {
-            if (nearbyMapInfos[index] == null || !nearbyMapInfos[index].hasRuin() || rc.canSenseRobotAtLocation(nearbyMapInfos[index].getMapLocation())) {
+        MapLocation[] nearbyRuins = rc.senseNearbyRuins(-1);
+        MapLocation closestRuinLoc = null;
+        int closestDist = Integer.MAX_VALUE;
+        for(MapLocation ruinLoc : nearbyRuins){
+            if(rc.senseRobotAtLocation(ruinLoc) != null){
                 continue;
             }
-
-            MapLocation ruinLoc = nearbyMapInfos[index].getMapLocation();
             int sectorIdx = Util.getSectorIndex(ruinLoc);
             if(roundPaintedRuinsBySector[sectorIdx] != 0 && roundPaintedRuinsBySector[sectorIdx] + Constants.ROUNDS_TO_IGNORE_PAINTED_RUINS > rc.getRoundNum()){
                 continue;
             }
 
-            currRuinLoc = ruinLoc;
+            int dist = rc.getLocation().distanceSquaredTo(ruinLoc);
+            if(dist < closestDist){
+                closestDist = dist;
+                closestRuinLoc = ruinLoc;
+            }
+        }
+        if(closestRuinLoc != null){
+            currRuinLoc = closestRuinLoc;
             Util.addToIndicatorString("NR " + currRuinLoc);
-            return;
         }
     }
-
-    // 250 bytecode
-//    public void checkForNewRuinToBuild() throws GameActionException {
-//        MapLocation[] nearbyRuins = rc.senseNearbyRuins(-1);
-//        MapLocation closestRuinLoc = null;
-//        int closestDist = Integer.MAX_VALUE;
-//        for(MapLocation ruinLoc : nearbyRuins){
-//            if(rc.senseRobotAtLocation(ruinLoc) != null){
-//                continue;
-//            }
-//            int sectorIdx = Util.getSectorIndex(ruinLoc);
-//            if(roundPaintedRuinsBySector[sectorIdx] != 0 && roundPaintedRuinsBySector[sectorIdx] + Constants.ROUNDS_TO_IGNORE_PAINTED_RUINS > rc.getRoundNum()){
-//                continue;
-//            }
-//
-//            int dist = rc.getLocation().distanceSquaredTo(ruinLoc);
-//            if(dist < closestDist){
-//                closestDist = dist;
-//                closestRuinLoc = ruinLoc;
-//            }
-//        }
-//        if(closestRuinLoc != null){
-//            currRuinLoc = closestRuinLoc;
-//            Util.addToIndicatorString("NR " + currRuinLoc);
-//        }
-//    }
 
     public void buildPatternHardExplore() throws GameActionException {
         // If we're already building a ruin, check if it's been completed.
