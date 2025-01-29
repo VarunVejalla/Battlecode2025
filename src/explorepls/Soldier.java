@@ -6,9 +6,7 @@ enum Responsibility {
     SELF_RESPONSIBLE, UNASSIGNED
 }
 
-enum DestinationType {
-    REPLENISHING, EXPLORING, RUIN, BLITZING, RANDOM
-}
+
 
 public class Soldier extends Bunny {
 
@@ -23,13 +21,7 @@ public class Soldier extends Bunny {
 
     Responsibility currRuinResponsibility = Responsibility.UNASSIGNED;
     int[] roundPaintedRuinsBySector = new int[144];
-    boolean[] alreadyBlitzed = new boolean[3];
 
-//    MapLocation replenishDestination = null;
-    MapLocation exploreDestination;
-    MapLocation currRuinLoc = null;
-    MapLocation[] blitzDestinations = new MapLocation[3];
-    DestinationType destinationType;
 
 
     public Soldier(RobotController rc) throws GameActionException {
@@ -67,10 +59,17 @@ public class Soldier extends Bunny {
 
         replenishLogic();
 
-        MapLocation newExploreDestination = ExplorationUtils.getExplorationTarget();
-        if (newExploreDestination != null) {
-            exploreDestination = newExploreDestination;
+
+        if (comms.explored[Util.getSectorIndex(exploreDestination)]) {
+            Util.logBytecode("before getting exploration target");
+
+            MapLocation newExploreDestination = ExplorationUtils.getExplorationTarget();
+            Util.logBytecode("after getting exploration target");
+            if (newExploreDestination != null) {
+                exploreDestination = newExploreDestination;
+            }
         }
+
 
         double metric = getMetric();
 

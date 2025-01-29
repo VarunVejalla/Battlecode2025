@@ -6,6 +6,7 @@ public class Mopper extends Bunny {
     boolean enemyPaintNearby = false;
     boolean enemyNearby = false;
     RobotInfo[] enemyTowerInfos;
+    BunnyComms comms = new BunnyComms(rc, this);
 
     public Mopper(RobotController rc) throws GameActionException {
         super(rc);
@@ -13,10 +14,13 @@ public class Mopper extends Bunny {
 
     public void run() throws GameActionException {
         super.run();
+        Util.logBytecode("Start of mopper run");
 
-//        comms.updateSectorInVision(rc.getLocation());
+        comms.updateSectorInVision(rc.getLocation());
+        Util.logBytecode("Updated sector");
 
         updateDestinationIfNeeded();
+        Util.logBytecode("Updated destination");
 
         enemyNearby = false;
         enemyPaintNearby = false;

@@ -13,7 +13,7 @@ public class Soldier extends Bunny {
 
     MapLocation potentialResourceCenterLoc = null;
     boolean[] potentialRCCornersChecked = new boolean[4];
-    boolean[] invalidPotentialLocs;
+    boolean[][] invalidPotentialLocs;
     MapLocation currResourceCenterLoc = null;
     Responsibility currResourceResponsibility = Responsibility.UNASSIGNED;
     MapLocation currRuinLoc = null;
@@ -24,21 +24,23 @@ public class Soldier extends Bunny {
 
     public Soldier(RobotController rc) throws GameActionException {
         super(rc);
-        invalidPotentialLocs = new boolean[3600];
+        Util.logBytecode("Start of soldier constructor");
+        invalidPotentialLocs = new boolean[rc.getMapWidth() / 3][rc.getMapHeight() / 3];
+        Util.logBytecode("Start of soldier constructor pt 2");
         PatternUtils.soldier = this;
         PatternUtils.rc = rc;
         double metric = getMetric();
         rotationalDestination = Util.getRotationalReflection(spawnLoc);
 
         if (metric < Constants.RUIN_SEARCHING_THRESHOLD && rc.getRoundNum() < 100) {
-            destination = Util.getRotationalReflection(spawnLoc);
+            destination = rotationalDestination;
             goingRandom = false;
         }
-
     }
 
     public void run() throws GameActionException {
         super.run(); // Call the shared logic for all bunnies
+        Util.logBytecode("Start of soldier run");
 
 //        comms.updateSectorInVision(rc.getLocation());
 
@@ -65,6 +67,8 @@ public class Soldier extends Bunny {
             goingRandom = false;
         }
 
+        Util.logBytecode("AAAAAAAAAAAAAAA");
+
         // 1. If trying to replenish, go do that.
         RobotInfo attackInfo = getAttackTarget();
         Util.logBytecode("Get attack target");
@@ -75,17 +79,23 @@ public class Soldier extends Bunny {
         else if(!tryingToReplenish) {
             if(Constants.BLOCK_OFF_ENEMY_RUINS) {
                 blockEnemyRuins();
+                Util.logBytecode("Blocked off enemy ruins");
             }
             // 3. If not attacking, run pattern painting logic.
             if (metric < Constants.RUIN_SEARCHING_THRESHOLD) {
+                Util.logBytecode("Build hard explore");
                 buildPatternHardExplore();
             } else if (metric < Constants.PATTERN_SEARCHING_THRESHOLD) {
+                Util.logBytecode("Build medium explore");
                 buildPatternMediumExplore();
             } else {
+                Util.logBytecode("Build pattern");
                 buildPattern();
             }
             Util.logBytecode("Built pattern");
         }
+
+        Util.logBytecode("BBBBBBBBBBBB");
 
         if (Constants.PAINT_ALONG_PATH) {
             myLoc = rc.getLocation();
@@ -317,6 +327,7 @@ public class Soldier extends Bunny {
         return null;
     }
 
+    // 2.5k bytecode
     public boolean checkPotentialResourceCenterLocValid() throws GameActionException {
         // If someone's already marked it as valid, consider it valid!
         if(rc.canSenseLocation(potentialResourceCenterLoc) && rc.senseMapInfo(potentialResourceCenterLoc).getMark() == PaintType.ALLY_PRIMARY){
@@ -446,6 +457,7 @@ public class Soldier extends Bunny {
         }
     }
 
+    // 1.5k bytecode
     public void checkForNewRuinToBuild() throws GameActionException {
         // Spirals outward up to vision radius.
         // 1500 bytecode.
@@ -465,6 +477,32 @@ public class Soldier extends Bunny {
             return;
         }
     }
+
+    // 250 bytecode
+//    public void checkForNewRuinToBuild() throws GameActionException {
+//        MapLocation[] nearbyRuins = rc.senseNearbyRuins(-1);
+//        MapLocation closestRuinLoc = null;
+//        int closestDist = Integer.MAX_VALUE;
+//        for(MapLocation ruinLoc : nearbyRuins){
+//            if(rc.senseRobotAtLocation(ruinLoc) != null){
+//                continue;
+//            }
+//            int sectorIdx = Util.getSectorIndex(ruinLoc);
+//            if(roundPaintedRuinsBySector[sectorIdx] != 0 && roundPaintedRuinsBySector[sectorIdx] + Constants.ROUNDS_TO_IGNORE_PAINTED_RUINS > rc.getRoundNum()){
+//                continue;
+//            }
+//
+//            int dist = rc.getLocation().distanceSquaredTo(ruinLoc);
+//            if(dist < closestDist){
+//                closestDist = dist;
+//                closestRuinLoc = ruinLoc;
+//            }
+//        }
+//        if(closestRuinLoc != null){
+//            currRuinLoc = closestRuinLoc;
+//            Util.addToIndicatorString("NR " + currRuinLoc);
+//        }
+//    }
 
     public void buildPatternHardExplore() throws GameActionException {
         // If we're already building a ruin, check if it's been completed.
@@ -554,7 +592,7 @@ public class Soldier extends Bunny {
                     potentialResourceCenterLoc = nearbyMapInfos[resourceCenterIndex].getMapLocation();
                     Util.addToIndicatorString("NRC " + currResourceCenterLoc);
                 }
-                Util.logBytecode("Got optential resource pattern");
+                Util.logBytecode("Got potential resource pattern");
             }
         }
 
@@ -580,7 +618,6 @@ public class Soldier extends Bunny {
 
     public void buildPattern() throws GameActionException {
         // If we're already building a ruin, check if it's been completed.
-        Util.log("Beginning of method: " + currRuinLoc);
         Util.addToIndicatorString("R " + currRuinLoc);
         Util.addToIndicatorString("RC " + currResourceCenterLoc);
         Util.addToIndicatorString("PRC " + potentialResourceCenterLoc);
@@ -631,7 +668,7 @@ public class Soldier extends Bunny {
                     potentialResourceCenterLoc = nearbyMapInfos[resourceCenterIndex].getMapLocation();
                     Util.addToIndicatorString("NRC " + currResourceCenterLoc);
                 }
-                Util.logBytecode("Got optential resource pattern");
+                Util.logBytecode("Got potential resource pattern");
             }
         }
 

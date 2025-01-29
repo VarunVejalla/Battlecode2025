@@ -90,16 +90,28 @@ public class Util {
         }
 
         MapInfo[] filledInMapInfo = new MapInfo[69];
-        MapLocation location;
-        int intendedIndex;
-        for (MapInfo mapInfo : nearbyMapInfo) {
-            // get location of nearbyMapInfo[i]
-            // figure out what index of filledInMapInfo it should go in
-            location = mapInfo.getMapLocation();
-            // need reverse lookup given Shifts.dx and Shifts.dy
-            intendedIndex = getMapInfoIndex(location.x - robot.myLoc.x, location.y - robot.myLoc.y);
-            filledInMapInfo[intendedIndex] = mapInfo;
+        int leftOffset = Math.min(rc.getLocation().x, 4);
+        int bottomOffset = Math.min(rc.getLocation().y, 4);
+        int rightOffset = Math.min(rc.getMapWidth() - 1 - rc.getLocation().x, 4);
+        int topOffset = Math.min(rc.getMapHeight() - 1 - rc.getLocation().y, 4);
+        if(leftOffset < 4){
+            rightOffset = 100;
         }
+        if(rightOffset < 4){
+            leftOffset = 100;
+        }
+        if(bottomOffset < 4){
+            topOffset = 100;
+        }
+        if(topOffset < 4){
+            bottomOffset = 100;
+        }
+        // TODO: Can optimize more by directly filling it in instead of returning an array.
+        byte[] order = ExcessConstants.getFilledInMapInfoOrder(leftOffset, bottomOffset, rightOffset, topOffset);
+        for(int i = 0; i < nearbyMapInfo.length; i++){
+            filledInMapInfo[order[i]] = nearbyMapInfo[i];
+        }
+
         return filledInMapInfo;
     }
 

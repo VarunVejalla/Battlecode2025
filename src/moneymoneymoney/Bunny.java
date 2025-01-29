@@ -53,6 +53,7 @@ public abstract class Bunny extends Robot {
 
     public Bunny(RobotController rc) throws GameActionException {
         super(rc);
+        Util.logBytecode("Start of bunny constructor");
         MarkingUtils.bunny = this;
         MarkingUtils.rc = rc;
         destination = Util.getRandomMapLocation();
@@ -61,8 +62,10 @@ public abstract class Bunny extends Robot {
 
     public void run() throws GameActionException {
         super.run();
+        Util.logBytecode("Start of bunny run");
         // Comms is run inside of scan surroundings (and nearest allied paint tower, which is called in surroundings)!
         scanSurroundings();
+        Util.logBytecode("Scanned surroundings");
         checkForUpgrades();
     }
 
@@ -91,15 +94,6 @@ public abstract class Bunny extends Robot {
         }
     }
 
-    public boolean canMove() {
-//        if(comms.waitingForMap || comms.waitingForMap2) {
-//           Util.addToIndicatorString("Waiting for a map");
-//        }
-        return rc.isMovementReady(); // && !comms.waitingForMap && !comms.waitingForMap2;
-    }
-
-
-
     /**
      * Evalute the encoded information about each sector depending on the specific Bunny implementation.
      * Returns an int score. Higher scores are considered better.
@@ -112,10 +106,11 @@ public abstract class Bunny extends Robot {
      */
     // 8k bytecode
     public void scanSurroundings() throws GameActionException {
-        // 300 bytecode
+        // 1.7k bytecode when near edge, 400 bytecode when not
         nearbyMapInfos = Util.getFilledInMapInfo(rc.senseNearbyMapInfos());
         nearbyFriendlies = rc.senseNearbyRobots(-1, rc.getTeam());
         nearbyOpponents = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
+        Util.logBytecode("Nearby shit");
 
         // COMMS IS HERE
         // Find sector that is fully enclosed and update bunny world.
@@ -133,10 +128,13 @@ public abstract class Bunny extends Robot {
         // Updates both nearest allied paint tower and nearest allied tower.
         // 1.7k bytecode
         updateKnownTowers();
+        Util.logBytecode("Updated known towers");
         // 200 bytecode
         setNearestAlliedTowers();
-        // Faster now I think
+        Util.logBytecode("Updated set nearest allied towers");
+        // Faster now I think - 2k bytecode first time around
         updateKnownRuinsAndSymmetries();
+        Util.logBytecode("Updated known ruins and symmetries");
     }
 
     public void updateKnownRuinsAndSymmetries() throws GameActionException {

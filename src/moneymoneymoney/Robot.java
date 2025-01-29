@@ -44,6 +44,7 @@ public class Robot {
         this.rc = rc;
         Util.rc = rc;
         Util.robot = this;
+        Util.logBytecode("Start of robot constructor");
         myTeam = rc.getTeam();
         oppTeam = rc.getTeam().opponent();
         this.mapWidth = rc.getMapWidth();
@@ -60,6 +61,7 @@ public class Robot {
     }
 
     public void run() throws GameActionException {
+        Util.logBytecode("Start of robot run");
         myType = rc.getType();
         indicatorString = "";
         myLoc = rc.getLocation();
