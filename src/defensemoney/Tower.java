@@ -81,6 +81,7 @@ public class Tower extends Robot {
         // Don't take them all out.
         boolean towersStillUp = rc.getNumberTowers() >= numTowersLastRound;
 
+
         if (rc.getPaint() < 100 && rc.getChips() > 2500 && rc.getType() == UnitType.LEVEL_ONE_MONEY_TOWER && towersStillUp) {
             // Make it so that all towers don't go down round after round.
             // Only go down if there's a robot nearby, and you can afford to put the tower back up immediately.

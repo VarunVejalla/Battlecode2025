@@ -385,13 +385,24 @@ public class PatternUtils {
     }
 
     public static boolean isDefenseAllowed(MapLocation centerLoc) throws GameActionException {
-        return false;//soldier.mapWidth * 0.375 <= centerLoc.x && centerLoc.x <= soldier.mapWidth*0.625 && soldier.mapHeight * 0.375 <= centerLoc.y && centerLoc.y <= soldier.mapHeight * 0.625;
+//        return soldier.mapWidth * 0.375 <= centerLoc.x && centerLoc.x <= soldier.mapWidth*0.625 && soldier.mapHeight * 0.375 <= centerLoc.y && centerLoc.y <= soldier.mapHeight * 0.625;
+        // if you see enemy paint
+//        int enemyCount = 0;
+//        for(MapInfo info : soldier.nearbyMapInfos) {
+//            if(info.getPaint().isEnemy()){
+//                enemyCount++;
+//            }
+//        }
+//        return enemyCount > 10;
+        return false;
     }
 
     public static UnitType decideRuinUnitType(MapLocation ruinLoc) throws GameActionException {
         // TODO: Come back and add defense towers.
         // Always build money towers.
-            return UnitType.LEVEL_ONE_MONEY_TOWER;
+        if(isDefenseAllowed(ruinLoc))
+            return UnitType.LEVEL_ONE_DEFENSE_TOWER;
+        return UnitType.LEVEL_ONE_MONEY_TOWER;
     }
 
     public static boolean checkRuinCompleted(MapLocation ruinLoc, UnitType ruinType) throws GameActionException {
