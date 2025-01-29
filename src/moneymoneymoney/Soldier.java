@@ -50,6 +50,10 @@ public class Soldier extends Bunny {
 
         replenishLogic();
 
+        if(tryingToReplenish){
+            Util.addToIndicatorString("REP");
+        }
+
         double metric = getMetric();
         if (metric < Constants.RUIN_SEARCHING_THRESHOLD) {
             // we are kamikazes

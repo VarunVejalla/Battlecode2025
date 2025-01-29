@@ -405,8 +405,8 @@ public class PatternUtils {
         MapLocation currLoc = rc.getLocation();
         int minX = Math.max((currLoc.x - 4) / 3, 0);
         int minY = Math.max((currLoc.y - 4) / 3, 0);
-        int maxX = Math.min((currLoc.x + 4) / 3, (soldier.mapWidth - 1) / 3);
-        int maxY = Math.min((currLoc.y + 4) / 3, (soldier.mapHeight - 1) / 3);
+        int maxX = Math.min((currLoc.x + 4) / 3, soldier.mapWidth / 3 - 1);
+        int maxY = Math.min((currLoc.y + 4) / 3, soldier.mapHeight / 3 - 1);
         for(int x = minX; x <= maxX; x++) {
             for(int y = minY; y <= maxY; y++) {
                 if(soldier.invalidPotentialLocs[x][y]){

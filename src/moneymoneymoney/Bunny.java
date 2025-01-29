@@ -227,8 +227,6 @@ public abstract class Bunny extends Robot {
 
             MapLocation currAlliedTowerLocation = bot.getLocation();
 
-//            comms.sendMessages(bot);
-
             boolean alreadyIn = false;
             int nullIdx = -1;
             for (int i = 0; i < knownAlliedTowerLocs.length; i++) {

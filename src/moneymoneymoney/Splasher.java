@@ -61,7 +61,7 @@ public class Splasher extends Bunny {
                 continue;
             }
             MapLocation loc = info.getMapLocation();
-            if(info.getMark() == PaintType.ALLY_PRIMARY || info.isResourcePatternCenter() || (info.hasRuin() && rc.senseRobotAtLocation(loc) == null)){
+            if(info.getMark() == PaintType.ALLY_PRIMARY || info.isResourcePatternCenter() || (info.hasRuin() && !rc.canSenseRobotAtLocation(loc))){
                 Util.logBytecode("Updating new location");
                 // Don't touch 5x5 square if no enemy paint in area.
                 boolean enemyPaintPresent = false;
