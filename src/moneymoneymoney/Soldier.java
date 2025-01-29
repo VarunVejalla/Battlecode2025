@@ -21,6 +21,8 @@ public class Soldier extends Bunny {
     int[] roundPaintedRuinsBySector = new int[144];
     MapLocation rotationalDestination;
     boolean alreadyVisited = false;
+    long potentialRCBitstring = 0;
+    int potentialRCBitstringRoundComputed = -1;
 
     public Soldier(RobotController rc) throws GameActionException {
         super(rc);
@@ -339,6 +341,11 @@ public class Soldier extends Bunny {
             return false;
         }
 
+        if(potentialRCBitstringRoundComputed != rc.getRoundNum()){
+            potentialRCBitstring = PatternUtils.getPotentialResourcePatternCenterValidBitstring(nearbyMapInfos);
+            potentialRCBitstringRoundComputed = rc.getRoundNum();
+        }
+
         // Find the index of the closest unchecked corner.
         // Check if we've already looked at all 4 corners.
         int closestUnchecked = 0;
@@ -360,49 +367,12 @@ public class Soldier extends Bunny {
             return false;
         }
 
-        // Criteria for valid
-        // 1. no towers / ruins in 5x5 area.
-        // 2. no uncreated ruins in vision.
-        // 3. no resource pattern centers that don't overlap.
-        for(MapInfo info : nearbyMapInfos){
-            if(info == null) continue;
-            MapLocation infoLoc = info.getMapLocation();
-            int abs_dx = Math.abs(infoLoc.x - potentialResourceCenterLoc.x);
-            int abs_dy = Math.abs(infoLoc.y - potentialResourceCenterLoc.y);
-            int overlap_x = Math.max(5 - abs_dx, 0);
-            int overlap_y = Math.max(5 - abs_dy, 0);
-
-            if(info.hasRuin()){
-                boolean towerBuilt = rc.senseRobotAtLocation(info.getMapLocation()) != null;
-                if(!towerBuilt && (abs_dx <= 4 && abs_dy <= 4)) {
-                    // Failure! Ruin there.
-                    Util.addToIndicatorString("IVD1");
-                    PatternUtils.markPotentialRCInvalid();
-                    return false;
-                }
-                if(towerBuilt && (abs_dx <= 2 && abs_dy <= 2)) {
-                    // Failure! Ruin there.
-                    Util.addToIndicatorString("IVD2");
-                    PatternUtils.markPotentialRCInvalid();
-                    return false;
-                }
-            }
-            if(info.isWall() && (abs_dx <= 2 && abs_dy <= 2)) {
-                // Failure! Wall there.
-                Util.addToIndicatorString("IVD75");
-                PatternUtils.markPotentialRCInvalid();
-                return false;
-            }
-
-            if((info.isResourcePatternCenter() || info.getMark() == PaintType.ALLY_PRIMARY) && abs_dx <= 4 && abs_dy <= 4){
-                boolean valid_overlap = (overlap_x == 1 && overlap_y == 1) || (overlap_x == 1 && overlap_y == 2) || (overlap_x == 1 && overlap_y == 5) || (overlap_x == 2 && overlap_y == 1) || (overlap_x == 5 && overlap_y == 1);
-                if(!valid_overlap){
-                    // Failure! RC there.
-                    Util.addToIndicatorString("IVD3");
-                    PatternUtils.markPotentialRCInvalid();
-                    return false;
-                }
-            }
+        int index = Util.getMapInfoIndex(potentialResourceCenterLoc.x - rc.getLocation().x, potentialResourceCenterLoc.y - rc.getLocation().y);
+        long indexBit = ~(1L << (long)index);
+        if((potentialRCBitstring & indexBit) == 0){
+            Util.addToIndicatorString("IVD");
+            PatternUtils.markPotentialRCInvalid();
+            return false;
         }
 
         MapLocation cornerLoc = getPotentialRCCornerLoc(closestUnchecked);
@@ -570,7 +540,11 @@ public class Soldier extends Bunny {
             // If none found, find a resource pattern to build.
             if(currRuinLoc == null && shouldSearchForResourceCenter()) {
                 // 2650 bytecode.
-                int resourceCenterIndex = PatternUtils.getPotentialResourcePatternCenterIndex(nearbyMapInfos);
+                if(potentialRCBitstringRoundComputed != rc.getRoundNum()){
+                    potentialRCBitstring = PatternUtils.getPotentialResourcePatternCenterValidBitstring(nearbyMapInfos);
+                    potentialRCBitstringRoundComputed = rc.getRoundNum();
+                }
+                int resourceCenterIndex = PatternUtils.getPotentialResourcePatternCenterIndex(potentialRCBitstring);
                 if (resourceCenterIndex != -1) {
                     potentialResourceCenterLoc = nearbyMapInfos[resourceCenterIndex].getMapLocation();
                     Util.addToIndicatorString("NRC " + currResourceCenterLoc);
@@ -646,7 +620,11 @@ public class Soldier extends Bunny {
             // If none found, find a resource pattern to build.
             if(currRuinLoc == null && shouldSearchForResourceCenter()) {
                 // 2650 bytecode.
-                int resourceCenterIndex = PatternUtils.getPotentialResourcePatternCenterIndex(nearbyMapInfos);
+                if(potentialRCBitstringRoundComputed != rc.getRoundNum()){
+                    potentialRCBitstring = PatternUtils.getPotentialResourcePatternCenterValidBitstring(nearbyMapInfos);
+                    potentialRCBitstringRoundComputed = rc.getRoundNum();
+                }
+                int resourceCenterIndex = PatternUtils.getPotentialResourcePatternCenterIndex(potentialRCBitstring);
                 if (resourceCenterIndex != -1) {
                     potentialResourceCenterLoc = nearbyMapInfos[resourceCenterIndex].getMapLocation();
                     Util.addToIndicatorString("NRC " + currResourceCenterLoc);

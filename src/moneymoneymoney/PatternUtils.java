@@ -369,9 +369,7 @@ public class PatternUtils {
         soldier.potentialRCCornersChecked = new boolean[4];
     }
 
-    // NOTE: Script to unroll created, but varun's gonna change some code so wait until that's done.
-    // 5k bytecode.
-    public static int getPotentialResourcePatternCenterIndex(MapInfo[] nearbyMapInfos) throws GameActionException {
+    public static long getPotentialResourcePatternCenterValidBitstring(MapInfo[] nearbyMapInfos) throws GameActionException {
         long validBitstring = -1;
 
         for(int i = 0; i < 69; i++) {
@@ -419,6 +417,11 @@ public class PatternUtils {
             }
         }
 
+        return validBitstring;
+    }
+
+
+    public static int getPotentialResourcePatternCenterIndex(long validBitstring) throws GameActionException {
         if (validBitstring == 0) {
             return -1;
         }

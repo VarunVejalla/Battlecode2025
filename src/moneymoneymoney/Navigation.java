@@ -275,7 +275,9 @@ public class Navigation {
             return;
         }
 
-        Util.addToIndicatorString("FZ FAILED: " + fuzzyFailed);
+        if(fuzzyFailed){
+            Util.addToIndicatorString("FZ FAILED");
+        }
         if(!fuzzyFailed){
             Direction bestDir = fuzzyNav(target, true);
             if(bestDir == null || bestDir == Direction.CENTER){
@@ -291,6 +293,8 @@ public class Navigation {
                 Util.tryMove(bestDir);
             }
         }
-        Util.addToIndicatorString("FZ FAILED 2: " + fuzzyFailed);
+        if(fuzzyFailed){
+            Util.addToIndicatorString("FZ FAILED 2");
+        }
     }
 }
