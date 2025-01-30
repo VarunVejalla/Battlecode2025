@@ -7,6 +7,34 @@ public class MarkingUtils {
     static Bunny bunny;
     static RobotController rc;
 
+    public static void tryRemoveResponsibilityMark(MapLocation ruinLoc) throws GameActionException {
+        MapLocation markLoc = new MapLocation(ruinLoc.x - 1, ruinLoc.y);
+        if(rc.canRemoveMark(markLoc)){
+            rc.removeMark(markLoc);
+        }
+        markLoc = new MapLocation(ruinLoc.x + 1, ruinLoc.y);
+        if(rc.canRemoveMark(markLoc)){
+            rc.removeMark(markLoc);
+        }
+        markLoc = new MapLocation(ruinLoc.x, ruinLoc.y - 1);
+        if(rc.canRemoveMark(markLoc)){
+            rc.removeMark(markLoc);
+        }
+        markLoc = new MapLocation(ruinLoc.x, ruinLoc.y + 1);
+        if(rc.canRemoveMark(markLoc)){
+            rc.removeMark(markLoc);
+        }
+    }
+
+    public static void tryRemoveResponsibilityMarks() throws GameActionException {
+        MapLocation[] ruins = rc.senseNearbyRuins(-1);
+        for(MapLocation ruinLoc : ruins){
+            if(rc.canSenseRobotAtLocation(ruinLoc)){
+                tryRemoveResponsibilityMark(ruinLoc);
+            }
+        }
+    }
+
     public static void tryRuinPatternCompletion() throws GameActionException {
         // TODO: iterate only through the nearby ones
         if (rc.getChips() < Constants.TOWER_COST) {

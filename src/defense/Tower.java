@@ -47,21 +47,33 @@ public class Tower extends Robot {
         }
 
         if (enemiesInVision.length > 0) {
-            Direction closestEnemyDir = null;
+            MapLocation closestEnemyLoc = null;
             int closestDist = Integer.MAX_VALUE;
             int dangerousEnemies = 0;
             for (RobotInfo enemy : enemiesInVision) {
-                if (enemy.getPaintAmount() > 0) {
+                if (enemy.getPaintAmount() > 0 && (enemy.getType() == UnitType.SOLDIER || enemy.getType() == UnitType.SPLASHER)) {
                     dangerousEnemies++;
                     int dist = rc.getLocation().distanceSquaredTo(enemy.getLocation());
                     if(dist < closestDist) {
                         closestDist = dist;
-                        closestEnemyDir = rc.getLocation().directionTo(enemy.getLocation());
+                        closestEnemyLoc = enemy.getLocation();
                     }
                 }
             }
 
-            if (dangerousEnemies > 0 && (spawnedMoppers == 0 || (spawnedMoppers == 1 && rc.getHealth() < 700) || (spawnedMoppers == 2 && rc.getHealth() < 300))) {
+            int numMoppers = 0;
+            if(closestEnemyLoc != null){
+                RobotInfo[] nearby = rc.senseNearbyRobots(closestEnemyLoc, -1, myTeam);
+                for(RobotInfo info : nearby) {
+                    if(info.getType() == UnitType.MOPPER){
+                        numMoppers++;
+                    }
+                }
+            }
+
+            if (dangerousEnemies > 0 && numMoppers < dangerousEnemies && (numMoppers == 0 || (numMoppers == 1 && rc.getHealth() < 700) || (numMoppers == 2 && rc.getHealth() < 300))) {
+                Util.addToIndicatorString("DNG");
+                Direction closestEnemyDir = rc.getLocation().directionTo(closestEnemyLoc);
                 tryBuilding(UnitType.MOPPER, rc.getLocation().add(closestEnemyDir));
             }
         }

@@ -71,6 +71,11 @@ public abstract class Bunny extends Robot {
         }
     }
 
+    public void sharedEndFunction() throws GameActionException {
+        super.sharedEndFunction();
+        MarkingUtils.tryRemoveResponsibilityMarks();
+    }
+
     public void markDefenseTowers() throws GameActionException {
         if(markDefenseTowerLoc != null){
             int sectorIdx = comms.getSectorIndex(markDefenseTowerLoc);
