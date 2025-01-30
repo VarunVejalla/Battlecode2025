@@ -38,6 +38,7 @@ public class Mopper extends Bunny {
         Util.log("Location at beginning of round: " + rc.getLocation());
         if(enemyNearby || enemyPaintNearby) {
             if (rc.isActionReady()) {
+                Util.addToIndicatorString("HL" + heuristicLocation);
                 forceMopperMove(heuristicLocation);
                 Util.log("Location after force nav: " + rc.getLocation());
                 Util.addToIndicatorString("DBA");
@@ -194,6 +195,11 @@ public class Mopper extends Bunny {
 
     public void mopperNav(MapLocation target) throws GameActionException {
         Util.addToIndicatorString("MN" + target);
+        if(nearbyOpponents.length == 0){
+            nav.goToSmart(target, 0);
+            return;
+        }
+
         Direction toTarget = myLoc.directionTo(target);
         Direction[] moveOptions = {
                 toTarget,
@@ -292,7 +298,6 @@ public class Mopper extends Bunny {
             }
         }
         MapLocation bestLoc = nearbyMapInfos[bestIndex].getMapLocation();
-        Util.addToIndicatorString("BL" + bestLoc);
         return bestLoc;
     }
 

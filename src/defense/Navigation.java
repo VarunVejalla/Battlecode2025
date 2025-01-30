@@ -28,6 +28,7 @@ public class Navigation {
     MapLocation lastGoToSmartLoc = null;
 
     final int ROUNDS_TO_RESET_BUG_CLOSEST = 15;
+    final int DIST_SQUARED_CHANGE_FOR_BUGNAV_RESET = 36;
 
     public Navigation(RobotController rc, Robot robot) {
         this.rc = rc;
@@ -40,7 +41,7 @@ public class Navigation {
             mode = NavigationMode.BUGNAV;
             resetBugNav();
         }
-        if (!target.equals(prevTarget)) {
+        if (prevTarget == null || !target.isWithinDistanceSquared(prevTarget, DIST_SQUARED_CHANGE_FOR_BUGNAV_RESET)) {
             resetBugNav();
         }
         prevTarget = target;
@@ -127,11 +128,11 @@ public class Navigation {
                 if (dist < closestDistToTarget) {
                     closestDistToTarget = dist;
                     closestDir = tryDir;
-                    Util.addToIndicatorString("CLSR " + dist);
                 }
             }
         }
         if(closestDir != null){
+            Util.addToIndicatorString("CLSR " + rc.adjacentLocation(closestDir).distanceSquaredTo(target));
             return closestDir;
         }
 
@@ -293,11 +294,9 @@ public class Navigation {
     }
 
     public void goToSmart(MapLocation target, int minDistToSatisfy) throws GameActionException {
-        if(!target.equals(prevTarget)){
+        if(lastGoToSmartLoc == null || !target.isWithinDistanceSquared(lastGoToSmartLoc, DIST_SQUARED_CHANGE_FOR_BUGNAV_RESET)) {
+            Util.addToIndicatorString("RESETTING NAV " + target + ", " + lastGoToSmartLoc);
             resetBugNav();
-        }
-        if(lastGoToSmartLoc == null || !target.isWithinDistanceSquared(lastGoToSmartLoc, 8)) {
-            Util.addToIndicatorString("RESETTING FUZZY " + target + ", " + lastGoToSmartLoc);
             lastGoToSmartLoc = target;
             fuzzyFailed = false;
             if(rc.getLocation().distanceSquaredTo(target) > 36){
@@ -309,7 +308,9 @@ public class Navigation {
             return;
         }
 
-        Util.addToIndicatorString("FZ FAILED: " + fuzzyFailed);
+        if(fuzzyFailed){
+            Util.addToIndicatorString("FZ FAILED: " + fuzzyFailed);
+        }
         if(!fuzzyFailed){
             Direction bestDir = fuzzyNav(target, true);
             if(bestDir == null || bestDir == Direction.CENTER){
@@ -325,6 +326,8 @@ public class Navigation {
                 Util.tryMove(bestDir);
             }
         }
-        Util.addToIndicatorString("FZ FAILED 2: " + fuzzyFailed);
+        if(fuzzyFailed){
+            Util.addToIndicatorString("FZ FAILED 2: " + fuzzyFailed);
+        }
     }
 }
