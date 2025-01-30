@@ -392,7 +392,7 @@ public class Util {
     }
 
     public static void logBytecode(String prefix) {
-        Util.log(prefix + ": " + Clock.getBytecodesLeft());
+//        Util.log(prefix + ": " + Clock.getBytecodesLeft());
     }
 
     public static Direction[] closeDirections(Direction dir) {

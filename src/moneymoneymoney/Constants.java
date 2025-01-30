@@ -12,9 +12,11 @@ public class Constants {
     public static final boolean BLOCK_OFF_ENEMY_RUINS = false;
     public static final boolean PAINT_ALONG_PATH = true;
 
+    public static final int HEALTH_THRESHOLD_TO_CONSTRUCT_DEFENSE = 250;
     public static final double TOWER_SPAWNING_THRESHOLD = 28;
     public static final double RUIN_SEARCHING_THRESHOLD = 40;
     public static final double PATTERN_SEARCHING_THRESHOLD = 40;
-    public static final int DEBUG_BOT_ID = 10048;
-//    public static final int DEBUG_BOT_ID = 0;
+//    public static final int DEBUG_BOT_ID = 12472;
+    public static final int EARLY_RESIGN_ROUND = 3000;
+    public static final int DEBUG_BOT_ID = 0;
 }

@@ -62,7 +62,7 @@ public class Tower extends Robot {
             }
         }
 
-        if (rc.getRoundNum() < 50 && rc.getNumberTowers() <= 3) {
+        if (rc.getRoundNum() < 50 && rc.getNumberTowers() <= 2) {
             if (numTotalSpawned < 2) {
                 soldierSpawning();
             }
@@ -81,13 +81,13 @@ public class Tower extends Robot {
         // Don't take them all out.
         boolean towersStillUp = rc.getNumberTowers() >= numTowersLastRound;
 
-        if (rc.getPaint() < 100 && rc.getChips() > 2500 && rc.getType() == UnitType.LEVEL_ONE_MONEY_TOWER && towersStillUp) {
+        if (rc.getPaint() < 100 && rc.getChips() > 2500 && !Util.isPaintTower(rc.getType()) && towersStillUp) {
             // Make it so that all towers don't go down round after round.
             // Only go down if there's a robot nearby, and you can afford to put the tower back up immediately.
             nearbyFriendlies = rc.senseNearbyRobots(2, rc.getTeam());
-            if(nearbyFriendlies.length > 0 && rc.getChips() > 1500) {
+            if(nearbyFriendlies.length > 0) {
                 // Only go down if the ruin pattern is complete.
-                int diff = Util.getPatternDifference(rc.getTowerPattern(UnitType.LEVEL_ONE_MONEY_TOWER));
+                int diff = Util.getPatternDifference(rc.getTowerPattern(rc.getType()));
                 int numNearbyResourcePatterns = 0;
                 for (MapInfo nearbyTile : rc.senseNearbyMapInfos(17)) {
                     if (nearbyTile.isResourcePatternCenter()) {
@@ -167,15 +167,6 @@ public class Tower extends Robot {
         Direction dir = directions[rng.nextInt(directions.length)];
         MapLocation nextLoc = rc.getLocation().add(dir);
         tryBuilding(UnitType.SOLDIER, nextLoc);
-    }
-
-    public void openingBots() throws GameActionException {
-        Direction dir = directions[rng.nextInt(directions.length)];
-        MapLocation nextLoc = rc.getLocation().add(dir);
-
-        if (rc.canBuildRobot(UnitType.SOLDIER, nextLoc)) {
-            rc.buildRobot(UnitType.SOLDIER, nextLoc);
-        }
     }
 
     public void midGameBots() throws GameActionException {

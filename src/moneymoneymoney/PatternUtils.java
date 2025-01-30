@@ -265,36 +265,50 @@ public class PatternUtils {
     }
 
 
+    // Responsibility is by marking the adjacent non-diagonals (radius squared 1)
     public static boolean markResponsibility(MapLocation ruinLoc) throws GameActionException {
-        for(int x = ruinLoc.x - 1; x <= ruinLoc.x + 1; x++) {
-            for(int y = ruinLoc.y - 1; y <= ruinLoc.y + 1; y++) {
-                MapLocation loc = new MapLocation(x, y);
-                if(!rc.canSenseLocation(loc)) {
-                    continue;
-                }
-                if(rc.senseMapInfo(loc).getMark().isAlly()){
-                    continue;
-                }
-                if(rc.canMark(loc)) {
-                    rc.mark(loc, true);
-                    return true;
-                }
-            }
+        MapLocation loc = new MapLocation(ruinLoc.x - 1, ruinLoc.y);
+        if(rc.canMark(loc) && !rc.senseMapInfo(loc).getMark().isAlly()) {
+            rc.mark(loc, true);
+            return true;
+        }
+
+        loc = new MapLocation(ruinLoc.x + 1, ruinLoc.y);
+        if(rc.canMark(loc) && !rc.senseMapInfo(loc).getMark().isAlly()) {
+            rc.mark(loc, true);
+            return true;
+        }
+
+        loc = new MapLocation(ruinLoc.x, ruinLoc.y - 1);
+        if(rc.canMark(loc) && !rc.senseMapInfo(loc).getMark().isAlly()) {
+            rc.mark(loc, true);
+            return true;
+        }
+
+        loc = new MapLocation(ruinLoc.x, ruinLoc.y + 1);
+        if(rc.canMark(loc) && !rc.senseMapInfo(loc).getMark().isAlly()) {
+            rc.mark(loc, true);
+            return true;
         }
         return false;
     }
 
     public static boolean checkSomeoneResponsible(MapLocation centerLoc) throws GameActionException {
-        for(int x = centerLoc.x - 1; x <= centerLoc.x + 1; x++) {
-            for(int y = centerLoc.y - 1; y <= centerLoc.y + 1; y++) {
-                MapLocation loc = new MapLocation(x, y);
-                if(!rc.canSenseLocation(loc)) {
-                    continue;
-                }
-                if(rc.senseMapInfo(loc).getMark() == PaintType.ALLY_SECONDARY){
-                    return true;
-                }
-            }
+        MapLocation loc = new MapLocation(centerLoc.x - 1, centerLoc.y);
+        if(rc.canSenseLocation(loc) && rc.senseMapInfo(loc).getMark() == PaintType.ALLY_SECONDARY) {
+            return true;
+        }
+        loc = new MapLocation(centerLoc.x + 1, centerLoc.y);
+        if(rc.canSenseLocation(loc) && rc.senseMapInfo(loc).getMark() == PaintType.ALLY_SECONDARY) {
+            return true;
+        }
+        loc = new MapLocation(centerLoc.x, centerLoc.y - 1);
+        if(rc.canSenseLocation(loc) && rc.senseMapInfo(loc).getMark() == PaintType.ALLY_SECONDARY) {
+            return true;
+        }
+        loc = new MapLocation(centerLoc.x, centerLoc.y + 1);
+        if(rc.canSenseLocation(loc) && rc.senseMapInfo(loc).getMark() == PaintType.ALLY_SECONDARY) {
+            return true;
         }
         return false;
     }
@@ -304,9 +318,12 @@ public class PatternUtils {
     }
 
     public static UnitType decideRuinUnitType(MapLocation ruinLoc) throws GameActionException {
-        // TODO: Come back and add defense towers.
         // Always build money towers.
-            return UnitType.LEVEL_ONE_MONEY_TOWER;
+        int sectorIdx = soldier.comms.getSectorIndex(ruinLoc);
+        if(soldier.knownRuinsBySectorMarkedDefense[sectorIdx]){
+            return UnitType.LEVEL_ONE_DEFENSE_TOWER;
+        }
+        return UnitType.LEVEL_ONE_MONEY_TOWER;
     }
 
     public static boolean checkRuinCompleted(MapLocation ruinLoc, UnitType ruinType) throws GameActionException {

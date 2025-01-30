@@ -260,7 +260,7 @@ public class Soldier extends Bunny {
             Util.addToIndicatorString("??");
             if(currRuinResponsibility == Responsibility.SELF_RESPONSIBLE){
                 Util.addToIndicatorString("SR");
-                nav.goToSmart(currRuinLoc, 0);
+                nav.goToFuzzy(currRuinLoc, 0);
                 return true;
             }
             // Otherwise, responsibility is still unknown.
@@ -492,6 +492,7 @@ public class Soldier extends Bunny {
 
         // If we're already building a ruin, go with that.
         if(currRuinLoc != null){
+            Util.addToIndicatorString("CR1 " + currRuinLoc);
             buildRuin(false);
             Util.logBytecode("Built ruin");
         } else {
@@ -564,6 +565,7 @@ public class Soldier extends Bunny {
 
         // If we're already building a ruin, go with that.
         if(currRuinLoc != null){
+            Util.addToIndicatorString("CR2 " + currRuinLoc);
             buildRuin(false);
             Util.logBytecode("Built ruin");
         }
@@ -644,6 +646,7 @@ public class Soldier extends Bunny {
 
         // If we're already building a ruin, go with that.
         if(currRuinLoc != null){
+            Util.addToIndicatorString("CR3 " + currRuinLoc);
             buildRuin(true);
             Util.logBytecode("Built ruin");
         }
