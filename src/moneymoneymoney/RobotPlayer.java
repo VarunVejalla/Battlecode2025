@@ -2,6 +2,8 @@ package moneymoneymoney;
 
 import battlecode.common.Clock;
 import battlecode.common.RobotController;
+import battlecode.common.UnitType;
+import battlecode.schema.RobotType;
 
 public class RobotPlayer {
     /**
@@ -38,11 +40,14 @@ public class RobotPlayer {
                 robot.sharedEndFunction();
                 if (rc.getRoundNum() != currentTurn) {
                     System.out.println("BYTECODE EXCEEDED");
+                    if(rc.getType() != UnitType.SPLASHER) {
+                        rc.resign();
+                    }
 //                    rc.resign();
                 }
 
                 // End early for debugging.
-//                if (currentTurn > 280) {
+//                if (currentTurn > 463) {
 //                    System.out.println("Resigning early for debugging!");
 //                    rc.resign();
 //                }

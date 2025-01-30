@@ -19,9 +19,6 @@ public class Navigation {
     Direction lastDirectionMoved = null;
     int roundsSinceClosestDistReset = 0;
     MapLocation prevTarget = null;
-    boolean[][] locsToIgnore;
-    MapLocation[] recentlyVisited = new MapLocation[10];
-    int recentlyVisitedIdx = 0;
     boolean bugFollowRight = true; // TODO: Figure out how to make this a smart decision.
     boolean fuzzyFailed = false;
     MapLocation lastGoToSmartLoc = null;
@@ -31,7 +28,6 @@ public class Navigation {
     public Navigation(RobotController rc, Robot robot) {
         this.rc = rc;
         this.robot = robot;
-        locsToIgnore = new boolean[rc.getMapWidth()][rc.getMapHeight()];
     }
 
     public boolean goToBug(MapLocation target, int minDistToSatisfy) throws GameActionException {
@@ -117,7 +113,7 @@ public class Navigation {
                 if (dist < closestDistToTarget) {
                     closestDistToTarget = dist;
                     closestDir = dir;
-                    Util.addToIndicatorString("CLSR " + dist);
+//                    Util.addToIndicatorString("CLSR " + dist);
                 }
 
                 // Check if wall-following is viable
@@ -144,8 +140,8 @@ public class Navigation {
             }
         }
 
-        Util.addToIndicatorString("BFR: " + bugFollowRight);
-        Util.addToIndicatorString("WD: " + wallDir);
+//        Util.addToIndicatorString("BFR: " + bugFollowRight);
+//        Util.addToIndicatorString("WD: " + wallDir);
 
         if (closestDir != null) {
             //            Direction bestDir = closestDir;
@@ -267,7 +263,7 @@ public class Navigation {
 
     public void goToSmart(MapLocation target, int minDistToSatisfy) throws GameActionException {
         if(lastGoToSmartLoc == null || !target.isWithinDistanceSquared(lastGoToSmartLoc, 8)) {
-            Util.addToIndicatorString("RESETTING FUZZY " + target + ", " + lastGoToSmartLoc);
+//            Util.addToIndicatorString("RESETTING FUZZY " + target + ", " + lastGoToSmartLoc);
             lastGoToSmartLoc = target;
             fuzzyFailed = false;
             if(rc.getLocation().distanceSquaredTo(target) > 36){
@@ -279,7 +275,9 @@ public class Navigation {
             return;
         }
 
-        Util.addToIndicatorString("FZ FAILED: " + fuzzyFailed);
+        if(fuzzyFailed){
+//            Util.addToIndicatorString("FZ FAILED");
+        }
         if(!fuzzyFailed){
             Direction bestDir = fuzzyNav(target, true);
             if(bestDir == null || bestDir == Direction.CENTER){
@@ -287,7 +285,7 @@ public class Navigation {
             } else {
                 Util.tryMove(bestDir);
             }
-            Util.addToIndicatorString("BDR: " + bestDir);
+//            Util.addToIndicatorString("BDR: " + bestDir);
         }
         if(rc.isMovementReady() && fuzzyFailed){
             Direction bestDir = bugNav(target);
@@ -295,6 +293,8 @@ public class Navigation {
                 Util.tryMove(bestDir);
             }
         }
-        Util.addToIndicatorString("FZ FAILED 2: " + fuzzyFailed);
+        if(fuzzyFailed){
+//            Util.addToIndicatorString("FZ FAILED 2");
+        }
     }
 }

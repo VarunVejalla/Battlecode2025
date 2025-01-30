@@ -353,7 +353,16 @@ public class PatternUtils {
     }
 
     public static void markPotentialRCInvalid() throws GameActionException {
-        soldier.invalidPotentialLocs[soldier.potentialResourceCenterLoc.x / 3][soldier.potentialResourceCenterLoc.y / 3] = true;
+        UnrolledConstants.setInvalidPotentialLoc(soldier.potentialResourceCenterLoc.x, soldier.potentialResourceCenterLoc.y - 1);
+        UnrolledConstants.setInvalidPotentialLoc(soldier.potentialResourceCenterLoc.x, soldier.potentialResourceCenterLoc.y);
+        UnrolledConstants.setInvalidPotentialLoc(soldier.potentialResourceCenterLoc.x, soldier.potentialResourceCenterLoc.y + 1);
+        UnrolledConstants.setInvalidPotentialLoc(soldier.potentialResourceCenterLoc.x - 1, soldier.potentialResourceCenterLoc.y - 1);
+        UnrolledConstants.setInvalidPotentialLoc(soldier.potentialResourceCenterLoc.x - 1, soldier.potentialResourceCenterLoc.y);
+        UnrolledConstants.setInvalidPotentialLoc(soldier.potentialResourceCenterLoc.x - 1, soldier.potentialResourceCenterLoc.y + 1);
+        UnrolledConstants.setInvalidPotentialLoc(soldier.potentialResourceCenterLoc.x + 1, soldier.potentialResourceCenterLoc.y - 1);
+        UnrolledConstants.setInvalidPotentialLoc(soldier.potentialResourceCenterLoc.x + 1, soldier.potentialResourceCenterLoc.y);
+        UnrolledConstants.setInvalidPotentialLoc(soldier.potentialResourceCenterLoc.x + 1, soldier.potentialResourceCenterLoc.y + 1);
+//        soldier.invalidPotentialLocs[soldier.potentialResourceCenterLoc.x][soldier.potentialResourceCenterLoc.y] = true;
         soldier.potentialResourceCenterLoc = null;
         soldier.potentialRCCornersChecked = new boolean[4];
     }
@@ -369,56 +378,51 @@ public class PatternUtils {
         soldier.potentialRCCornersChecked = new boolean[4];
     }
 
-    // NOTE: Script to unroll created, but varun's gonna change some code so wait until that's done.
-    // 3k bytecode.
-    public static int getPotentialResourcePatternCenterIndex(MapInfo[] nearbyMapInfos) throws GameActionException {
+    public static long getPotentialResourcePatternCenterValidBitstring(MapInfo[] nearbyMapInfos) throws GameActionException {
         long validBitstring = -1;
 
         for(int i = 0; i < 69; i++) {
             if (nearbyMapInfos[i] == null || !nearbyMapInfos[i].isPassable()) {
                 validBitstring &= UnrolledConstants.getInvalidSquareForResource(i);
+                if(nearbyMapInfos[i] != null) {
+                    if(nearbyMapInfos[i].hasRuin() && rc.senseRobotAtLocation(nearbyMapInfos[i].getMapLocation()) == null) {
+                        Util.addToIndicatorString("UR " + nearbyMapInfos[i].getMapLocation());
+                        validBitstring &= UnrolledConstants.getSquareHasUnfinishedRuin(i);
+                    }
+                }
             }
             else {
                 int x = nearbyMapInfos[i].getMapLocation().x;
                 int y = nearbyMapInfos[i].getMapLocation().y;
-                if(x <= 2 || y <= 2 || x >= soldier.mapWidth - 3 || y >= soldier.mapHeight - 3) {
-                    validBitstring &= UnrolledConstants.getPotentialRCAlreadyMarkedInvalid(i);
-                } else if (nearbyMapInfos[i].isResourcePatternCenter() || nearbyMapInfos[i].getMark() == PaintType.ALLY_PRIMARY) {
+                if (nearbyMapInfos[i].isResourcePatternCenter()) {
                     validBitstring &= UnrolledConstants.getSquareHasResourceCenter(i);
+                }
+                else if (nearbyMapInfos[i].getMark() == PaintType.ALLY_PRIMARY) {
+                    // Resource center might not be completed, so don't mark it as invalid loc.
+                    int index = soldier.invSpiralOutwardIndices[i];
+                    long locIsValid = validBitstring & (1L << (long)index);
+                    validBitstring &= UnrolledConstants.getSquareHasResourceCenter(i);
+                    validBitstring |= locIsValid;
                 } else if(nearbyMapInfos[i].hasRuin() && rc.senseRobotAtLocation(nearbyMapInfos[i].getMapLocation()) == null) {
                     validBitstring &= UnrolledConstants.getSquareHasUnfinishedRuin(i);
                 } else if(nearbyMapInfos[i].getPaint().isEnemy()) {
                     validBitstring &= UnrolledConstants.getInvalidSquareForResource(i);
                 }
-            }
 
-//            if (nearbyMapInfos[i] != null) {
-//                MapLocation loc = nearbyMapInfos[i].getMapLocation();
-//                if(soldier.invalidPotentialLocs[loc.x / 3][loc.y / 3]){
-//                    int index = soldier.invSpiralOutwardIndices[i];
-//                    long invalidBit = ~(1L << (long)index);
-//                    validBitstring &= invalidBit;
-//                }
-//            }
-        }
-
-        MapLocation currLoc = rc.getLocation();
-        int minX = Math.max((currLoc.x - 4) / 3, 0);
-        int minY = Math.max((currLoc.y - 4) / 3, 0);
-        int maxX = Math.min((currLoc.x + 4) / 3, soldier.mapWidth / 3 - 1);
-        int maxY = Math.min((currLoc.y + 4) / 3, soldier.mapHeight / 3 - 1);
-        for(int x = minX; x <= maxX; x++) {
-            for(int y = minY; y <= maxY; y++) {
-                if(soldier.invalidPotentialLocs[x][y]){
-                    int i = Util.getMapInfoIndex(x * 3 - currLoc.x, y * 3 - currLoc.y);
-                    if(i == -1){
-                        continue;
-                    }
-                    validBitstring &= UnrolledConstants.getPotentialRCAlreadyMarkedInvalid(i);
+//                if(soldier.invalidPotentialLocs[x][y]){
+                if(x <= 2 || y <= 2 || x >= soldier.mapWidth - 3 || y >= soldier.mapHeight - 3 || UnrolledConstants.getInvalidPotentialLoc(x, y)){
+                    int index = soldier.invSpiralOutwardIndices[i];
+                    long invalidBit = ~(1L << (long)index);
+                    validBitstring &= invalidBit;
                 }
             }
         }
 
+        return validBitstring;
+    }
+
+
+    public static int getPotentialResourcePatternCenterIndex(long validBitstring) throws GameActionException {
         if (validBitstring == 0) {
             return -1;
         }
