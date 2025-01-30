@@ -124,13 +124,10 @@ public abstract class Bunny extends Robot {
         // Updates both nearest allied paint tower and nearest allied tower.
         // 1.7k bytecode
         updateKnownTowers();
-        Util.logBytecode("Updated known towers");
         // 200 bytecode
         setNearestAlliedTowers();
-        Util.logBytecode("Updated set nearest allied towers");
         // Faster now I think - 2k bytecode first time around
         updateKnownRuinsAndSymmetries();
-        Util.logBytecode("Updated known ruins and symmetries");
     }
 
     public void updateKnownRuinsAndSymmetries() throws GameActionException {

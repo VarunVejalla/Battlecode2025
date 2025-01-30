@@ -2,6 +2,418 @@ package moneymoneymoney;
 
 public class UnrolledConstants {
 
+    static boolean[] invalidPotentialLocs0 = null;
+    static boolean[] invalidPotentialLocs1 = null;
+    static boolean[] invalidPotentialLocs2 = null;
+    static boolean[] invalidPotentialLocs3 = null;
+    static boolean[] invalidPotentialLocs4 = null;
+    static boolean[] invalidPotentialLocs5 = null;
+    static boolean[] invalidPotentialLocs6 = null;
+    static boolean[] invalidPotentialLocs7 = null;
+    static boolean[] invalidPotentialLocs8 = null;
+    static boolean[] invalidPotentialLocs9 = null;
+    static boolean[] invalidPotentialLocs10 = null;
+    static boolean[] invalidPotentialLocs11 = null;
+    static boolean[] invalidPotentialLocs12 = null;
+    static boolean[] invalidPotentialLocs13 = null;
+    static boolean[] invalidPotentialLocs14 = null;
+    static boolean[] invalidPotentialLocs15 = null;
+    static boolean[] invalidPotentialLocs16 = null;
+    static boolean[] invalidPotentialLocs17 = null;
+    static boolean[] invalidPotentialLocs18 = null;
+    static boolean[] invalidPotentialLocs19 = null;
+    static boolean[] invalidPotentialLocs20 = null;
+    static boolean[] invalidPotentialLocs21 = null;
+    static boolean[] invalidPotentialLocs22 = null;
+    static boolean[] invalidPotentialLocs23 = null;
+    static boolean[] invalidPotentialLocs24 = null;
+    static boolean[] invalidPotentialLocs25 = null;
+    static boolean[] invalidPotentialLocs26 = null;
+    static boolean[] invalidPotentialLocs27 = null;
+    static boolean[] invalidPotentialLocs28 = null;
+    static boolean[] invalidPotentialLocs29 = null;
+    static boolean[] invalidPotentialLocs30 = null;
+    static boolean[] invalidPotentialLocs31 = null;
+    static boolean[] invalidPotentialLocs32 = null;
+    static boolean[] invalidPotentialLocs33 = null;
+    static boolean[] invalidPotentialLocs34 = null;
+    static boolean[] invalidPotentialLocs35 = null;
+    static boolean[] invalidPotentialLocs36 = null;
+    static boolean[] invalidPotentialLocs37 = null;
+    static boolean[] invalidPotentialLocs38 = null;
+    static boolean[] invalidPotentialLocs39 = null;
+    static boolean[] invalidPotentialLocs40 = null;
+    static boolean[] invalidPotentialLocs41 = null;
+    static boolean[] invalidPotentialLocs42 = null;
+    static boolean[] invalidPotentialLocs43 = null;
+    static boolean[] invalidPotentialLocs44 = null;
+    static boolean[] invalidPotentialLocs45 = null;
+    static boolean[] invalidPotentialLocs46 = null;
+    static boolean[] invalidPotentialLocs47 = null;
+    static boolean[] invalidPotentialLocs48 = null;
+    static boolean[] invalidPotentialLocs49 = null;
+    static boolean[] invalidPotentialLocs50 = null;
+    static boolean[] invalidPotentialLocs51 = null;
+    static boolean[] invalidPotentialLocs52 = null;
+    static boolean[] invalidPotentialLocs53 = null;
+    static boolean[] invalidPotentialLocs54 = null;
+    static boolean[] invalidPotentialLocs55 = null;
+    static boolean[] invalidPotentialLocs56 = null;
+    static boolean[] invalidPotentialLocs57 = null;
+    static boolean[] invalidPotentialLocs58 = null;
+    static boolean[] invalidPotentialLocs59 = null;
+    static int initializedInvalidPotentialLoc = -5;
+    static boolean invalidPotentialLocIsInitialized = false;
+
+    public static void initInvalidPotentialLoc(int width, int height){
+        if(invalidPotentialLocIsInitialized){
+            return;
+        }
+        initializedInvalidPotentialLoc += 5;
+        if(initializedInvalidPotentialLoc >= height){
+            invalidPotentialLocIsInitialized = true;
+            return;
+        }
+        switch(initializedInvalidPotentialLoc){
+            case 0:
+                invalidPotentialLocs0 = new boolean[width];
+                invalidPotentialLocs1 = new boolean[width];
+                invalidPotentialLocs2 = new boolean[width];
+                invalidPotentialLocs3 = new boolean[width];
+                invalidPotentialLocs4 = new boolean[width];
+                return;
+            case 5:
+                invalidPotentialLocs5 = new boolean[width];
+                invalidPotentialLocs6 = new boolean[width];
+                invalidPotentialLocs7 = new boolean[width];
+                invalidPotentialLocs8 = new boolean[width];
+                invalidPotentialLocs9 = new boolean[width];
+                return;
+            case 10:
+                invalidPotentialLocs10 = new boolean[width];
+                invalidPotentialLocs11 = new boolean[width];
+                invalidPotentialLocs12 = new boolean[width];
+                invalidPotentialLocs13 = new boolean[width];
+                invalidPotentialLocs14 = new boolean[width];
+                return;
+            case 15:
+                invalidPotentialLocs15 = new boolean[width];
+                invalidPotentialLocs16 = new boolean[width];
+                invalidPotentialLocs17 = new boolean[width];
+                invalidPotentialLocs18 = new boolean[width];
+                invalidPotentialLocs19 = new boolean[width];
+                return;
+            case 20:
+                invalidPotentialLocs20 = new boolean[width];
+                invalidPotentialLocs21 = new boolean[width];
+                invalidPotentialLocs22 = new boolean[width];
+                invalidPotentialLocs23 = new boolean[width];
+                invalidPotentialLocs24 = new boolean[width];
+                return;
+            case 25:
+                invalidPotentialLocs25 = new boolean[width];
+                invalidPotentialLocs26 = new boolean[width];
+                invalidPotentialLocs27 = new boolean[width];
+                invalidPotentialLocs28 = new boolean[width];
+                invalidPotentialLocs29 = new boolean[width];
+                return;
+            case 30:
+                invalidPotentialLocs30 = new boolean[width];
+                invalidPotentialLocs31 = new boolean[width];
+                invalidPotentialLocs32 = new boolean[width];
+                invalidPotentialLocs33 = new boolean[width];
+                invalidPotentialLocs34 = new boolean[width];
+                return;
+            case 35:
+                invalidPotentialLocs35 = new boolean[width];
+                invalidPotentialLocs36 = new boolean[width];
+                invalidPotentialLocs37 = new boolean[width];
+                invalidPotentialLocs38 = new boolean[width];
+                invalidPotentialLocs39 = new boolean[width];
+                return;
+            case 40:
+                invalidPotentialLocs40 = new boolean[width];
+                invalidPotentialLocs41 = new boolean[width];
+                invalidPotentialLocs42 = new boolean[width];
+                invalidPotentialLocs43 = new boolean[width];
+                invalidPotentialLocs44 = new boolean[width];
+                return;
+            case 45:
+                invalidPotentialLocs45 = new boolean[width];
+                invalidPotentialLocs46 = new boolean[width];
+                invalidPotentialLocs47 = new boolean[width];
+                invalidPotentialLocs48 = new boolean[width];
+                invalidPotentialLocs49 = new boolean[width];
+                return;
+            case 50:
+                invalidPotentialLocs50 = new boolean[width];
+                invalidPotentialLocs51 = new boolean[width];
+                invalidPotentialLocs52 = new boolean[width];
+                invalidPotentialLocs53 = new boolean[width];
+                invalidPotentialLocs54 = new boolean[width];
+                return;
+            case 55:
+                invalidPotentialLocs55 = new boolean[width];
+                invalidPotentialLocs56 = new boolean[width];
+                invalidPotentialLocs57 = new boolean[width];
+                invalidPotentialLocs58 = new boolean[width];
+                invalidPotentialLocs59 = new boolean[width];
+                return;
+        }
+    }
+
+    public static void setInvalidPotentialLoc(int x, int y) {
+        switch (x) {
+            case 0:
+                invalidPotentialLocs0[y] = true;
+                break;
+            case 1:
+                invalidPotentialLocs1[y] = true;
+                break;
+            case 2:
+                invalidPotentialLocs2[y] = true;
+                break;
+            case 3:
+                invalidPotentialLocs3[y] = true;
+                break;
+            case 4:
+                invalidPotentialLocs4[y] = true;
+                break;
+            case 5:
+                invalidPotentialLocs5[y] = true;
+                break;
+            case 6:
+                invalidPotentialLocs6[y] = true;
+                break;
+            case 7:
+                invalidPotentialLocs7[y] = true;
+                break;
+            case 8:
+                invalidPotentialLocs8[y] = true;
+                break;
+            case 9:
+                invalidPotentialLocs9[y] = true;
+                break;
+            case 10:
+                invalidPotentialLocs10[y] = true;
+                break;
+            case 11:
+                invalidPotentialLocs11[y] = true;
+                break;
+            case 12:
+                invalidPotentialLocs12[y] = true;
+                break;
+            case 13:
+                invalidPotentialLocs13[y] = true;
+                break;
+            case 14:
+                invalidPotentialLocs14[y] = true;
+                break;
+            case 15:
+                invalidPotentialLocs15[y] = true;
+                break;
+            case 16:
+                invalidPotentialLocs16[y] = true;
+                break;
+            case 17:
+                invalidPotentialLocs17[y] = true;
+                break;
+            case 18:
+                invalidPotentialLocs18[y] = true;
+                break;
+            case 19:
+                invalidPotentialLocs19[y] = true;
+                break;
+            case 20:
+                invalidPotentialLocs20[y] = true;
+                break;
+            case 21:
+                invalidPotentialLocs21[y] = true;
+                break;
+            case 22:
+                invalidPotentialLocs22[y] = true;
+                break;
+            case 23:
+                invalidPotentialLocs23[y] = true;
+                break;
+            case 24:
+                invalidPotentialLocs24[y] = true;
+                break;
+            case 25:
+                invalidPotentialLocs25[y] = true;
+                break;
+            case 26:
+                invalidPotentialLocs26[y] = true;
+                break;
+            case 27:
+                invalidPotentialLocs27[y] = true;
+                break;
+            case 28:
+                invalidPotentialLocs28[y] = true;
+                break;
+            case 29:
+                invalidPotentialLocs29[y] = true;
+                break;
+            case 30:
+                invalidPotentialLocs30[y] = true;
+                break;
+            case 31:
+                invalidPotentialLocs31[y] = true;
+                break;
+            case 32:
+                invalidPotentialLocs32[y] = true;
+                break;
+            case 33:
+                invalidPotentialLocs33[y] = true;
+                break;
+            case 34:
+                invalidPotentialLocs34[y] = true;
+                break;
+            case 35:
+                invalidPotentialLocs35[y] = true;
+                break;
+            case 36:
+                invalidPotentialLocs36[y] = true;
+                break;
+            case 37:
+                invalidPotentialLocs37[y] = true;
+                break;
+            case 38:
+                invalidPotentialLocs38[y] = true;
+                break;
+            case 39:
+                invalidPotentialLocs39[y] = true;
+                break;
+            case 40:
+                invalidPotentialLocs40[y] = true;
+                break;
+            case 41:
+                invalidPotentialLocs41[y] = true;
+                break;
+            case 42:
+                invalidPotentialLocs42[y] = true;
+                break;
+            case 43:
+                invalidPotentialLocs43[y] = true;
+                break;
+            case 44:
+                invalidPotentialLocs44[y] = true;
+                break;
+            case 45:
+                invalidPotentialLocs45[y] = true;
+                break;
+            case 46:
+                invalidPotentialLocs46[y] = true;
+                break;
+            case 47:
+                invalidPotentialLocs47[y] = true;
+                break;
+            case 48:
+                invalidPotentialLocs48[y] = true;
+                break;
+            case 49:
+                invalidPotentialLocs49[y] = true;
+                break;
+            case 50:
+                invalidPotentialLocs50[y] = true;
+                break;
+            case 51:
+                invalidPotentialLocs51[y] = true;
+                break;
+            case 52:
+                invalidPotentialLocs52[y] = true;
+                break;
+            case 53:
+                invalidPotentialLocs53[y] = true;
+                break;
+            case 54:
+                invalidPotentialLocs54[y] = true;
+                break;
+            case 55:
+                invalidPotentialLocs55[y] = true;
+                break;
+            case 56:
+                invalidPotentialLocs56[y] = true;
+                break;
+            case 57:
+                invalidPotentialLocs57[y] = true;
+                break;
+            case 58:
+                invalidPotentialLocs58[y] = true;
+                break;
+            case 59:
+                invalidPotentialLocs59[y] = true;
+                break;
+        }
+    }
+
+
+    public static boolean getInvalidPotentialLoc(int x, int y){
+        switch(x){
+            case 0: return invalidPotentialLocs0[y];
+            case 1: return invalidPotentialLocs1[y];
+            case 2: return invalidPotentialLocs2[y];
+            case 3: return invalidPotentialLocs3[y];
+            case 4: return invalidPotentialLocs4[y];
+            case 5: return invalidPotentialLocs5[y];
+            case 6: return invalidPotentialLocs6[y];
+            case 7: return invalidPotentialLocs7[y];
+            case 8: return invalidPotentialLocs8[y];
+            case 9: return invalidPotentialLocs9[y];
+            case 10: return invalidPotentialLocs10[y];
+            case 11: return invalidPotentialLocs11[y];
+            case 12: return invalidPotentialLocs12[y];
+            case 13: return invalidPotentialLocs13[y];
+            case 14: return invalidPotentialLocs14[y];
+            case 15: return invalidPotentialLocs15[y];
+            case 16: return invalidPotentialLocs16[y];
+            case 17: return invalidPotentialLocs17[y];
+            case 18: return invalidPotentialLocs18[y];
+            case 19: return invalidPotentialLocs19[y];
+            case 20: return invalidPotentialLocs20[y];
+            case 21: return invalidPotentialLocs21[y];
+            case 22: return invalidPotentialLocs22[y];
+            case 23: return invalidPotentialLocs23[y];
+            case 24: return invalidPotentialLocs24[y];
+            case 25: return invalidPotentialLocs25[y];
+            case 26: return invalidPotentialLocs26[y];
+            case 27: return invalidPotentialLocs27[y];
+            case 28: return invalidPotentialLocs28[y];
+            case 29: return invalidPotentialLocs29[y];
+            case 30: return invalidPotentialLocs30[y];
+            case 31: return invalidPotentialLocs31[y];
+            case 32: return invalidPotentialLocs32[y];
+            case 33: return invalidPotentialLocs33[y];
+            case 34: return invalidPotentialLocs34[y];
+            case 35: return invalidPotentialLocs35[y];
+            case 36: return invalidPotentialLocs36[y];
+            case 37: return invalidPotentialLocs37[y];
+            case 38: return invalidPotentialLocs38[y];
+            case 39: return invalidPotentialLocs39[y];
+            case 40: return invalidPotentialLocs40[y];
+            case 41: return invalidPotentialLocs41[y];
+            case 42: return invalidPotentialLocs42[y];
+            case 43: return invalidPotentialLocs43[y];
+            case 44: return invalidPotentialLocs44[y];
+            case 45: return invalidPotentialLocs45[y];
+            case 46: return invalidPotentialLocs46[y];
+            case 47: return invalidPotentialLocs47[y];
+            case 48: return invalidPotentialLocs48[y];
+            case 49: return invalidPotentialLocs49[y];
+            case 50: return invalidPotentialLocs50[y];
+            case 51: return invalidPotentialLocs51[y];
+            case 52: return invalidPotentialLocs52[y];
+            case 53: return invalidPotentialLocs53[y];
+            case 54: return invalidPotentialLocs54[y];
+            case 55: return invalidPotentialLocs55[y];
+            case 56: return invalidPotentialLocs56[y];
+            case 57: return invalidPotentialLocs57[y];
+            case 58: return invalidPotentialLocs58[y];
+            case 59: return invalidPotentialLocs59[y];
+        }
+        return true;
+    }
+
     public static byte getShiftDx(int index){
         switch(index){
             case 0:

@@ -40,17 +40,17 @@ public class RobotPlayer {
                 robot.sharedEndFunction();
                 if (rc.getRoundNum() != currentTurn) {
                     System.out.println("BYTECODE EXCEEDED");
-                    if(rc.getType() == UnitType.SOLDIER) {
+                    if(rc.getType() != UnitType.SPLASHER) {
                         rc.resign();
                     }
 //                    rc.resign();
                 }
 
                 // End early for debugging.
-//                if (currentTurn > 280) {
-//                    System.out.println("Resigning early for debugging!");
-//                    rc.resign();
-//                }
+                if (currentTurn > 700) {
+                    System.out.println("Resigning early for debugging!");
+                    rc.resign();
+                }
             } catch (Exception e) {
                 e.printStackTrace();
 //                rc.resign();

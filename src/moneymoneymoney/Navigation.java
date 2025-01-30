@@ -113,7 +113,7 @@ public class Navigation {
                 if (dist < closestDistToTarget) {
                     closestDistToTarget = dist;
                     closestDir = dir;
-                    Util.addToIndicatorString("CLSR " + dist);
+//                    Util.addToIndicatorString("CLSR " + dist);
                 }
 
                 // Check if wall-following is viable
@@ -140,8 +140,8 @@ public class Navigation {
             }
         }
 
-        Util.addToIndicatorString("BFR: " + bugFollowRight);
-        Util.addToIndicatorString("WD: " + wallDir);
+//        Util.addToIndicatorString("BFR: " + bugFollowRight);
+//        Util.addToIndicatorString("WD: " + wallDir);
 
         if (closestDir != null) {
             //            Direction bestDir = closestDir;
@@ -263,7 +263,7 @@ public class Navigation {
 
     public void goToSmart(MapLocation target, int minDistToSatisfy) throws GameActionException {
         if(lastGoToSmartLoc == null || !target.isWithinDistanceSquared(lastGoToSmartLoc, 8)) {
-            Util.addToIndicatorString("RESETTING FUZZY " + target + ", " + lastGoToSmartLoc);
+//            Util.addToIndicatorString("RESETTING FUZZY " + target + ", " + lastGoToSmartLoc);
             lastGoToSmartLoc = target;
             fuzzyFailed = false;
             if(rc.getLocation().distanceSquaredTo(target) > 36){
@@ -276,7 +276,7 @@ public class Navigation {
         }
 
         if(fuzzyFailed){
-            Util.addToIndicatorString("FZ FAILED");
+//            Util.addToIndicatorString("FZ FAILED");
         }
         if(!fuzzyFailed){
             Direction bestDir = fuzzyNav(target, true);
@@ -285,7 +285,7 @@ public class Navigation {
             } else {
                 Util.tryMove(bestDir);
             }
-            Util.addToIndicatorString("BDR: " + bestDir);
+//            Util.addToIndicatorString("BDR: " + bestDir);
         }
         if(rc.isMovementReady() && fuzzyFailed){
             Direction bestDir = bugNav(target);
@@ -294,7 +294,7 @@ public class Navigation {
             }
         }
         if(fuzzyFailed){
-            Util.addToIndicatorString("FZ FAILED 2");
+//            Util.addToIndicatorString("FZ FAILED 2");
         }
     }
 }

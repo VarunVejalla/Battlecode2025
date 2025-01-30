@@ -13,7 +13,7 @@ public class Soldier extends Bunny {
 
     MapLocation potentialResourceCenterLoc = null;
     boolean[] potentialRCCornersChecked = new boolean[4];
-    boolean[][] invalidPotentialLocs;
+//    boolean[][] invalidPotentialLocs;
     MapLocation currResourceCenterLoc = null;
     Responsibility currResourceResponsibility = Responsibility.UNASSIGNED;
     MapLocation currRuinLoc = null;
@@ -27,7 +27,7 @@ public class Soldier extends Bunny {
     public Soldier(RobotController rc) throws GameActionException {
         super(rc);
         Util.logBytecode("Start of soldier constructor");
-        invalidPotentialLocs = new boolean[rc.getMapWidth() / 3][rc.getMapHeight() / 3];
+//        invalidPotentialLocs = new boolean[rc.getMapWidth()][rc.getMapHeight()];
         Util.logBytecode("Start of soldier constructor pt 2");
         PatternUtils.soldier = this;
         PatternUtils.rc = rc;
@@ -43,6 +43,10 @@ public class Soldier extends Bunny {
     public void run() throws GameActionException {
         super.run(); // Call the shared logic for all bunnies
         Util.logBytecode("Start of soldier run");
+        int numBytecode = Clock.getBytecodeNum();
+        // Initilizes 5 arrays at a time. Takes up ~320 bytecode. Takes a max of 12 rounds to initialize
+        UnrolledConstants.initInvalidPotentialLoc(mapWidth, mapHeight);
+        numBytecode = Clock.getBytecodeNum() - numBytecode;
 
 //        comms.updateSectorInVision(rc.getLocation());
 
@@ -57,6 +61,7 @@ public class Soldier extends Bunny {
         }
 
         double metric = getMetric();
+        Util.addToIndicatorString("M: " + metric);
         if (metric < Constants.RUIN_SEARCHING_THRESHOLD) {
             // we are kamikazes
             if (rc.getLocation().distanceSquaredTo(destination) <= Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION) {
@@ -72,8 +77,6 @@ public class Soldier extends Bunny {
             destination = Util.getRotationalReflection(spawnLoc);
             goingRandom = false;
         }
-
-        Util.logBytecode("AAAAAAAAAAAAAAA");
 
         // 1. If trying to replenish, go do that.
         RobotInfo attackInfo = getAttackTarget();
@@ -364,18 +367,22 @@ public class Soldier extends Bunny {
         if(cornersLeftToCheck == 0){
             PatternUtils.markPotentialRCValid();
             PatternUtils.setPotentialRCAsRC();
+            Util.addToIndicatorString("DC");
             return false;
         }
 
-        int index = Util.getMapInfoIndex(potentialResourceCenterLoc.x - rc.getLocation().x, potentialResourceCenterLoc.y - rc.getLocation().y);
-        long indexBit = (1L << (long)index);
-        Util.log("Index: " + index);
-        Util.log("IndexBit: " + indexBit);
-        Util.log("Potential RC Bitstring: " + potentialRCBitstring);
-        if((potentialRCBitstring & indexBit) == 0){
-            Util.addToIndicatorString("IVD");
-            PatternUtils.markPotentialRCInvalid();
-            return false;
+        if(rc.canSenseLocation(potentialResourceCenterLoc)) {
+            int i = Util.getMapInfoIndex(potentialResourceCenterLoc.x - rc.getLocation().x, potentialResourceCenterLoc.y - rc.getLocation().y);
+            int index = invSpiralOutwardIndices[i];
+            long indexBit = (1L << (long) index);
+//        Util.log("Index: " + index);
+//        Util.log("IndexBit: " + indexBit);
+//        Util.log("Potential RC Bitstring: " + potentialRCBitstring);
+            if ((potentialRCBitstring & indexBit) == 0) {
+                Util.addToIndicatorString("IVD");
+                PatternUtils.markPotentialRCInvalid();
+                return false;
+            }
         }
 
         MapLocation cornerLoc = getPotentialRCCornerLoc(closestUnchecked);
@@ -550,7 +557,7 @@ public class Soldier extends Bunny {
                 int resourceCenterIndex = PatternUtils.getPotentialResourcePatternCenterIndex(potentialRCBitstring);
                 if (resourceCenterIndex != -1) {
                     potentialResourceCenterLoc = nearbyMapInfos[resourceCenterIndex].getMapLocation();
-                    Util.addToIndicatorString("NRC " + currResourceCenterLoc);
+                    Util.addToIndicatorString("NPRC " + potentialResourceCenterLoc);
                 }
                 Util.logBytecode("Got potential resource pattern");
             }
@@ -630,7 +637,7 @@ public class Soldier extends Bunny {
                 int resourceCenterIndex = PatternUtils.getPotentialResourcePatternCenterIndex(potentialRCBitstring);
                 if (resourceCenterIndex != -1) {
                     potentialResourceCenterLoc = nearbyMapInfos[resourceCenterIndex].getMapLocation();
-                    Util.addToIndicatorString("NRC " + currResourceCenterLoc);
+                    Util.addToIndicatorString("NPRC " + potentialResourceCenterLoc);
                 }
                 Util.logBytecode("Got potential resource pattern");
             }
@@ -657,7 +664,7 @@ public class Soldier extends Bunny {
     }
 
     public boolean shouldSearchForResourceCenter() {
-        return rc.getRoundNum() > 100;
+        return rc.getRoundNum() > 100 && UnrolledConstants.invalidPotentialLocIsInitialized;
     }
 
     /**
