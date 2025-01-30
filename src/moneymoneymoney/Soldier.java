@@ -43,18 +43,18 @@ public class Soldier extends Bunny {
     public void run() throws GameActionException {
         super.run(); // Call the shared logic for all bunnies
         Util.logBytecode("Start of soldier run");
-        int numBytecode = Clock.getBytecodeNum();
         // Initilizes 5 arrays at a time. Takes up ~320 bytecode. Takes a max of 12 rounds to initialize
         UnrolledConstants.initInvalidPotentialLoc(mapWidth, mapHeight);
-        numBytecode = Clock.getBytecodeNum() - numBytecode;
-
 //        comms.updateSectorInVision(rc.getLocation());
 
         if (myLoc.isWithinDistanceSquared(rotationalDestination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION)) {
             alreadyVisited = true;
         }
 
+        Util.logBytecode("Before rep logic");
         replenishLogic();
+
+        Util.logBytecode("Rep logic");
 
         if(tryingToReplenish){
             Util.addToIndicatorString("REP");
@@ -71,6 +71,8 @@ public class Soldier extends Bunny {
         } else {
             updateDestinationIfNeeded();
         }
+
+        Util.logBytecode("Updated destination");
 
         // TODO: is this needed?
         if (!alreadyVisited && (rc.getNumberTowers() <= 3 && rc.getRoundNum() < 100)) {
@@ -162,6 +164,9 @@ public class Soldier extends Bunny {
     }
 
     public boolean checkIfIShouldStartReplenishing() throws GameActionException {
+        if(rc.getPaint() > Constants.PAINT_THRESHOLD_TO_REPLENISH){
+            return false;
+        }
         boolean[][] pattern = null;
         MapLocation center = null;
         if(currRuinLoc != null){
@@ -188,7 +193,7 @@ public class Soldier extends Bunny {
                 if(!paintType.isAlly()){
                     needToComplete++;
                 }
-                else if(nearbyMapInfos[index].getPaint().isSecondary() != pattern[x - center.x + 2][y - center.y + 2]){
+                else if(paintType.isSecondary() != pattern[x - center.x + 2][y - center.y + 2]){
                     needToComplete++;
                 }
             }

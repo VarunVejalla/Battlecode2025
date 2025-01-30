@@ -353,7 +353,15 @@ public class PatternUtils {
     }
 
     public static void markPotentialRCInvalid() throws GameActionException {
+        UnrolledConstants.setInvalidPotentialLoc(soldier.potentialResourceCenterLoc.x, soldier.potentialResourceCenterLoc.y - 1);
         UnrolledConstants.setInvalidPotentialLoc(soldier.potentialResourceCenterLoc.x, soldier.potentialResourceCenterLoc.y);
+        UnrolledConstants.setInvalidPotentialLoc(soldier.potentialResourceCenterLoc.x, soldier.potentialResourceCenterLoc.y + 1);
+        UnrolledConstants.setInvalidPotentialLoc(soldier.potentialResourceCenterLoc.x - 1, soldier.potentialResourceCenterLoc.y - 1);
+        UnrolledConstants.setInvalidPotentialLoc(soldier.potentialResourceCenterLoc.x - 1, soldier.potentialResourceCenterLoc.y);
+        UnrolledConstants.setInvalidPotentialLoc(soldier.potentialResourceCenterLoc.x - 1, soldier.potentialResourceCenterLoc.y + 1);
+        UnrolledConstants.setInvalidPotentialLoc(soldier.potentialResourceCenterLoc.x + 1, soldier.potentialResourceCenterLoc.y - 1);
+        UnrolledConstants.setInvalidPotentialLoc(soldier.potentialResourceCenterLoc.x + 1, soldier.potentialResourceCenterLoc.y);
+        UnrolledConstants.setInvalidPotentialLoc(soldier.potentialResourceCenterLoc.x + 1, soldier.potentialResourceCenterLoc.y + 1);
 //        soldier.invalidPotentialLocs[soldier.potentialResourceCenterLoc.x][soldier.potentialResourceCenterLoc.y] = true;
         soldier.potentialResourceCenterLoc = null;
         soldier.potentialRCCornersChecked = new boolean[4];
@@ -377,7 +385,6 @@ public class PatternUtils {
             if (nearbyMapInfos[i] == null || !nearbyMapInfos[i].isPassable()) {
                 validBitstring &= UnrolledConstants.getInvalidSquareForResource(i);
                 if(nearbyMapInfos[i] != null) {
-                    Util.addToIndicatorString("NPSB " + nearbyMapInfos[i].getMapLocation());
                     if(nearbyMapInfos[i].hasRuin() && rc.senseRobotAtLocation(nearbyMapInfos[i].getMapLocation()) == null) {
                         Util.addToIndicatorString("UR " + nearbyMapInfos[i].getMapLocation());
                         validBitstring &= UnrolledConstants.getSquareHasUnfinishedRuin(i);

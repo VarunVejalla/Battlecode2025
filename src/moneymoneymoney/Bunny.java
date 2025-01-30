@@ -265,6 +265,8 @@ public abstract class Bunny extends Robot {
             return;
         }
 
+
+
         if(rc.isActionReady()){
             tryReplenish();
         }
