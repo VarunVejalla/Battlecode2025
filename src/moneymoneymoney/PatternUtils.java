@@ -362,7 +362,6 @@ public class PatternUtils {
         UnrolledConstants.setInvalidPotentialLoc(soldier.potentialResourceCenterLoc.x + 1, soldier.potentialResourceCenterLoc.y - 1);
         UnrolledConstants.setInvalidPotentialLoc(soldier.potentialResourceCenterLoc.x + 1, soldier.potentialResourceCenterLoc.y);
         UnrolledConstants.setInvalidPotentialLoc(soldier.potentialResourceCenterLoc.x + 1, soldier.potentialResourceCenterLoc.y + 1);
-//        soldier.invalidPotentialLocs[soldier.potentialResourceCenterLoc.x][soldier.potentialResourceCenterLoc.y] = true;
         soldier.potentialResourceCenterLoc = null;
         soldier.potentialRCCornersChecked = new boolean[4];
     }
@@ -409,7 +408,6 @@ public class PatternUtils {
                     validBitstring &= UnrolledConstants.getInvalidSquareForResource(i);
                 }
 
-//                if(soldier.invalidPotentialLocs[x][y]){
                 if(x <= 2 || y <= 2 || x >= soldier.mapWidth - 3 || y >= soldier.mapHeight - 3 || UnrolledConstants.getInvalidPotentialLoc(x, y)){
                     int index = soldier.invSpiralOutwardIndices[i];
                     long invalidBit = ~(1L << (long)index);

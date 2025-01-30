@@ -41,7 +41,7 @@ public class RobotPlayer {
                 if (rc.getRoundNum() != currentTurn) {
                     System.out.println("BYTECODE EXCEEDED");
                     if(rc.getType() != UnitType.SPLASHER) {
-                        rc.resign();
+//                        rc.resign();
                     }
 //                    rc.resign();
                 }
