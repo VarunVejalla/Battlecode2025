@@ -1,4 +1,4 @@
-package moneymoneymoney;
+package defense;
 
 import battlecode.common.*;
 
@@ -33,7 +33,6 @@ enum SymmetryType {
 public abstract class Bunny extends Robot {
     final MapLocation noRuinLoc = new MapLocation(-1, -1);
     MapLocation[] knownRuinsBySector = new MapLocation[144];
-    boolean[] knownRuinsBySectorMarkedDefense = new boolean[144];
     MapLocation[] knownAlliedTowerLocs = new MapLocation[15];
     int[] knownAlliedPaintCounts = new int[15];
     MapLocation replenishDestination;
@@ -43,15 +42,14 @@ public abstract class Bunny extends Robot {
     RobotInfo[] nearbyFriendlies;
     RobotInfo[] nearbyOpponents;
     boolean tryingToReplenish = false;
+    BunnyComms comms = new BunnyComms(rc, this);
+    MapLocation prevUpdateLoc;
     boolean symmetryUpdate = false;
     SymmetryType[] possibleSymmetries = {SymmetryType.HORIZONTAL, SymmetryType.VERTICAL, SymmetryType.ROTATIONAL};
     boolean goingRandom = false;
-    BunnyComms comms = new BunnyComms(rc, this);
-    MapLocation markDefenseTowerLoc = null;
 
     public Bunny(RobotController rc) throws GameActionException {
         super(rc);
-        Util.logBytecode("Start of bunny constructor");
         MarkingUtils.bunny = this;
         MarkingUtils.rc = rc;
         destination = Util.getRandomMapLocation();
@@ -60,67 +58,9 @@ public abstract class Bunny extends Robot {
 
     public void run() throws GameActionException {
         super.run();
-        Util.logBytecode("Start of bunny run");
         // Comms is run inside of scan surroundings (and nearest allied paint tower, which is called in surroundings)!
         scanSurroundings();
-        Util.logBytecode("Scanned surroundings");
         checkForUpgrades();
-        Util.logBytecode("Checked for upgrades");
-        markDefenseTowers();
-        if(markDefenseTowerLoc != null){
-            Util.addToIndicatorString("MK " + markDefenseTowerLoc);
-            nav.goToSmart(markDefenseTowerLoc, 0);
-            scanNearby();
-        }
-    }
-
-    public void markDefenseTowers() throws GameActionException {
-        if(markDefenseTowerLoc != null){
-            int sectorIdx = comms.getSectorIndex(markDefenseTowerLoc);
-            if(knownRuinsBySectorMarkedDefense[sectorIdx]){
-                markDefenseTowerLoc = null;
-            }
-        }
-        if(markDefenseTowerLoc == null) {
-            for (RobotInfo info : nearbyFriendlies) {
-                if (info.getType().isTowerType()) {
-                    if (info.getHealth() < Constants.HEALTH_THRESHOLD_TO_CONSTRUCT_DEFENSE && rc.getRoundNum() > Constants.DEFENSE_START_SPAWNING_ROUND) {
-                        int sectorIdx = comms.getSectorIndex(info.getLocation());
-                        if (knownRuinsBySectorMarkedDefense[sectorIdx]) {
-                            continue;
-                        }
-                        markDefenseTowerLoc = info.getLocation();
-                        break;
-                    }
-                }
-            }
-        }
-        if(markDefenseTowerLoc != null) {
-            tryMarkDefenseTowerLoc();
-        }
-    }
-
-    public void tryMarkDefenseTowerLoc() throws GameActionException {
-        MapLocation loc = new MapLocation(markDefenseTowerLoc.x - 1, markDefenseTowerLoc.y - 1);
-        if (rc.canMark(loc)){
-            rc.mark(loc, true);
-            return;
-        }
-        loc = new MapLocation(markDefenseTowerLoc.x - 1, markDefenseTowerLoc.y + 1);
-        if (rc.canMark(loc)){
-            rc.mark(loc, true);
-            return;
-        }
-        loc = new MapLocation(markDefenseTowerLoc.x + 1, markDefenseTowerLoc.y - 1);
-        if (rc.canMark(loc)){
-            rc.mark(loc, true);
-            return;
-        }
-        loc = new MapLocation(markDefenseTowerLoc.x + 1, markDefenseTowerLoc.y + 1);
-        if (rc.canMark(loc)){
-            rc.mark(loc, true);
-            return;
-        }
     }
 
     public void checkForUpgrades() throws GameActionException {
@@ -148,17 +88,52 @@ public abstract class Bunny extends Robot {
         }
     }
 
+    public boolean canMove() {
+        if(comms.waitingForMap || comms.waitingForMap2) {
+           Util.addToIndicatorString("Waiting for a map");
+        }
+        return rc.isMovementReady() && !comms.waitingForMap && !comms.waitingForMap2;
+    }
+
+    public int getBestSector() throws GameActionException {
+        int bestScore = 0;
+        int bestSector = -1;
+        int[] neighborSectorIndexes = comms.getSectorAndNeighbors(myLoc, 1);
+        int sectorScore;
+
+        for (int neighorSectorIndex : neighborSectorIndexes) {
+            if(neighorSectorIndex == comms.getSectorIndex(myLoc)){
+                continue;
+            }
+            sectorScore = evaluateSector(comms.myWorld[neighorSectorIndex]);
+            if (sectorScore > bestScore) {
+                bestScore = sectorScore;
+                bestSector = neighorSectorIndex;
+            }
+        }
+        return bestSector;
+    }
+
+    /**
+     * Evalute the sectors that are neighboring your current sector and move towards the best one.
+     */
+    public void macroMove(int dist_to_best_sector) throws GameActionException {
+        int bestSector = getBestSector();
+        if(bestSector != -1) {
+            // Go to the center of that sector.
+            nav.goToBug(comms.getSectorCenter(bestSector), dist_to_best_sector);
+        } else {
+            // Goes to random destination
+            nav.goToBug(destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
+            // Go towards the center
+        }
+    }
+
     /**
      * Evalute the encoded information about each sector depending on the specific Bunny implementation.
      * Returns an int score. Higher scores are considered better.
      */
     public abstract int evaluateSector(int encodedSector) throws GameActionException;
-
-    public void scanNearby() throws GameActionException {
-        nearbyMapInfos = Util.getFilledInMapInfo(rc.senseNearbyMapInfos());
-        nearbyFriendlies = rc.senseNearbyRobots(-1, rc.getTeam());
-        nearbyOpponents = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
-    }
 
     /**
      * Scan stuff around you (this method is executed at the beginning of every
@@ -166,66 +141,49 @@ public abstract class Bunny extends Robot {
      */
     // 8k bytecode
     public void scanSurroundings() throws GameActionException {
-        // 1.7k bytecode when near edge, 400 bytecode when not
-        scanNearby();
+        // 300 bytecode
+        nearbyMapInfos = Util.getFilledInMapInfo(rc.senseNearbyMapInfos());
+        nearbyFriendlies = rc.senseNearbyRobots(-1, rc.getTeam());
+        nearbyOpponents = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
 
         // COMMS IS HERE
         // Find sector that is fully enclosed and update bunny world.
         // 2.2k bytecode
-//        comms.updateSectorInVision(rc.getLocation());
+        comms.updateSectorInVision(rc.getLocation());
 
         // If you requested a map, wait for the tower to send it.
         // 2k bytecode
-//        if(comms.waitingForMap) {
-//            comms.processMap();
-//        } else if (comms.waitingForMap2) {
-//            comms.processMap2();
-//        }
+        if(comms.waitingForMap) {
+            comms.processMap();
+        } else if (comms.waitingForMap2) {
+            comms.processMap2();
+        }
 
         // Updates both nearest allied paint tower and nearest allied tower.
         // 1.7k bytecode
         updateKnownTowers();
         // 200 bytecode
         setNearestAlliedTowers();
-        // Faster now I think - 2k bytecode first time around
+        // Faster now I think
         updateKnownRuinsAndSymmetries();
     }
 
     public void updateKnownRuinsAndSymmetries() throws GameActionException {
-        MapLocation myLoc = rc.getLocation();
-        MapLocation[] nearbyRuins = rc.senseNearbyRuins(-1);
-        for(MapLocation infoLoc : nearbyRuins){
+        Direction lastMoveDir = null;
+        if(prevUpdateLoc != null){
+            lastMoveDir = prevUpdateLoc.directionTo(rc.getLocation());
+        }
+        int[] indices = Util.getNewVisionIndicesAfterMove(lastMoveDir);
+        for(int idx : indices) {
+            MapInfo info = nearbyMapInfos[idx];
+            if(info == null || !info.hasRuin()){
+                continue;
+            }
+            MapLocation infoLoc = info.getMapLocation();
             // There can only be one ruin per sector index.
-            int sectorIdx = Util.getSectorIndex(infoLoc);
+            int sectorIdx = comms.getSectorIndex(infoLoc);
             if(knownRuinsBySector[sectorIdx] == null){
                 knownRuinsBySector[sectorIdx] = infoLoc;
-            }
-            // If marked on the diagonal w/ a secondary, that means it's marked to be a defense tower.
-            if(!knownRuinsBySectorMarkedDefense[sectorIdx]){
-                int index = Util.getMapInfoIndex(infoLoc.x - 1 - myLoc.x, infoLoc.y - 1 - myLoc.y);
-                if(index != -1) {
-                    if(nearbyMapInfos[index].getMark() == PaintType.ALLY_SECONDARY){
-                        knownRuinsBySectorMarkedDefense[sectorIdx] = true;
-                    };
-                }
-                index = Util.getMapInfoIndex(infoLoc.x - 1 - myLoc.x, infoLoc.y + 1 - myLoc.y);
-                if(index != -1) {
-                    if(nearbyMapInfos[index].getMark() == PaintType.ALLY_SECONDARY){
-                        knownRuinsBySectorMarkedDefense[sectorIdx] = true;
-                    };
-                }
-                index = Util.getMapInfoIndex(infoLoc.x + 1 - myLoc.x, infoLoc.y - 1 - myLoc.y);
-                if(index != -1) {
-                    if(nearbyMapInfos[index].getMark() == PaintType.ALLY_SECONDARY){
-                        knownRuinsBySectorMarkedDefense[sectorIdx] = true;
-                    };
-                }
-                index = Util.getMapInfoIndex(infoLoc.x + 1 - myLoc.x, infoLoc.y + 1 - myLoc.y);
-                if(index != -1) {
-                    if(nearbyMapInfos[index].getMark() == PaintType.ALLY_SECONDARY){
-                        knownRuinsBySectorMarkedDefense[sectorIdx] = true;
-                    };
-                }
             }
 
             if(possibleSymmetries.length > 1) {
@@ -235,7 +193,7 @@ public abstract class Bunny extends Robot {
                         continue;
                     }
                     MapLocation symmetryLoc = Util.applySymmetry(infoLoc, symmetry);
-                    int symmetrySectorIdx = Util.getSectorIndex(symmetryLoc);
+                    int symmetrySectorIdx = comms.getSectorIndex(symmetryLoc);
                     if(knownRuinsBySector[symmetrySectorIdx] == null){
                         continue;
                     }
@@ -249,7 +207,7 @@ public abstract class Bunny extends Robot {
         }
 
         // If there's no ruin at all in the sector, set it to (-1, -1). Check if this can also eliminate any symmetries.
-        int fullyEnclosedSectorID = Util.getFullyEnclosedSectorID(rc.getLocation());
+        int fullyEnclosedSectorID = comms.getFullyEnclosedSectorID(rc.getLocation());
         if(fullyEnclosedSectorID != -1 && knownRuinsBySector[fullyEnclosedSectorID] == null){
             knownRuinsBySector[fullyEnclosedSectorID] = noRuinLoc;
 
@@ -260,7 +218,7 @@ public abstract class Bunny extends Robot {
                         continue;
                     }
                     MapLocation symmetryLoc = Util.applySymmetry(rc.getLocation(), symmetry);
-                    int symmetrySectorIdx = Util.getSectorIndex(symmetryLoc);
+                    int symmetrySectorIdx = comms.getSectorIndex(symmetryLoc);
                     if(knownRuinsBySector[symmetrySectorIdx] == null){
                         continue;
                     }
@@ -272,6 +230,7 @@ public abstract class Bunny extends Robot {
                 }
             }
         }
+        prevUpdateLoc = rc.getLocation();
     }
 
     public void updateKnownTowers() throws GameActionException {
@@ -298,6 +257,8 @@ public abstract class Bunny extends Robot {
             }
 
             MapLocation currAlliedTowerLocation = bot.getLocation();
+
+            comms.sendMessages(bot);
 
             boolean alreadyIn = false;
             int nullIdx = -1;
@@ -350,8 +311,6 @@ public abstract class Bunny extends Robot {
         if(!tryingToReplenish){
             return;
         }
-
-
 
         if(rc.isActionReady()){
             tryReplenish();
@@ -484,47 +443,6 @@ public abstract class Bunny extends Robot {
 
         return new MapLocation(enemyPaintX, enemyPaintY);
     }
-
-    public double getChargeAngle() throws GameActionException {
-        double charge_x = 0;
-        double charge_y = 0;
-        double curr_delta;
-        double distance_squared;
-        UnitType myType = rc.getType();
-        for (RobotInfo friend : rc.senseNearbyRobots(-1, myTeam)) {
-            if (friend.getType() != myType) {
-                continue;
-            }
-
-            distance_squared = friend.getLocation().distanceSquaredTo(rc.getLocation());
-            curr_delta = friend.getLocation().x-rc.getLocation().x;
-            charge_x += curr_delta/distance_squared;
-            curr_delta = friend.getLocation().y-rc.getLocation().y;
-            charge_y += curr_delta/distance_squared;
-        }
-
-        boolean zero_x = -0.01 < charge_x && charge_x < 0.01;
-        boolean zero_y = -0.01 < charge_y && charge_y < 0.01;
-        if (zero_x && zero_y) {
-            return -1;
-        } else if (zero_x) {
-            // this will be either pi/2 or 3pi/2
-            if (charge_y > 0) {
-                return Math.PI/2;
-            } else {
-                return 3*Math.PI/2;
-            }
-        }
-
-        double angle = Math.atan2(charge_y, charge_x); // adding pi to make it
-        if (angle < 0) {
-            return angle + 2*Math.PI;
-        }
-        return angle;
-
-    }
-
-
 
     public void adjustDestination() throws GameActionException {
         if (goingRandom) {
