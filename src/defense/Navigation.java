@@ -23,6 +23,7 @@ public class Navigation {
     MapLocation[] recentlyVisited = new MapLocation[10];
     int recentlyVisitedIdx = 0;
     boolean bugFollowRight = true; // TODO: Figure out how to make this a smart decision.
+    boolean bugDirectionDecided = false;
     boolean fuzzyFailed = false;
     MapLocation lastGoToSmartLoc = null;
 
@@ -60,6 +61,7 @@ public class Navigation {
         lastWallFollowed = null;
         lastDirectionMoved = null;
         roundsSinceClosestDistReset = 0;
+        bugDirectionDecided = false;
     }
 
     public int getPaintLost(MapInfo newLocInfo, int numFriendlyRobots) {
@@ -81,8 +83,6 @@ public class Navigation {
         }
         roundsSinceClosestDistReset++;
 
-        Direction closestDir = null;
-        Direction wallDir = null;
         Direction dir = null;
 
         if (lastWallFollowed != null) {
@@ -109,17 +109,44 @@ public class Navigation {
             return Direction.CENTER;
         }
 
+        Direction closestDir = null;
+        Direction closestDirAmongOptions = null;
+        int closestDirAmongOptionsDist = Integer.MAX_VALUE;
+        for (Direction tryDir : Direction.allDirections()) {
+            if(tryDir == Direction.CENTER){
+                continue;
+            }
+            MapLocation newLoc = rc.adjacentLocation(tryDir);
+            if (rc.canSenseLocation(newLoc) && rc.canMove(tryDir) && getPaintLost(rc.senseMapInfo(newLoc), rc.senseNearbyRobots(newLoc, 2, robot.myTeam).length) < rc.getPaint()) {
+                // If we can get closer to the target than we've ever been before, do that.
+                int dist = newLoc.distanceSquaredTo(target);
+                if(dist < closestDirAmongOptionsDist){
+                    closestDirAmongOptionsDist = dist;
+                    closestDirAmongOptions = tryDir;
+                }
+                if (dist < closestDistToTarget) {
+                    closestDistToTarget = dist;
+                    closestDir = tryDir;
+                    Util.addToIndicatorString("CLSR " + dist);
+                }
+            }
+        }
+        if(closestDir != null){
+            return closestDir;
+        }
+
+        if(!bugDirectionDecided && closestDirAmongOptions != null){
+            Direction dirToTarget = rc.getLocation().directionTo(target);
+            int distanceLeft = Util.directionDistanceLeft(dirToTarget, closestDirAmongOptions);
+            int distanceRight = Util.directionDistanceRight(dirToTarget, closestDirAmongOptions);
+            bugFollowRight = distanceRight < distanceLeft;
+            bugDirectionDecided = true;
+        }
+
+        Direction wallDir = null;
         for (int i = 0; i < 8; i++) {
             MapLocation newLoc = rc.adjacentLocation(dir);
             if (rc.canSenseLocation(newLoc) && rc.canMove(dir) && getPaintLost(rc.senseMapInfo(newLoc), rc.senseNearbyRobots(newLoc, 2, robot.myTeam).length) < rc.getPaint()) {
-                // If we can get closer to the target than we've ever been before, do that.
-                int dist = newLoc.distanceSquaredTo(target);
-                if (dist < closestDistToTarget) {
-                    closestDistToTarget = dist;
-                    closestDir = dir;
-                    Util.addToIndicatorString("CLSR " + dist);
-                }
-
                 // Check if wall-following is viable
                 if (wallDir == null) {
                     wallDir = dir;
@@ -266,6 +293,9 @@ public class Navigation {
     }
 
     public void goToSmart(MapLocation target, int minDistToSatisfy) throws GameActionException {
+        if(!target.equals(prevTarget)){
+            resetBugNav();
+        }
         if(lastGoToSmartLoc == null || !target.isWithinDistanceSquared(lastGoToSmartLoc, 8)) {
             Util.addToIndicatorString("RESETTING FUZZY " + target + ", " + lastGoToSmartLoc);
             lastGoToSmartLoc = target;

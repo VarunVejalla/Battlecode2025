@@ -20,6 +20,30 @@ public class Util {
         return false;
     }
 
+    public static int directionDistanceLeft(Direction dir1, Direction dir2){
+        if(dir1 == Direction.CENTER || dir2 == Direction.CENTER){
+            return -1;
+        }
+        int count = 0;
+        while(dir1 != dir2){
+            dir1 = dir1.rotateLeft();
+            count++;
+        }
+        return count;
+    }
+
+    public static int directionDistanceRight(Direction dir1, Direction dir2){
+        if(dir1 == Direction.CENTER || dir2 == Direction.CENTER){
+            return -1;
+        }
+        int count = 0;
+        while(dir1 != dir2){
+            dir1 = dir1.rotateRight();
+            count++;
+        }
+        return count;
+    }
+
     public static MapLocation getRotationalReflection(MapLocation location) {
         double vx = rc.getMapWidth()/2.0 - location.x;
         double vy = rc.getMapHeight()/2.0 - location.y;

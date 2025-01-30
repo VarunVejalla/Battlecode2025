@@ -42,10 +42,10 @@ public class RobotPlayer {
                 }
 
                 // End early for debugging.
-//                if (currentTurn > 30) {
-//                    System.out.println("Resigning early for debugging!");
-//                    rc.resign();
-//                }
+                if (currentTurn > Constants.EARLY_RESIGN_ROUND) {
+                    System.out.println("Resigning early for debugging!");
+                    rc.resign();
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             } finally {
