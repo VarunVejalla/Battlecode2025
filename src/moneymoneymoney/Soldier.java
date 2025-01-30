@@ -368,7 +368,10 @@ public class Soldier extends Bunny {
         }
 
         int index = Util.getMapInfoIndex(potentialResourceCenterLoc.x - rc.getLocation().x, potentialResourceCenterLoc.y - rc.getLocation().y);
-        long indexBit = ~(1L << (long)index);
+        long indexBit = (1L << (long)index);
+        Util.log("Index: " + index);
+        Util.log("IndexBit: " + indexBit);
+        Util.log("Potential RC Bitstring: " + potentialRCBitstring);
         if((potentialRCBitstring & indexBit) == 0){
             Util.addToIndicatorString("IVD");
             PatternUtils.markPotentialRCInvalid();

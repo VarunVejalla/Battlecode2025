@@ -375,6 +375,12 @@ public class PatternUtils {
         for(int i = 0; i < 69; i++) {
             if (nearbyMapInfos[i] == null || !nearbyMapInfos[i].isPassable()) {
                 validBitstring &= UnrolledConstants.getInvalidSquareForResource(i);
+                if(nearbyMapInfos[i] != null) {
+                    Util.addToIndicatorString("NPSB " + nearbyMapInfos[i].getMapLocation());
+//                    if(nearbyMapInfos[i].hasRuin() && rc.senseRobotAtLocation(nearbyMapInfos[i].getMapLocation()) == null) {
+//                        validBitstring &= UnrolledConstants.getSquareHasUnfinishedRuin(i);
+//                    }
+                }
             }
             else {
                 int x = nearbyMapInfos[i].getMapLocation().x;
@@ -409,10 +415,41 @@ public class PatternUtils {
             for(int y = minY; y <= maxY; y++) {
                 if(soldier.invalidPotentialLocs[x][y]){
                     int i = Util.getMapInfoIndex(x * 3 - currLoc.x, y * 3 - currLoc.y);
-                    if(i == -1){
-                        continue;
+                    if(i != -1){
+                        validBitstring &= UnrolledConstants.getPotentialRCAlreadyMarkedInvalid(i);
                     }
-                    validBitstring &= UnrolledConstants.getPotentialRCAlreadyMarkedInvalid(i);
+                    i = Util.getMapInfoIndex(x * 3 + 1 - currLoc.x, y * 3 - currLoc.y);
+                    if(i != -1){
+                        validBitstring &= UnrolledConstants.getPotentialRCAlreadyMarkedInvalid(i);
+                    }
+                    i = Util.getMapInfoIndex(x * 3 + 2 - currLoc.x, y * 3 - currLoc.y);
+                    if(i != -1){
+                        validBitstring &= UnrolledConstants.getPotentialRCAlreadyMarkedInvalid(i);
+                    }
+                    i = Util.getMapInfoIndex(x * 3 - currLoc.x, y * 3 + 1 - currLoc.y);
+                    if(i != -1){
+                        validBitstring &= UnrolledConstants.getPotentialRCAlreadyMarkedInvalid(i);
+                    }
+                    i = Util.getMapInfoIndex(x * 3 + 1 - currLoc.x, y * 3 + 1 - currLoc.y);
+                    if(i != -1){
+                        validBitstring &= UnrolledConstants.getPotentialRCAlreadyMarkedInvalid(i);
+                    }
+                    i = Util.getMapInfoIndex(x * 3 + 2 - currLoc.x, y * 3 + 1- currLoc.y);
+                    if(i != -1){
+                        validBitstring &= UnrolledConstants.getPotentialRCAlreadyMarkedInvalid(i);
+                    }
+                    i = Util.getMapInfoIndex(x * 3 - currLoc.x, y * 3 + 2 - currLoc.y);
+                    if(i != -1){
+                        validBitstring &= UnrolledConstants.getPotentialRCAlreadyMarkedInvalid(i);
+                    }
+                    i = Util.getMapInfoIndex(x * 3 + 1 - currLoc.x, y * 3 + 2 - currLoc.y);
+                    if(i != -1){
+                        validBitstring &= UnrolledConstants.getPotentialRCAlreadyMarkedInvalid(i);
+                    }
+                    i = Util.getMapInfoIndex(x * 3 + 2 - currLoc.x, y * 3 + 2 - currLoc.y);
+                    if(i != -1){
+                        validBitstring &= UnrolledConstants.getPotentialRCAlreadyMarkedInvalid(i);
+                    }
                 }
             }
         }
