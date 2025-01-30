@@ -1,4 +1,4 @@
-package attemptedsplasherimprovements;
+package splasherstuff;
 
 import battlecode.common.Clock;
 import battlecode.common.RobotController;
@@ -36,19 +36,18 @@ public class RobotPlayer {
             try {
                 robot.run();
                 robot.sharedEndFunction();
-                if (rc.getRoundNum() != currentTurn) {
-                    System.out.println("BYTECODE EXCEEDED");
+                if (rc.getRoundNum() != currentTurn && rc.getRoundNum() > spawnedRound + 1) {
+//                    System.out.println("BYTECODE EXCEEDED");
 //                    rc.resign();
                 }
 
                 // End early for debugging.
-//                if (currentTurn > 280) {
+//                if (currentTurn > 30) {
 //                    System.out.println("Resigning early for debugging!");
 //                    rc.resign();
 //                }
             } catch (Exception e) {
                 e.printStackTrace();
-//                rc.resign();
             } finally {
                 Clock.yield();
             }

@@ -1,4 +1,4 @@
-package attemptedsplasherimprovements;
+package splasherstuff;
 
 /**
  * Basic datastructure to hold scan results that will be used to populate comms

@@ -1,4 +1,4 @@
-package attemptedsplasherimprovements;
+package splasherstuff;
 
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
@@ -212,5 +212,4 @@ public class Comms {
             Util.log(Util.getSectorDescription(myWorld[sectorIndex]));
         }
     }
-
 }

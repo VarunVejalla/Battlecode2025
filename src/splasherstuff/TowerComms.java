@@ -1,4 +1,4 @@
-package attemptedsplasherimprovements;
+package splasherstuff;
 
 import battlecode.common.GameActionException;
 import battlecode.common.Message;

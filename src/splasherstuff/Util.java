@@ -1,11 +1,10 @@
-package attemptedsplasherimprovements;
+package splasherstuff;
 
 import battlecode.common.*;
 
 public class Util {
     static RobotController rc;
     static Robot robot;
-
 
     public static int minMovesToReach(MapLocation a, MapLocation b) {
         int dx = a.x - b.x;
@@ -19,17 +18,6 @@ public class Util {
             return true;
         }
         return false;
-    }
-    public static double getAngle(MapLocation a, MapLocation b) {
-        int dx = a.x - b.x;
-        int dy = a.y - b.y;
-        boolean zero_x = -0.01 < dx && dx < 0.01;
-        boolean zero_y = -0.01 < dy && dy < 0.01;
-        if (zero_x && zero_y) {
-            return -5;
-        } else {
-            return Math.atan2(dy, dx);
-        }
     }
 
     public static MapLocation getRotationalReflection(MapLocation location) {
@@ -90,28 +78,16 @@ public class Util {
         }
 
         MapInfo[] filledInMapInfo = new MapInfo[69];
-        int leftOffset = Math.min(rc.getLocation().x, 4);
-        int bottomOffset = Math.min(rc.getLocation().y, 4);
-        int rightOffset = Math.min(rc.getMapWidth() - 1 - rc.getLocation().x, 4);
-        int topOffset = Math.min(rc.getMapHeight() - 1 - rc.getLocation().y, 4);
-        if(leftOffset < 4){
-            rightOffset = 100;
+        MapLocation location;
+        int intendedIndex;
+        for (MapInfo mapInfo : nearbyMapInfo) {
+            // get location of nearbyMapInfo[i]
+            // figure out what index of filledInMapInfo it should go in
+            location = mapInfo.getMapLocation();
+            // need reverse lookup given Shifts.dx and Shifts.dy
+            intendedIndex = getMapInfoIndex(location.x - robot.myLoc.x, location.y - robot.myLoc.y);
+            filledInMapInfo[intendedIndex] = mapInfo;
         }
-        if(rightOffset < 4){
-            leftOffset = 100;
-        }
-        if(bottomOffset < 4){
-            topOffset = 100;
-        }
-        if(topOffset < 4){
-            bottomOffset = 100;
-        }
-        // TODO: Can optimize more by directly filling it in instead of returning an array.
-        byte[] order = ExcessConstants.getFilledInMapInfoOrder(leftOffset, bottomOffset, rightOffset, topOffset);
-        for(int i = 0; i < nearbyMapInfo.length; i++){
-            filledInMapInfo[order[i]] = nearbyMapInfo[i];
-        }
-
         return filledInMapInfo;
     }
 
@@ -505,110 +481,6 @@ public class Util {
                 emptyCount, emptyCountDescription,
                 ruinCondition, ruinConditionDescription
         );
-    }
-
-    /**
-     * Returns the sector index for a given MapLocation.
-     */
-    public static int getSectorIndex(MapLocation loc) {
-        int sectorRows = (rc.getMapWidth() + 4) / 5;
-
-        int col = loc.x / 5;
-        int row = loc.y / 5;
-        return row * sectorRows + col;
-    }
-
-    /**
-     * Decodes the sector data and returns an array of values:
-     * [enemyPaintCount, emptyCount, ruinCondition, staleBit]
-     */
-    public static ScanResult decodeSector(int encodedSector) {
-
-        int ruinCondition = (encodedSector >> 1) & 0b111;
-        int emptyCount = (encodedSector >> 4) & 0b11;
-        int enemyPaintCount = (encodedSector >> 6) & 0b11;
-
-        // Put in a fake sector and a fake round number.
-        return new ScanResult(-1, ruinCondition, enemyPaintCount, emptyCount, -1);
-    }
-
-
-    /**
-     * Returns the index of the sector that is fully contained within a vision radius from center.
-     * Returns -1 if there is no such sector.
-     */
-    public static int getFullyEnclosedSectorID(MapLocation center) {
-        int sectorRows = (rc.getMapWidth() + 4) / 5;
-        int sectorCols = (rc.getMapHeight() + 4) / 5;
-        int sectorCount = sectorCols * sectorRows;
-
-
-        // There is only one sector that could be fully enclosed. It must contain the center.
-        int sectorIndex = getSectorIndex(center);
-        assert sectorIndex < sectorCount;
-        // If center is within radius squared 4 of the sector center, the sector is fully visible, even if the sector is cutoff!
-        if (center.isWithinDistanceSquared(getSectorCenter(sectorIndex), 4)) {
-            return sectorIndex;
-        }
-
-        return -1;
-    }
-
-    /**
-     * Returns the center of a sector given its index.
-     */
-    public static MapLocation getSectorCenter(int sectorIndex) {
-        int sectorRows = (rc.getMapWidth() + 4) / 5;
-        int sectorCols = (rc.getMapHeight() + 4) / 5;
-
-
-        int row = sectorIndex / sectorRows;
-        int col = sectorIndex % sectorRows;
-
-        int centerX = col * 5 + 2; // Center of the 5x5 grid
-        int centerY = row * 5 + 2;
-
-        return new MapLocation(centerX, centerY);
-    }
-
-
-
-    /**
-     * Returns an array containing the index of the sector that contains the given MapLocation
-     * as well as the indices of its neighboring sectors.
-     */
-    public static int[] getSectorAndNeighbors(MapLocation loc, int sectorsAway) {
-        int sectorRows = (rc.getMapWidth() + 4) / 5;
-        int sectorCols = (rc.getMapHeight() + 4) / 5;
-
-        int col = loc.x / 5;
-        int row = loc.y / 5;
-
-        // Precompute bounds to avoid repeated checks
-        int minRow = Math.max(0, row - sectorsAway);
-        int maxRow = Math.min(sectorCols - 1, row + sectorsAway);
-        int minCol = Math.max(0, col - sectorsAway);
-        int maxCol = Math.min(sectorRows - 1, col + sectorsAway);
-
-        // Validate bounds
-        if (maxRow < minRow || maxCol < minCol) {
-            throw new IllegalStateException("Invalid sector bounds");
-        }
-
-        // Calculate the number of valid neighbors
-        int neighborCount = (maxRow - minRow + 1) * (maxCol - minCol + 1);
-
-        int[] neighbors = new int[neighborCount];
-        int index = 0;
-
-        // Iterate only over valid rows and columns
-        for (int r = minRow; r <= maxRow; r++) {
-            for (int c = minCol; c <= maxCol; c++) {
-                neighbors[index++] = r * sectorRows + c;
-            }
-        }
-
-        return neighbors;
     }
 
 }

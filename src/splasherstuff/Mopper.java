@@ -1,4 +1,4 @@
-package attemptedsplasherimprovements;
+package splasherstuff;
 
 import battlecode.common.*;
 
@@ -6,21 +6,14 @@ public class Mopper extends Bunny {
     boolean enemyPaintNearby = false;
     boolean enemyNearby = false;
     RobotInfo[] enemyTowerInfos;
-    BunnyComms comms = new BunnyComms(rc, this);
-
     public Mopper(RobotController rc) throws GameActionException {
         super(rc);
     }
 
     public void run() throws GameActionException {
         super.run();
-        Util.logBytecode("Start of mopper run");
-
-        comms.updateSectorInVision(rc.getLocation());
-        Util.logBytecode("Updated sector");
 
         updateDestinationIfNeeded();
-        Util.logBytecode("Updated destination");
 
         enemyNearby = false;
         enemyPaintNearby = false;
@@ -405,38 +398,5 @@ public class Mopper extends Bunny {
         }
     }
 
-    public int getBestSector() throws GameActionException {
-        int bestScore = 0;
-        int bestSector = -1;
-        int[] neighborSectorIndexes = comms.getSectorAndNeighbors(myLoc, 1);
-        int sectorScore;
-
-        for (int neighorSectorIndex : neighborSectorIndexes) {
-            if(neighorSectorIndex == comms.getSectorIndex(myLoc)){
-                continue;
-            }
-            sectorScore = evaluateSector(comms.myWorld[neighorSectorIndex]);
-            if (sectorScore > bestScore) {
-                bestScore = sectorScore;
-                bestSector = neighorSectorIndex;
-            }
-        }
-        return bestSector;
-    }
-
-    /**
-     * Evalute the sectors that are neighboring your current sector and move towards the best one.
-     */
-    public void macroMove(int dist_to_best_sector) throws GameActionException {
-        int bestSector = getBestSector();
-        if(bestSector != -1) {
-            // Go to the center of that sector.
-            nav.goToBug(comms.getSectorCenter(bestSector), dist_to_best_sector);
-        } else {
-            // Goes to random destination
-            nav.goToBug(destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
-            // Go towards the center
-        }
-    }
 
 }

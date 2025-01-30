@@ -1,4 +1,4 @@
-package attemptedsplasherimprovements;
+package splasherstuff;
 
 import battlecode.common.*;
 
@@ -199,12 +199,10 @@ public class BunnyComms extends Comms {
      */
     public void  updateSectorInVision(MapLocation currectLocation) throws GameActionException {
         int sectorIndex = getFullyEnclosedSectorID(currectLocation);
-        Util.logBytecode("Got id");
 
         // Checking bunny world
         if(sectorIndex != -1) {
             ScanResult sr = scanSector(sectorIndex, rc.getRoundNum());
-            Util.logBytecode("Scanned sector");
 
             int encodedSector = encodeSector(sr);
             assert encodedSector <= 0xFF;
@@ -233,30 +231,36 @@ public class BunnyComms extends Comms {
         int enemyPaintCount = 0;
         int emptyPaintCount = 0;
 
+        MapLocation myLoc = rc.getLocation();
         MapLocation sectorCenter = getSectorCenter(sectorIndex);
 
         // Start from the bottom-left corner of the sector
-        MapInfo[] infos = rc.senseNearbyMapInfos(sectorCenter, 8);
-        for(MapInfo mapInfo : infos) {
-            if (towerType == 0) { // only Check for tower if we have not already found one
-                if (mapInfo.hasRuin()) {
-                    towerType = 1; //set tower type to one if it has a ruin
+        for (int x = sectorCenter.x - 2; x < sectorCenter.x + 3; x++) {
+            for (int y = sectorCenter.y - 2; y < sectorCenter.y + 3; y++) {
+                MapLocation scanLoc = new MapLocation(x, y);
+                if (!rc.canSenseLocation(scanLoc)) {
+                    continue; // Skip out-of-bounds locations
                 }
-                RobotInfo robot = rc.senseRobotAtLocation(mapInfo.getMapLocation());
-                if (robot != null && Util.isTower(robot.type)) {
-                    // Determine tower type based on additional properties
-                    towerType = determineTowerType(robot);
-                }
-            }
+                MapInfo mapInfo = bunny.nearbyMapInfos[Util.getMapInfoIndex(x - myLoc.x, y - myLoc.y)];
 
-            switch(mapInfo.getPaint()){
-                case PaintType.ENEMY_PRIMARY:
-                case PaintType.ENEMY_SECONDARY:
+                if (towerType == 0) { // only Check for tower if we have not already found one
+                    if (mapInfo.hasRuin()) {
+                        towerType = 1; //set tower type to one if it has a ruin
+                    }
+                    if (rc.canSenseRobotAtLocation(scanLoc)) {
+                        RobotInfo robot = rc.senseRobotAtLocation(scanLoc);
+                        if (Util.isTower(robot.type)) {
+                            // Determine tower type based on additional properties
+                            towerType = determineTowerType(robot);
+                        }
+                    }
+                }
+
+                if (mapInfo.getPaint() == PaintType.ENEMY_PRIMARY || mapInfo.getPaint() == PaintType.ENEMY_SECONDARY) {
                     enemyPaintCount++;
-                    break;
-                case PaintType.EMPTY:
+                } else if (mapInfo.getPaint() == PaintType.EMPTY) {
                     emptyPaintCount++;
-                    break;
+                }
             }
         }
 

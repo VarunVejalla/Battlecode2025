@@ -1,4 +1,4 @@
-package attemptedsplasherimprovements;
+package splasherstuff;
 
 import battlecode.common.*;
 
@@ -13,11 +13,16 @@ public class Splasher extends Bunny {
     boolean ruinNearby;
     int[] allowedAttacks;
     int[] lookupResourceCenters;
+    MapLocation[] nearbyRuins = new MapLocation[4];
+    Team[] ruinTypes = new Team[4];
+    int numNearbyRuins;
+
+
 
 
     public Splasher(RobotController rc) throws GameActionException {
         super(rc);
-        Util.logBytecode("Start of splasher constructor");
+//        Util.logBytecode("Start of splasher constructor");
         offlimits = new boolean[rc.getMapWidth()][rc.getMapHeight()];
         SplasherUtils.rc = rc;
         SplasherUtils.splasher = this;
@@ -32,29 +37,23 @@ public class Splasher extends Bunny {
             mode = SplasherMode.BASE;
         }
 
+
+
         updateDestinationIfNeeded();
 
+        MapLocation old = myLoc;
+
         replenishLogic();
+        MapLocation newLoc = myLoc;
 
-        Util.logBytecode("Ran super");
+//        Util.logBytecode("Ran super");
 
-        setAllowedAttacks();
-
-//        if (mode == SplasherMode.BASE) {
-//            updateOffLimits();
-//        }
-
-        Util.logBytecode("Updated off limits");
-
-//        if (rc.getPaint() >= UnitType.SPLASHER.attackCost) {
-//            if (mode == SplasherMode.CLAIMING) {
-//                claimingLogic();
-//            } else {
-                splashAttack();
-//            }
-//        }
-
-        Util.logBytecode("After attacking");
+        if (old == newLoc && rc.getPaint() >= UnitType.SPLASHER.attackCost) {
+            setAllowedAttacks();
+            Util.logBytecode("Updated off limits");
+            splashAttack();
+            Util.logBytecode("After attacking");
+        }
 
         // 1. Replenish or Perform Splash Attack
 //            splashAttack();
@@ -63,7 +62,7 @@ public class Splasher extends Bunny {
 //            MapLocation currLoc = rc.getLocation();
         if (rc.isMovementReady()) {
             moveLogic();
-            Util.logBytecode("Move logic");
+//            Util.logBytecode("Move logic");
         }
 
         MarkingUtils.tryRuinPatternCompletion();
@@ -71,13 +70,22 @@ public class Splasher extends Bunny {
 
         tryReplenish();
 
-        Util.logBytecode("Tried completion");
+//        Util.logBytecode("Tried completion");
     }
 
     public void setAllowedAttacks()  throws GameActionException {
-        allowedAttacks = new int[26];
+
+//        Util.logBytecode("init allowed attacks beginning");
+        allowedAttacks = new int[13];
+
+
         lookupResourceCenters = new int[169];
-        SplasherUtils.initializeInfo(allowedAttacks, lookupResourceCenters, nearbyMapInfos);
+
+//        Util.logBytecode("init allowed attacks end");
+        numNearbyRuins = SplasherUtils.initializeInfo(allowedAttacks, lookupResourceCenters, nearbyMapInfos, nearbyRuins, ruinTypes);
+
+//        Util.logBytecode("init allowed attacks end end");
+
 
     }
 
@@ -218,51 +226,72 @@ public class Splasher extends Bunny {
      */
     // ~4.5k bytecode
     public void splashAttack() throws GameActionException {
-        MapInfo[] actionableTiles = rc.senseNearbyMapInfos(UnitType.SPLASHER.actionRadiusSquared);
+//        MapInfo[] actionableTiles = rc.senseNearbyMapInfos(UnitType.SPLASHER.actionRadiusSquared);
+        int[] scores = new int[13];
+
+        Util.logBytecode("beore updating scores");
+
+
+        SplasherUtils.updateScores(scores, nearbyMapInfos);
+        Util.logBytecode("after updating scores");
 
         MapLocation bestTarget = null;
         int bestScore = 0;
 
-        for (MapInfo tile : actionableTiles) {
-
-            MapLocation targetLocation = tile.getMapLocation();
-            if (!rc.canAttack(targetLocation)) continue;
-
-            if (!SplasherUtils.isValidAttack(targetLocation.x-myLoc.x, targetLocation.y-myLoc.y, true, allowedAttacks, lookupResourceCenters, nearbyMapInfos)) {
-                continue;
-            }
-
-//            // Check if this square fucks w/ any ruin or resource center builds.
-//            if(offlimits[targetLocation.x][targetLocation.y]){
-//                continue;
-//            }
-
-            int[] adjacencyCounts = calculateAdjacencyCounts(targetLocation);
-
-            int emptyCount = adjacencyCounts[0];
-            int enemyCount = adjacencyCounts[1];
-
-            int score = 0;
-            if(emptyCount + enemyCount > 4){
-                score = 10 * emptyCount + 50 * enemyCount;
-            }
-
-//            // Unit at location.
-            // TODO: Update this to check for adjacency to enemy tower.
-            RobotInfo rob= rc.senseRobotAtLocation(targetLocation);
-            if(rob != null && rob.getType().isTowerType() && rob.getTeam() == oppTeam) {
-                score += 10000;
-            }
-
-            if (score > bestScore) {
-                bestScore = score;
-                bestTarget = tile.getMapLocation();
+        for (int i = 0; i < 13; i++) {
+            if (scores[i] > bestScore && scores[i] >= 30) {
+                int dx = SplasherUtils.getAttackXFromIndex(i);
+                int dy = SplasherUtils.getAttackYFromIndex(i);
+                if (SplasherUtils.isValidAttack(dx,dy, allowedAttacks, lookupResourceCenters, nearbyMapInfos)) {
+                    bestScore = scores[i];
+                    bestTarget = myLoc.translate(dx, dy);
+                }
             }
         }
 
+//        for (MapInfo tile : actionableTiles) {
+//
+//            MapLocation targetLocation = tile.getMapLocation();
+//            if (!rc.canAttack(targetLocation)) continue;
+//
+////            Util.logBytecode("checking splish splash");
+//            if (!SplasherUtils.isValidAttack(targetLocation.x-myLoc.x, targetLocation.y-myLoc.y, true, allowedAttacks, lookupResourceCenters, nearbyMapInfos)) {
+////                Util.logBytecode("checking splish splash end");
+//                continue;
+//            }
+////            Util.logBytecode("checking splish splash end");
+//
+////            // Check if this square fucks w/ any ruin or resource center builds.
+////            if(offlimits[targetLocation.x][targetLocation.y]){
+////                continue;
+////            }
+//
+//            int[] adjacencyCounts = calculateAdjacencyCounts(targetLocation);
+//
+//            int emptyCount = adjacencyCounts[0];
+//            int enemyCount = adjacencyCounts[1];
+//
+//            int score = 0;
+//            if(emptyCount + enemyCount > 4){
+//                score = 10 * emptyCount + 50 * enemyCount;
+//            }
+//
+////            // Unit at location.
+//            // TODO: Update this to check for adjacency to enemy tower.
+//            RobotInfo rob= rc.senseRobotAtLocation(targetLocation);
+//            if(rob != null && rob.getType().isTowerType() && rob.getTeam() == oppTeam) {
+//                score += 10000;
+//            }
+//
+//            if (score > bestScore) {
+//                bestScore = score;
+//                bestTarget = tile.getMapLocation();
+//            }
+//        }
+
         if (bestTarget != null && rc.isActionReady()) {
             rc.attack(bestTarget, true);
-            //Util.log("Splasher attacked: " + bestTarget);
+            Util.log("Splasher attacked: " + bestTarget);
         }
     }
 
@@ -450,7 +479,7 @@ public class Splasher extends Bunny {
      * Returns a score evaluating how favorable it would be for this robot to move to this sector.
      */
     public int evaluateSector(int encodedSector) {
-        ScanResult sr = Util.decodeSector(encodedSector);
+//        ScanResult sr = Util.decodeSector(encodedSector);
         int tileScore = 0;
         // Move towards areas with high enemy paint.
 //        if(sr.enemyPaintLevel >= 2) {
@@ -472,8 +501,12 @@ public class Splasher extends Bunny {
      */
     public void moveLogic() throws GameActionException {
         myLoc = rc.getLocation();
+
+//        Util.logBytecode("before adjusting destination");
         adjustDestination();
+//        Util.logBytecode("after adjusting destination");
         nav.goToBug(destination, Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION);
+//        Util.logBytecode("after going bug");
     }
 
 }

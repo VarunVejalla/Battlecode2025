@@ -1,4 +1,4 @@
-package attemptedsplasherimprovements;
+package splasherstuff;
 
 import battlecode.common.*;
 
@@ -44,13 +44,12 @@ public class Robot {
         this.rc = rc;
         Util.rc = rc;
         Util.robot = this;
-        Util.logBytecode("Start of robot constructor");
         myTeam = rc.getTeam();
         oppTeam = rc.getTeam().opponent();
         this.mapWidth = rc.getMapWidth();
         this.mapHeight = rc.getMapHeight();
         this.nav = new Navigation(rc, this);
-        rng = new Random(rc.getID()); // seed the random number generator with the id of the bot
+        rng = new Random(42); // seed the random number generator with the id of the bot
         roundSpawn = rc.getRoundNum();
         this.myLoc = rc.getLocation();
         previousNumTotalChips = rc.getChips();
@@ -61,7 +60,6 @@ public class Robot {
     }
 
     public void run() throws GameActionException {
-        Util.logBytecode("Start of robot run");
         myType = rc.getType();
         indicatorString = "";
         myLoc = rc.getLocation();
