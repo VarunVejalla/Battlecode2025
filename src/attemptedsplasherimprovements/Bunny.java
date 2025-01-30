@@ -1,4 +1,4 @@
-package explorepls;
+package attemptedsplasherimprovements;
 
 import battlecode.common.*;
 
@@ -30,14 +30,6 @@ enum SymmetryType {
     ROTATIONAL
 }
 
-enum DestinationType {
-    REPLENISHING, EXPLORING, RUIN, BLITZING, RANDOM
-}
-
-//enum DestinationType {
-//    REPLENISHING, EXPLORING, RUIN, BLITZING, RANDOM
-//}
-
 public abstract class Bunny extends Robot {
     final MapLocation noRuinLoc = new MapLocation(-1, -1);
     MapLocation[] knownRuinsBySector = new MapLocation[144];
@@ -52,39 +44,29 @@ public abstract class Bunny extends Robot {
     boolean tryingToReplenish = false;
     MapLocation prevUpdateLoc;
     boolean symmetryUpdate = false;
-    SymmetryType[] possibleSymmetries = {SymmetryType.ROTATIONAL, SymmetryType.VERTICAL, SymmetryType.HORIZONTAL}; //
+    SymmetryType[] possibleSymmetries = {SymmetryType.HORIZONTAL, SymmetryType.VERTICAL, SymmetryType.ROTATIONAL};
     boolean goingRandom = false;
     BunnyComms comms = new BunnyComms(rc, this);
-    DestinationType destinationType;
-    boolean[] alreadyBlitzed = new boolean[3];
 
-    //    MapLocation replenishDestination = null;
-    MapLocation exploreDestination;
-    MapLocation currRuinLoc = null;
-    MapLocation[] blitzDestinations = new MapLocation[3];
-    double currentExplorationAngle;
-    MapLocation previousActualDestination;
+    boolean[] exploredSectors = new boolean[144];
+    int lastExploredSectorIndex;
 
     public Bunny(RobotController rc) throws GameActionException {
         super(rc);
+        Util.logBytecode("Start of bunny constructor");
         MarkingUtils.bunny = this;
         MarkingUtils.rc = rc;
-        ExplorationUtils.bunny = this;
-        ExplorationUtils.rc = rc;
-        ExplorationUtils.comms = comms;
-
-//        destination = Util.getRandomMapLocation();
+        destination = Util.getRandomMapLocation();
         goingRandom = true;
     }
 
     public void run() throws GameActionException {
         super.run();
+        Util.logBytecode("Start of bunny run");
         // Comms is run inside of scan surroundings (and nearest allied paint tower, which is called in surroundings)!
         scanSurroundings();
+        Util.logBytecode("Scanned surroundings");
         checkForUpgrades();
-
-        comms.updateExplored(rc.getLocation());
-//        comms.updateSectorInVision(rc.getLocation());
     }
 
     public void checkForUpgrades() throws GameActionException {
@@ -112,15 +94,6 @@ public abstract class Bunny extends Robot {
         }
     }
 
-    public boolean canMove() {
-//        if(comms.waitingForMap || comms.waitingForMap2) {
-//           Util.addToIndicatorString("Waiting for a map");
-//        }
-        return rc.isMovementReady(); // && !comms.waitingForMap && !comms.waitingForMap2;
-    }
-
-
-
     /**
      * Evalute the encoded information about each sector depending on the specific Bunny implementation.
      * Returns an int score. Higher scores are considered better.
@@ -133,10 +106,11 @@ public abstract class Bunny extends Robot {
      */
     // 8k bytecode
     public void scanSurroundings() throws GameActionException {
-        // 300 bytecode
+        // 1.7k bytecode when near edge, 400 bytecode when not
         nearbyMapInfos = Util.getFilledInMapInfo(rc.senseNearbyMapInfos());
         nearbyFriendlies = rc.senseNearbyRobots(-1, rc.getTeam());
         nearbyOpponents = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
+        Util.logBytecode("Nearby shit");
 
         // COMMS IS HERE
         // Find sector that is fully enclosed and update bunny world.
@@ -154,10 +128,13 @@ public abstract class Bunny extends Robot {
         // Updates both nearest allied paint tower and nearest allied tower.
         // 1.7k bytecode
         updateKnownTowers();
+        Util.logBytecode("Updated known towers");
         // 200 bytecode
         setNearestAlliedTowers();
-        // Faster now I think
+        Util.logBytecode("Updated set nearest allied towers");
+        // Faster now I think - 2k bytecode first time around
         updateKnownRuinsAndSymmetries();
+        Util.logBytecode("Updated known ruins and symmetries");
     }
 
     public void updateKnownRuinsAndSymmetries() throws GameActionException {
@@ -249,8 +226,6 @@ public abstract class Bunny extends Robot {
             }
 
             MapLocation currAlliedTowerLocation = bot.getLocation();
-
-//            comms.sendMessages(bot);
 
             boolean alreadyIn = false;
             int nullIdx = -1;
@@ -385,12 +360,7 @@ public abstract class Bunny extends Robot {
     public void updateDestinationIfNeeded() throws GameActionException {
         if (destination == null ||
                 rc.getLocation().distanceSquaredTo(destination) <= Constants.MIN_DIST_TO_SATISFY_RANDOM_DESTINATION) {
-
-//            if (rc.getType() == UnitType.SOLDIER) {
-//                destination = ExplorationUtils.getExplorationTarget();
-//            } else {
-                destination = Util.getRandomMapLocation();
-//            }
+            destination = Util.getRandomMapLocation();
             goingRandom = true;
         }
     }
@@ -462,17 +432,21 @@ public abstract class Bunny extends Robot {
         boolean zero_x = -0.01 < charge_x && charge_x < 0.01;
         boolean zero_y = -0.01 < charge_y && charge_y < 0.01;
         if (zero_x && zero_y) {
-            return -5;
+            return -1;
         } else if (zero_x) {
             // this will be either pi/2 or 3pi/2
             if (charge_y > 0) {
                 return Math.PI/2;
             } else {
-                return -Math.PI/2;
+                return 3*Math.PI/2;
             }
         }
 
-        return Math.atan2(charge_y, charge_x);
+        double angle = Math.atan2(charge_y, charge_x); // adding pi to make it
+        if (angle < 0) {
+            return angle + 2*Math.PI;
+        }
+        return angle;
 
     }
 

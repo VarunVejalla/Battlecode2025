@@ -1,4 +1,4 @@
-package explorepls;
+package attemptedsplasherimprovements;
 
 import battlecode.common.*;
 
@@ -29,12 +29,9 @@ public class BunnyComms extends Comms {
 
     Bunny bunny;
 
-    int[] explored;
-
     public BunnyComms(RobotController rc, Bunny bunny) {
         super(rc);
         this.bunny = bunny;
-        explored = new int[sectorCount];
     }
 
     public void updateBunnyBuffer(ScanResult sr) throws GameActionException {
@@ -197,37 +194,17 @@ public class BunnyComms extends Comms {
         }
     }
 
-    public void updateExplored(MapLocation curLoc) throws GameActionException {
-
-
-        int mySectorIndex = getSectorIndex(curLoc);
-//        int modX = (curLoc.x)%5;
-//        int modY = (curLoc.y)%5;
-//        if (modX == 0 && modY == 0) {
-//            if (curLoc.x-5 >= 0 && curLoc.y-5 >= 0) {
-//                explored[mySectorIndex-1-sectorRows] = Math.max(explored[mySectorIndex-1-sectorRows], 13);
-//            }
-//            if (curLoc.x-5 >= 0) {
-//                explored[mySectorIndex-sectorRows] = Math.max(explored[mySectorIndex-sectorRows], 17);
-//            }
-//        }
-
-        int sectorIndex = getFullyEnclosedSectorID(curLoc);
-
-        if (sectorIndex != -1) {
-            explored[sectorIndex] = 25;
-        }
-    }
-
     /**
      * Given a bunny's current location, updates the bunny's  world accordingly using visible sector.
      */
     public void  updateSectorInVision(MapLocation currectLocation) throws GameActionException {
         int sectorIndex = getFullyEnclosedSectorID(currectLocation);
+        Util.logBytecode("Got id");
 
         // Checking bunny world
         if(sectorIndex != -1) {
             ScanResult sr = scanSector(sectorIndex, rc.getRoundNum());
+            Util.logBytecode("Scanned sector");
 
             int encodedSector = encodeSector(sr);
             assert encodedSector <= 0xFF;
@@ -256,36 +233,30 @@ public class BunnyComms extends Comms {
         int enemyPaintCount = 0;
         int emptyPaintCount = 0;
 
-        MapLocation myLoc = rc.getLocation();
         MapLocation sectorCenter = getSectorCenter(sectorIndex);
 
         // Start from the bottom-left corner of the sector
-        for (int x = sectorCenter.x - 2; x < sectorCenter.x + 3; x++) {
-            for (int y = sectorCenter.y - 2; y < sectorCenter.y + 3; y++) {
-                MapLocation scanLoc = new MapLocation(x, y);
-                if (!rc.canSenseLocation(scanLoc)) {
-                    continue; // Skip out-of-bounds locations
+        MapInfo[] infos = rc.senseNearbyMapInfos(sectorCenter, 8);
+        for(MapInfo mapInfo : infos) {
+            if (towerType == 0) { // only Check for tower if we have not already found one
+                if (mapInfo.hasRuin()) {
+                    towerType = 1; //set tower type to one if it has a ruin
                 }
-                MapInfo mapInfo = bunny.nearbyMapInfos[Util.getMapInfoIndex(x - myLoc.x, y - myLoc.y)];
-
-                if (towerType == 0) { // only Check for tower if we have not already found one
-                    if (mapInfo.hasRuin()) {
-                        towerType = 1; //set tower type to one if it has a ruin
-                    }
-                    if (rc.canSenseRobotAtLocation(scanLoc)) {
-                        RobotInfo robot = rc.senseRobotAtLocation(scanLoc);
-                        if (Util.isTower(robot.type)) {
-                            // Determine tower type based on additional properties
-                            towerType = determineTowerType(robot);
-                        }
-                    }
+                RobotInfo robot = rc.senseRobotAtLocation(mapInfo.getMapLocation());
+                if (robot != null && Util.isTower(robot.type)) {
+                    // Determine tower type based on additional properties
+                    towerType = determineTowerType(robot);
                 }
+            }
 
-                if (mapInfo.getPaint() == PaintType.ENEMY_PRIMARY || mapInfo.getPaint() == PaintType.ENEMY_SECONDARY) {
+            switch(mapInfo.getPaint()){
+                case PaintType.ENEMY_PRIMARY:
+                case PaintType.ENEMY_SECONDARY:
                     enemyPaintCount++;
-                } else if (mapInfo.getPaint() == PaintType.EMPTY) {
+                    break;
+                case PaintType.EMPTY:
                     emptyPaintCount++;
-                }
+                    break;
             }
         }
 

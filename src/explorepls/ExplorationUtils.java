@@ -9,15 +9,37 @@ public class ExplorationUtils {
     static BunnyComms comms;
     static RobotController rc;
 
-    public static MapLocation getExplorationTarget() throws GameActionException {
+
+    public static MapLocation getExplorationTarget(MapLocation previousDestination) throws GameActionException {
         // this returns the center of the sector to explore
         double chargeAngle = bunny.getChargeAngle();
+
+        // chargeAngle is
 
         if (chargeAngle > -4) {
             if (chargeAngle > 0) {
                 chargeAngle -= Math.PI;
             } else {
                 chargeAngle += Math.PI;
+            }
+
+            if (previousDestination != null) {
+                double currAngle = Util.getAngle(previousDestination, bunny.myLoc);
+                double x1 = Math.cos(chargeAngle);
+                double y1 = Math.sin(chargeAngle);
+                double x2 = Math.cos(currAngle);
+                double y2 = Math.sin(currAngle);
+                double newX = x1 + 0.5 * (x2 - x1);
+                double newY = y1 + 0.5 * (y2 - y1);
+
+                chargeAngle = Math.atan2(newY, newX);
+            }
+
+
+        } else {
+            if (previousDestination != null) {
+                // draw line from previous destination to current position and keep that going, and have that acted on by chargeAngle
+                chargeAngle = Util.getAngle(previousDestination, bunny.myLoc);
             }
         }
 
@@ -38,7 +60,7 @@ public class ExplorationUtils {
         int currDistance;
         double currAngleDiff, currAngle;
         MapLocation currTarget;
-        boolean currExplored;
+        int currExplored;
 
         int[] relevantIndices;
         if (sectorCenter.x < 5 || sectorCenter.y < 5  || sectorCenter.x > bunny.mapWidth - 4 || sectorCenter.y > bunny.mapHeight - 4) {
@@ -54,7 +76,7 @@ public class ExplorationUtils {
 
         for (int index : relevantIndices) {
             currExplored = comms.explored[index];
-            if (currExplored) {
+            if (currExplored == 25) {
                 continue;
             }
 
@@ -74,22 +96,30 @@ public class ExplorationUtils {
                 currAngleDiff = 2*Math.PI-currAngleDiff;
             }
 
+//            if (currAngleDiff < angleDiff) {
+//                angleDiff = currAngleDiff;
+//                distance = currDistance;
+//                target = currTarget;
+//            } else if (currAngleDiff == angleDiff && currDistance < distance) {
+//                angleDiff = currAngleDiff;
+//                distance = currDistance;
+//                target = currTarget;
+//            }
+
             if (currDistance < distance) {
                 distance = currDistance;
                 angleDiff = currAngleDiff;
                 target = currTarget;
             } else if (currDistance == distance && currAngleDiff < angleDiff) {
+                angleDiff = currAngleDiff;
                 target = currTarget;
             }
         }
         Util.log("Exploration target: " + target);
         return target;
-
-
-
-
-
     }
+
+
 
 
 
