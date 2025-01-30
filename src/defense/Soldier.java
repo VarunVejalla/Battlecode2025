@@ -178,22 +178,20 @@ public class Soldier extends Bunny {
     }
 
     // Attacking logic.
-
     public RobotInfo getAttackTarget() throws GameActionException {
         // Get location of tower to attack.
         RobotInfo attackInfo = null;
-        int minDist = Integer.MAX_VALUE;
+        int minHealth = Integer.MAX_VALUE;
         for(RobotInfo info : nearbyOpponents){
             if(!Util.isTower(info.getType())){
                 continue;
             }
-            int dist = rc.getLocation().distanceSquaredTo(info.getLocation());
-            if(dist < minDist){
-                minDist = dist;
+            int health = info.getHealth();
+            if(health < minHealth){
+                minHealth = health;
                 attackInfo = info;
             }
         }
-
         return attackInfo;
     }
 

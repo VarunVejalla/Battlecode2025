@@ -146,7 +146,6 @@ public class Tower extends Robot {
                 spawnedSplashers += 1;
             }
 
-
             return true;
         }
         return false;
@@ -242,20 +241,36 @@ public class Tower extends Robot {
     }
 
     /**
-     * Find best enemy bot in action radiues to attack, based on health of bot
+     * Find best enemy bot in action radius to attack, based on health of bot
      */
     public MapLocation findBestAttackTarget() throws GameActionException {
+        MapLocation bestLocRoundsToKill = null;
+        int roundsToKillBest = Integer.MAX_VALUE;
+        MapLocation bestLocFallback = null;
+        int attacksLeftBest = Integer.MIN_VALUE;
         RobotInfo[] bots = rc.senseNearbyRobots(rc.getType().actionRadiusSquared, rc.getTeam().opponent());
-        RobotInfo bestBot = null;
         for (RobotInfo bot : bots) {
-            if (bestBot == null || bot.getHealth() < bestBot.getHealth()) {
-                bestBot = bot;
+            int roundsToKill = (int)Math.ceil((double)bot.getHealth() / rc.getType().attackStrength);
+            int attacksLeft = 0;
+            if(bot.getType().attackCost != 0){
+                attacksLeft = bot.getPaintAmount() / bot.getType().attackCost;
+            }
+            if (attacksLeft <= roundsToKill) {
+                if(attacksLeft > attacksLeftBest) {
+                    attacksLeftBest = attacksLeft;
+                    bestLocFallback = bot.getLocation();
+                }
+            } else {
+                if(roundsToKill < roundsToKillBest) {
+                    bestLocRoundsToKill = bot.getLocation();
+                    roundsToKillBest = roundsToKill;
+                }
             }
         }
-        if (bestBot != null) {
-            return bestBot.getLocation();
+        if(bestLocRoundsToKill != null){
+            return bestLocRoundsToKill;
         }
-        return null;
+        return bestLocFallback;
     }
 
     /**
