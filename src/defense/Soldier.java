@@ -241,7 +241,7 @@ public class Soldier extends Bunny {
             Util.addToIndicatorString("??");
             if(currRuinResponsibility == Responsibility.SELF_RESPONSIBLE){
                 Util.addToIndicatorString("SR");
-                nav.goToSmart(currRuinLoc, 0);
+                nav.goToFuzzy(currRuinLoc, 0);
                 return true;
             }
             // Otherwise, responsibility is still unknown.

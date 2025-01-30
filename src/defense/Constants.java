@@ -21,7 +21,8 @@ public class Constants {
     public static final double RUIN_SEARCHING_THRESHOLD = 40;
     public static final double PATTERN_SEARCHING_THRESHOLD = 40;
     public static final int HEALTH_THRESHOLD_TO_CONSTRUCT_DEFENSE = 250;
-    public static final int DEFENSE_START_SPAWNING_ROUND = 5000;
+    public static final int SPAM_SPAWN_BELOW_HEALTH = 500;
+    public static final int DEFENSE_START_SPAWNING_ROUND = 200;
     public static final int EARLY_RESIGN_ROUND = 3000;
     public static final int DEBUG_BOT_ID = 11746;
 //    public static final int DEBUG_BOT_ID = 0;

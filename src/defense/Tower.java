@@ -46,23 +46,27 @@ public class Tower extends Robot {
             numRoundsLessThanN = 0;
         }
 
-        if (enemiesInVision.length > 0 && !isSaving()) {
-            boolean considerSpawningMopper = false;
+        if (enemiesInVision.length > 0) {
+            Direction closestEnemyDir = null;
+            int closestDist = Integer.MAX_VALUE;
+            int dangerousEnemies = 0;
             for (RobotInfo enemy : enemiesInVision) {
                 if (enemy.getPaintAmount() > 0) {
-                    considerSpawningMopper = true;
-                    break;
+                    dangerousEnemies++;
+                    int dist = rc.getLocation().distanceSquaredTo(enemy.getLocation());
+                    if(dist < closestDist) {
+                        closestDist = dist;
+                        closestEnemyDir = rc.getLocation().directionTo(enemy.getLocation());
+                    }
                 }
             }
 
-            if (considerSpawningMopper && (spawnedMoppers == 0 || (spawnedMoppers == 1 && rc.getHealth() < 700) || (spawnedMoppers == 2 && rc.getHealth() < 300))) {
-                Direction dir = directions[rng.nextInt(directions.length)];
-                MapLocation nextLoc = rc.getLocation().add(dir);
-                tryBuilding(UnitType.MOPPER, nextLoc);
+            if (dangerousEnemies > 0 && (spawnedMoppers == 0 || (spawnedMoppers == 1 && rc.getHealth() < 700) || (spawnedMoppers == 2 && rc.getHealth() < 300))) {
+                tryBuilding(UnitType.MOPPER, rc.getLocation().add(closestEnemyDir));
             }
         }
 
-        if (rc.getRoundNum() < 50 && rc.getNumberTowers() <= 3) {
+        if (rc.getRoundNum() < 50 && rc.getNumberTowers() <= 2) {
             if (numTotalSpawned < 2) {
                 soldierSpawning();
             }
@@ -137,6 +141,9 @@ public class Tower extends Robot {
     }
 
     public boolean isSaving() {
+        if(rc.getHealth() <= Constants.SPAM_SPAWN_BELOW_HEALTH){
+            return false;
+        }
         if (rc.getRoundNum() < 50 && rc.getNumberTowers() <= 3) {
             return true;
         }
@@ -167,15 +174,6 @@ public class Tower extends Robot {
         Direction dir = directions[rng.nextInt(directions.length)];
         MapLocation nextLoc = rc.getLocation().add(dir);
         tryBuilding(UnitType.SOLDIER, nextLoc);
-    }
-
-    public void openingBots() throws GameActionException {
-        Direction dir = directions[rng.nextInt(directions.length)];
-        MapLocation nextLoc = rc.getLocation().add(dir);
-
-        if (rc.canBuildRobot(UnitType.SOLDIER, nextLoc)) {
-            rc.buildRobot(UnitType.SOLDIER, nextLoc);
-        }
     }
 
     public void midGameBots() throws GameActionException {
